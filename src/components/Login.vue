@@ -1,8 +1,10 @@
 <script setup lang="ts">
-const emit = defineEmits(['login'])
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 const handleLogin = () => {
-  emit('login')
+  router.push('/dashboard')
 }
 </script>
 
