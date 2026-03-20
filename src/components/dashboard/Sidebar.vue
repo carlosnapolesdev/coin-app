@@ -16,7 +16,7 @@ const navItems = [
         <span class="material-symbols-outlined">payments</span>
       </div>
       <div>
-        <h1 class="font-bold text-lg leading-tight">FinanceApp</h1>
+        <h1 class="font-bold text-lg leading-tight">CoinFlow</h1>
         <p class="text-xs text-slate-500">Personal Dashboard</p>
       </div>
     </div>

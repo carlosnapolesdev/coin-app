@@ -1,9 +1,18 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import Dashboard from './components/dashboard/Dashboard.vue'
+import Login from './components/Login.vue'
+
+const isLoggedIn = ref(false)
+
+const handleLogin = () => {
+  isLoggedIn.value = true
+}
 </script>
 
 <template>
-  <Dashboard />
+  <Login v-if="!isLoggedIn" @login="handleLogin" />
+  <Dashboard v-else />
 </template>
 
 <style>
