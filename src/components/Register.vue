@@ -1,12 +1,75 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import axios from 'axios'
+import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import TopHeader from './common/TopHeader.vue'
+import api from '../services/api'
 
 const router = useRouter()
 const currentStep = ref(1) // 1: Create Account, 2: Choose Currencies, 3: Choose Categories, 4: Finish
+const isSubmitting = ref(false)
+const isPasswordVisible = ref(false)
+const registrationCompleted = ref(false)
+const submissionError = ref('')
+const form = reactive({
+  fullName: '',
+  email: '',
+  password: '',
+})
+const fieldErrors = reactive<Record<string, string>>({})
+
+const resetFieldErrors = () => {
+  for (const key of Object.keys(fieldErrors)) {
+    delete fieldErrors[key]
+  }
+}
+
+const clearFieldError = (field: 'fullName' | 'email' | 'password') => {
+  delete fieldErrors[field]
+  submissionError.value = ''
+}
+
+const registerAccount = async () => {
+  resetFieldErrors()
+  submissionError.value = ''
+  isSubmitting.value = true
+
+  try {
+    await api.post('/auth/register', {
+      fullName: form.fullName,
+      email: form.email,
+      password: form.password,
+      language: navigator.language,
+    })
+
+    registrationCompleted.value = true
+    currentStep.value = 2
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const responseData = error.response?.data as {
+        message?: string
+        validationErrors?: Record<string, string>
+      } | undefined
+
+      if (responseData?.validationErrors) {
+        Object.assign(fieldErrors, responseData.validationErrors)
+      }
+
+      submissionError.value = responseData?.message ?? 'Unable to create your account right now.'
+      return
+    }
+
+    submissionError.value = 'Unexpected error while creating your account.'
+  } finally {
+    isSubmitting.value = false
+  }
+}
 
 const handleBack = () => {
+  if (isSubmitting.value) {
+    return
+  }
+
   if (currentStep.value > 1) {
     currentStep.value--
   } else {
@@ -14,12 +77,26 @@ const handleBack = () => {
   }
 }
 
-const handleNext = () => {
+const handleNext = async () => {
+  if (currentStep.value === 1) {
+    if (registrationCompleted.value) {
+      currentStep.value = 2
+      return
+    }
+
+    await registerAccount()
+    return
+  }
+
   if (currentStep.value < 4) {
     currentStep.value++
   } else {
     router.push('/dashboard')
   }
+}
+
+const togglePasswordVisibility = () => {
+  isPasswordVisible.value = !isPasswordVisible.value
 }
 </script>
 
@@ -120,7 +197,7 @@ const handleNext = () => {
 
           <section class="px-8 lg:px-16 pb-32 w-full max-w-4xl mx-auto space-y-8">
             <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-8 rounded-2xl shadow-sm max-w-2xl mx-auto lg:mx-0">
-              <form class="space-y-6">
+              <form class="space-y-6" @submit.prevent="handleNext">
                 <!-- Full Name -->
                 <div>
                   <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 uppercase tracking-wide" for="full_name">Full Name</label>
@@ -128,8 +205,9 @@ const handleNext = () => {
                     <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
                       <span class="material-symbols-outlined">badge</span>
                     </div>
-                    <input class="block w-full pl-12 pr-4 py-3.5 bg-slate-50 dark:bg-slate-800 border-none rounded-xl focus:ring-2 focus:ring-primary transition-all placeholder:text-slate-400 text-slate-900 dark:text-slate-100" id="full_name" placeholder="John Doe" type="text"/>
+                    <input v-model.trim="form.fullName" @input="clearFieldError('fullName')" class="block w-full pl-12 pr-4 py-3.5 bg-slate-50 dark:bg-slate-800 border-none rounded-xl focus:ring-2 focus:ring-primary transition-all placeholder:text-slate-400 text-slate-900 dark:text-slate-100" id="full_name" placeholder="John Doe" type="text"/>
                   </div>
+                  <p v-if="fieldErrors.fullName" class="mt-2 text-sm text-red-500">{{ fieldErrors.fullName }}</p>
                 </div>
                 <!-- Email Address -->
                 <div>
@@ -138,8 +216,9 @@ const handleNext = () => {
                     <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
                       <span class="material-symbols-outlined">mail</span>
                     </div>
-                    <input class="block w-full pl-12 pr-4 py-3.5 bg-slate-50 dark:bg-slate-800 border-none rounded-xl focus:ring-2 focus:ring-primary transition-all placeholder:text-slate-400 text-slate-900 dark:text-slate-100" id="email" placeholder="john@example.com" type="email"/>
+                    <input v-model.trim="form.email" @input="clearFieldError('email')" class="block w-full pl-12 pr-4 py-3.5 bg-slate-50 dark:bg-slate-800 border-none rounded-xl focus:ring-2 focus:ring-primary transition-all placeholder:text-slate-400 text-slate-900 dark:text-slate-100" id="email" placeholder="john@example.com" type="email"/>
                   </div>
+                  <p v-if="fieldErrors.email" class="mt-2 text-sm text-red-500">{{ fieldErrors.email }}</p>
                 </div>
                 <!-- Password -->
                 <div>
@@ -148,13 +227,18 @@ const handleNext = () => {
                     <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
                       <span class="material-symbols-outlined">lock</span>
                     </div>
-                    <input class="block w-full pl-12 pr-12 py-3.5 bg-slate-50 dark:bg-slate-800 border-none rounded-xl focus:ring-2 focus:ring-primary transition-all placeholder:text-slate-400 text-slate-900 dark:text-slate-100" id="password" placeholder="••••••••" type="password"/>
-                    <button class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600" type="button">
-                      <span class="material-symbols-outlined">visibility</span>
+                    <input v-model="form.password" @input="clearFieldError('password')" class="block w-full pl-12 pr-12 py-3.5 bg-slate-50 dark:bg-slate-800 border-none rounded-xl focus:ring-2 focus:ring-primary transition-all placeholder:text-slate-400 text-slate-900 dark:text-slate-100" id="password" placeholder="••••••••" :type="isPasswordVisible ? 'text' : 'password'"/>
+                    <button @click="togglePasswordVisibility" class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600" type="button">
+                      <span class="material-symbols-outlined">{{ isPasswordVisible ? 'visibility_off' : 'visibility' }}</span>
                     </button>
                   </div>
                   <p class="mt-3 text-xs text-slate-500 italic">Must be at least 8 characters with a mix of letters and numbers.</p>
+                  <p v-if="fieldErrors.password" class="mt-2 text-sm text-red-500">{{ fieldErrors.password }}</p>
                 </div>
+                <p v-if="submissionError" class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/40 dark:bg-red-950/40 dark:text-red-300">
+                  {{ submissionError }}
+                </p>
+                <button class="hidden" type="submit">Create account</button>
               </form>
             </div>
 
@@ -386,16 +470,16 @@ const handleNext = () => {
           class="fixed bottom-0 right-0 left-0 lg:left-80 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 p-6 z-30"
         >
           <div class="max-w-4xl mx-auto flex items-center justify-between">
-            <button @click="handleBack" class="px-6 py-2 text-slate-500 hover:text-slate-900 dark:hover:text-white font-semibold transition-colors">
+            <button @click="handleBack" :disabled="isSubmitting" class="px-6 py-2 text-slate-500 hover:text-slate-900 dark:hover:text-white font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60">
               Cancel
             </button>
             <div class="flex items-center gap-4">
-              <button @click="handleBack" class="px-8 py-3 border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-bold rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all flex items-center gap-2">
+              <button @click="handleBack" :disabled="isSubmitting" class="px-8 py-3 border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-bold rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all flex items-center gap-2 disabled:cursor-not-allowed disabled:opacity-60">
                 <span class="material-symbols-outlined text-sm">arrow_back</span>
                 {{ currentStep === 1 ? 'Back' : 'Previous' }}
               </button>
-              <button @click="handleNext" class="px-10 py-3 bg-primary text-slate-900 font-bold rounded-xl hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all flex items-center gap-2">
-                Next Step
+              <button @click="handleNext" :disabled="isSubmitting" class="px-10 py-3 bg-primary text-slate-900 font-bold rounded-xl hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all flex items-center gap-2 disabled:cursor-not-allowed disabled:opacity-60">
+                {{ isSubmitting ? 'Creating account...' : currentStep === 1 ? 'Create Account' : 'Next Step' }}
                 <span class="material-symbols-outlined text-sm">arrow_forward</span>
               </button>
             </div>
