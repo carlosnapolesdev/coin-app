@@ -91,7 +91,13 @@ const handleNext = async () => {
   if (currentStep.value < 4) {
     currentStep.value++
   } else {
-    router.push('/dashboard')
+    router.push({
+      path: '/login',
+      query: {
+        email: form.email,
+        registered: '1',
+      },
+    })
   }
 }
 

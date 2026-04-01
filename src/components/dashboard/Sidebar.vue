@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import { useRouter } from 'vue-router'
+
+import { logout, useAuthState } from '../../services/auth'
+
 const navItems = [
   { icon: 'grid_view', label: 'Home', active: true },
   { icon: 'account_balance_wallet', label: 'Accounts', active: false },
@@ -7,6 +11,14 @@ const navItems = [
   { icon: 'bar_chart', label: 'Reports', active: false },
   { icon: 'settings', label: 'Settings', active: false },
 ]
+
+const router = useRouter()
+const authState = useAuthState()
+
+const handleLogout = async () => {
+  logout()
+  await router.replace('/login')
+}
 </script>
 
 <template>
@@ -17,7 +29,7 @@ const navItems = [
       </div>
       <div>
         <h1 class="font-bold text-lg leading-tight">CoinFlow</h1>
-        <p class="text-xs text-slate-500">Personal Dashboard</p>
+        <p class="text-xs text-slate-500">{{ authState.user?.email ?? 'Personal Dashboard' }}</p>
       </div>
     </div>
     
@@ -38,6 +50,13 @@ const navItems = [
       <button class="w-full bg-primary hover:bg-primary/90 text-white font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all">
         <span class="material-symbols-outlined">add</span>
         <span>Add Transaction</span>
+      </button>
+      <button
+        @click="handleLogout"
+        class="mt-3 w-full border border-slate-200 dark:border-zinc-700 text-slate-700 dark:text-slate-200 font-semibold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all hover:bg-slate-50 dark:hover:bg-zinc-800"
+      >
+        <span class="material-symbols-outlined">logout</span>
+        <span>Sign Out</span>
       </button>
     </div>
   </aside>

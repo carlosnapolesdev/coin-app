@@ -1,16 +1,94 @@
 <script setup lang="ts">
+import axios from 'axios'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import TopHeader from './common/TopHeader.vue'
+import { getApiErrorMessage, login } from '../services/auth'
 
 const router = useRouter()
+const route = useRoute()
 
-const handleLogin = () => {
-  router.push('/dashboard')
+const isSubmitting = ref(false)
+const isPasswordVisible = ref(false)
+const errorMessage = ref('')
+const successMessage = ref('')
+const fieldErrors = reactive<Record<string, string>>({})
+const form = reactive({
+  identifier: '',
+  password: '',
+  remember: true,
+})
+
+const identifierLabel = computed(() => {
+  return form.identifier.includes('@') ? 'Email Address' : 'Email or Username'
+})
+
+const clearFieldErrors = () => {
+  for (const key of Object.keys(fieldErrors)) {
+    delete fieldErrors[key]
+  }
+}
+
+const clearError = (field?: 'identifier' | 'password') => {
+  if (field) {
+    delete fieldErrors[field]
+  }
+  errorMessage.value = ''
+}
+
+const handleLogin = async () => {
+  clearFieldErrors()
+  errorMessage.value = ''
+  successMessage.value = ''
+  isSubmitting.value = true
+
+  try {
+    await login(
+      {
+        identifier: form.identifier.trim(),
+        password: form.password,
+      },
+      form.remember,
+    )
+
+    const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : '/dashboard'
+    await router.replace(redirect)
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const responseData = error.response?.data as {
+        message?: string
+        validationErrors?: Record<string, string>
+      } | undefined
+
+      if (responseData?.validationErrors) {
+        Object.assign(fieldErrors, responseData.validationErrors)
+      }
+    }
+
+    errorMessage.value = getApiErrorMessage(error, 'Unable to sign in right now.')
+  } finally {
+    isSubmitting.value = false
+  }
 }
 
 const handleCreateAccount = () => {
   router.push('/register')
 }
+
+const togglePasswordVisibility = () => {
+  isPasswordVisible.value = !isPasswordVisible.value
+}
+
+onMounted(() => {
+  if (typeof route.query.email === 'string') {
+    form.identifier = route.query.email
+  }
+
+  if (route.query.registered === '1') {
+    successMessage.value = 'Account created successfully. Sign in to continue.'
+  }
+})
 </script>
 
 <template>
@@ -54,6 +132,20 @@ const handleCreateAccount = () => {
               <p class="text-slate-500 dark:text-slate-400 mt-2">Please enter your details to sign in</p>
             </div>
 
+            <p
+              v-if="successMessage"
+              class="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-950/40 dark:text-emerald-300"
+            >
+              {{ successMessage }}
+            </p>
+
+            <p
+              v-if="errorMessage"
+              class="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/40 dark:bg-red-950/40 dark:text-red-300"
+            >
+              {{ errorMessage }}
+            </p>
+
             <!-- Social Login -->
             <div class="grid grid-cols-2 gap-4 mb-8">
               <button
@@ -85,17 +177,20 @@ const handleCreateAccount = () => {
             <!-- Login Form -->
             <form class="space-y-5" @submit.prevent="handleLogin">
               <div class="flex flex-col gap-2">
-                <label class="text-sm font-bold text-slate-700 dark:text-slate-300">Email Address</label>
+                <label class="text-sm font-bold text-slate-700 dark:text-slate-300">{{ identifierLabel }}</label>
                 <div class="relative">
                   <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
                     >mail</span
                   >
                   <input
+                    v-model.trim="form.identifier"
+                    @input="clearError('identifier')"
                     class="w-full pl-12 pr-4 py-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-slate-400"
-                    placeholder="name@company.com"
-                    type="email"
+                    placeholder="name@company.com or username"
+                    type="text"
                   />
                 </div>
+                <p v-if="fieldErrors.identifier" class="text-sm text-red-500">{{ fieldErrors.identifier }}</p>
               </div>
 
               <div class="flex flex-col gap-2">
@@ -108,21 +203,26 @@ const handleCreateAccount = () => {
                     >lock</span
                   >
                   <input
+                    v-model="form.password"
+                    @input="clearError('password')"
                     class="w-full pl-12 pr-12 py-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-slate-400"
                     placeholder="••••••••"
-                    type="password"
+                    :type="isPasswordVisible ? 'text' : 'password'"
                   />
                   <button
+                    @click="togglePasswordVisibility"
                     class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                     type="button"
                   >
-                    <span class="material-symbols-outlined">visibility</span>
+                    <span class="material-symbols-outlined">{{ isPasswordVisible ? 'visibility_off' : 'visibility' }}</span>
                   </button>
                 </div>
+                <p v-if="fieldErrors.password" class="text-sm text-red-500">{{ fieldErrors.password }}</p>
               </div>
 
               <div class="flex items-center gap-3 py-1">
                 <input
+                  v-model="form.remember"
                   class="checkbox-custom w-5 h-5 rounded border-slate-300 dark:border-slate-700 text-primary focus:ring-primary bg-white dark:bg-slate-800"
                   id="remember"
                   type="checkbox"
@@ -134,9 +234,10 @@ const handleCreateAccount = () => {
 
               <button
                 class="w-full py-4 bg-primary hover:bg-opacity-90 text-slate-900 font-bold rounded-xl shadow-lg shadow-primary/20 transition-all flex items-center justify-center gap-2 group"
+                :disabled="isSubmitting"
                 type="submit"
               >
-                <span>Sign In</span>
+                <span>{{ isSubmitting ? 'Signing In...' : 'Sign In' }}</span>
                 <span class="material-symbols-outlined text-xl group-hover:translate-x-1 transition-transform"
                   >arrow_forward</span
                 >
