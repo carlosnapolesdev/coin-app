@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import Login from '../components/Login.vue'
 import Register from '../components/Register.vue'
 import Dashboard from '../components/dashboard/Dashboard.vue'
+import CategoriesView from '../components/dashboard/CategoriesView.vue'
 import { initializeAuth, isAuthenticated } from '../services/auth'
 
 const router = createRouter({
@@ -27,6 +28,12 @@ const router = createRouter({
       path: '/dashboard',
       name: 'dashboard',
       component: Dashboard,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/categories',
+      name: 'categories',
+      component: CategoriesView,
       meta: { requiresAuth: true },
     },
   ],

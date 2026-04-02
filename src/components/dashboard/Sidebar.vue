@@ -1,18 +1,19 @@
 <script setup lang="ts">
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 import { logout, useAuthState } from '../../services/auth'
 
 const navItems = [
-  { icon: 'grid_view', label: 'Home', active: true },
-  { icon: 'account_balance_wallet', label: 'Accounts', active: false },
-  { icon: 'swap_horiz', label: 'Transactions', active: false },
-  { icon: 'pie_chart', label: 'Budgets', active: false },
-  { icon: 'bar_chart', label: 'Reports', active: false },
-  { icon: 'settings', label: 'Settings', active: false },
+  { icon: 'grid_view', label: 'Dashboard', routeName: 'dashboard' },
+  { icon: 'category', label: 'Categories', routeName: 'categories' },
+  { icon: 'swap_horiz', label: 'Transactions' },
+  { icon: 'pie_chart', label: 'Budgets' },
+  { icon: 'bar_chart', label: 'Reports' },
+  { icon: 'settings', label: 'Settings' },
 ]
 
 const router = useRouter()
+const route = useRoute()
 const authState = useAuthState()
 
 const handleLogout = async () => {
@@ -34,16 +35,18 @@ const handleLogout = async () => {
     </div>
     
     <nav class="flex-1 px-4 py-4 space-y-1">
-      <a 
+      <component
         v-for="item in navItems" 
         :key="item.label"
-        href="#" 
+        :is="item.routeName ? 'RouterLink' : 'button'"
+        :to="item.routeName ? { name: item.routeName } : undefined"
+        :type="item.routeName ? undefined : 'button'"
         class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
-        :class="item.active ? 'active-nav' : 'hover:bg-slate-50 dark:hover:bg-zinc-800 text-slate-600 dark:text-slate-400'"
+        :class="item.routeName === route.name ? 'active-nav' : 'hover:bg-slate-50 dark:hover:bg-zinc-800 text-slate-600 dark:text-slate-400'"
       >
         <span class="material-symbols-outlined">{{ item.icon }}</span>
         <span class="text-sm font-semibold">{{ item.label }}</span>
-      </a>
+      </component>
     </nav>
     
     <div class="p-4 border-t border-slate-200 dark:border-zinc-800">
