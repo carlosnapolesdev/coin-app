@@ -3,6 +3,7 @@ import axios from 'axios'
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import TopHeader from './common/TopHeader.vue'
+import CurrencyModal from './dashboard/CurrencyModal.vue'
 import api from '../services/api'
 
 const router = useRouter()
@@ -11,6 +12,24 @@ const isSubmitting = ref(false)
 const isPasswordVisible = ref(false)
 const registrationCompleted = ref(false)
 const submissionError = ref('')
+
+// Step 2: Currencies
+const setupAdditionalCurrencies = ref(false)
+const additionalCurrencies = ref<string[]>([])
+const isCurrencyModalOpen = ref(false)
+
+const openCurrencyModal = () => {
+  isCurrencyModalOpen.value = true
+}
+
+const handleCurrencySelect = (currencies: string[]) => {
+  additionalCurrencies.value = currencies
+  isCurrencyModalOpen.value = false
+}
+
+const removeCurrency = (code: string) => {
+  additionalCurrencies.value = additionalCurrencies.value.filter(c => c !== code)
+}
 const form = reactive({
   fullName: '',
   email: '',
@@ -328,28 +347,35 @@ const togglePasswordVisibility = () => {
             <div class="max-w-2xl mx-auto lg:mx-0 text-left">
               <div class="flex items-center gap-3 mb-6">
                 <label class="relative flex items-center cursor-pointer">
-                  <input checked class="w-6 h-6 rounded border-2 border-slate-300 dark:border-slate-700 text-primary focus:ring-primary focus:ring-offset-0 bg-transparent transition-all" type="checkbox"/>
+                  <input v-model="setupAdditionalCurrencies" class="w-6 h-6 rounded border-2 border-slate-300 dark:border-slate-700 text-primary focus:ring-primary focus:ring-offset-0 bg-transparent transition-all" type="checkbox"/>
                   <span class="ml-3 text-lg font-semibold text-slate-800 dark:text-slate-200">Setup additional currencies</span>
                 </label>
               </div>
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <!-- Currency Card 1 -->
-                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-xl flex items-center justify-between group">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4" :class="{ 'opacity-50 pointer-events-none': !setupAdditionalCurrencies }">
+                <!-- Currency Cards -->
+                <div
+                  v-for="currency in additionalCurrencies"
+                  :key="currency"
+                  class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-xl flex items-center justify-between group"
+                >
                   <div class="flex items-center gap-3">
                     <div class="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center text-primary">
                       <span class="material-symbols-outlined">payments</span>
                     </div>
                     <div>
-                      <p class="font-bold text-slate-900 dark:text-white">UYU</p>
-                      <p class="text-xs text-slate-500">Peso Uruguayo</p>
+                      <p class="font-bold text-slate-900 dark:text-white">{{ currency }}</p>
+                      <p class="text-xs text-slate-500">Currency</p>
                     </div>
                   </div>
-                  <button class="text-slate-400 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100">
+                  <button @click="removeCurrency(currency)" class="text-slate-400 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100">
                     <span class="material-symbols-outlined">close</span>
                   </button>
                 </div>
                 <!-- Add Button -->
-                <button class="border-2 border-dashed border-slate-200 dark:border-slate-800 hover:border-primary/50 hover:bg-primary/5 p-5 rounded-xl flex items-center justify-center gap-2 text-slate-400 hover:text-primary transition-all group">
+                <button
+                  @click="openCurrencyModal"
+                  class="border-2 border-dashed border-slate-200 dark:border-slate-800 hover:border-primary/50 hover:bg-primary/5 p-5 rounded-xl flex items-center justify-center gap-2 text-slate-400 hover:text-primary transition-all group"
+                >
                   <span class="material-symbols-outlined group-hover:scale-110 transition-transform">add_circle</span>
                   <span class="font-semibold">Add Currency</span>
                 </button>
@@ -527,5 +553,12 @@ const togglePasswordVisibility = () => {
         <span class="material-symbols-outlined">menu</span>
       </button>
     </div>
+
+    <!-- Currency Modal -->
+    <CurrencyModal
+      :is-open="isCurrencyModalOpen"
+      @close="isCurrencyModalOpen = false"
+      @select="handleCurrencySelect"
+    />
   </div>
 </template>
