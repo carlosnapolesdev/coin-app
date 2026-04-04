@@ -29,7 +29,31 @@ const clearFieldError = (field: 'fullName' | 'email' | 'password') => {
   submissionError.value = ''
 }
 
-const registerAccount = async () => {
+const registerAccount = () => {
+  // Validates form data before proceeding to step 2
+  // Actual API call happens in completeRegistration() after all steps are completed
+  resetFieldErrors()
+
+  // Basic validation
+  if (!form.fullName) {
+    fieldErrors.fullName = 'Full name is required'
+    return false
+  }
+  if (!form.email) {
+    fieldErrors.email = 'Email is required'
+    return false
+  }
+  if (!form.password || form.password.length < 8) {
+    fieldErrors.password = 'Password must be at least 8 characters'
+    return false
+  }
+
+  registrationCompleted.value = true
+  currentStep.value = 2
+  return true
+}
+
+const completeRegistration = async () => {
   resetFieldErrors()
   submissionError.value = ''
   isSubmitting.value = true
@@ -42,8 +66,7 @@ const registerAccount = async () => {
       language: navigator.language,
     })
 
-    registrationCompleted.value = true
-    currentStep.value = 2
+    currentStep.value = 4
   } catch (error) {
     if (axios.isAxiosError(error)) {
       const responseData = error.response?.data as {
@@ -84,20 +107,24 @@ const handleNext = async () => {
       return
     }
 
-    await registerAccount()
+    registerAccount()
     return
   }
 
   if (currentStep.value < 4) {
     currentStep.value++
   } else {
-    router.push({
-      path: '/login',
-      query: {
-        email: form.email,
-        registered: '1',
-      },
-    })
+    // Final step - complete the full registration
+    await completeRegistration()
+    if (!submissionError.value) {
+      router.push({
+        path: '/login',
+        query: {
+          email: form.email,
+          registered: '1',
+        },
+      })
+    }
   }
 }
 
@@ -460,7 +487,7 @@ const togglePasswordVisibility = () => {
               @click="handleNext"
               class="group relative px-12 py-5 bg-primary text-slate-900 font-black text-xl rounded-2xl hover:bg-primary/90 transition-all shadow-xl shadow-primary/30 flex items-center gap-4"
             >
-              Launch Dashboard
+              Create Account
               <span class="material-symbols-outlined group-hover:translate-x-2 transition-transform font-bold">rocket_launch</span>
             </button>
             
@@ -485,7 +512,7 @@ const togglePasswordVisibility = () => {
                 {{ currentStep === 1 ? 'Back' : 'Previous' }}
               </button>
               <button @click="handleNext" :disabled="isSubmitting" class="px-10 py-3 bg-primary text-slate-900 font-bold rounded-xl hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all flex items-center gap-2 disabled:cursor-not-allowed disabled:opacity-60">
-                {{ isSubmitting ? 'Creating account...' : currentStep === 1 ? 'Create Account' : 'Next Step' }}
+                {{ isSubmitting ? 'Creating account...' : 'Next Step' }}
                 <span class="material-symbols-outlined text-sm">arrow_forward</span>
               </button>
             </div>
