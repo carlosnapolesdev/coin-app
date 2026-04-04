@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import axios from 'axios'
-import { reactive, ref } from 'vue'
+import { computed, reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import TopHeader from './common/TopHeader.vue'
 import CurrencyModal from './dashboard/CurrencyModal.vue'
@@ -30,6 +30,72 @@ const handleCurrencySelect = (currencies: string[]) => {
 const removeCurrency = (code: string) => {
   additionalCurrencies.value = additionalCurrencies.value.filter(c => c !== code)
 }
+
+// Step 3: Categories
+type CategoryType = 'EXPENSE' | 'INCOME'
+
+interface Category {
+  id: number
+  name: string
+  type: CategoryType
+  icon: string
+  parentId: number | null
+  children: Category[]
+}
+
+const selectedLanguage = ref('en')
+const categories = ref<Category[]>([])
+const isLoadingCategories = ref(false)
+const categoriesError = ref('')
+const expandedCategories = ref<number[]>([])
+const activeFilter = ref<'EXPENSE' | 'INCOME'>('EXPENSE')
+
+const languages = [
+  { code: 'en', name: 'English' },
+  { code: 'es', name: 'Español' },
+  { code: 'pt', name: 'Português' },
+]
+
+const fetchCategories = async (language: string) => {
+  isLoadingCategories.value = true
+  categoriesError.value = ''
+  try {
+    const response = await api.get<Category[]>('/categories', { params: { language } })
+    categories.value = response.data
+    // Expand only the first category by default
+    expandedCategories.value = response.data.length > 0 ? [response.data[0].id] : []
+  } catch (e) {
+    categoriesError.value = 'Failed to load categories'
+    console.error(e)
+  } finally {
+    isLoadingCategories.value = false
+  }
+}
+
+const toggleExpanded = (categoryId: number) => {
+  if (expandedCategories.value.includes(categoryId)) {
+    expandedCategories.value = expandedCategories.value.filter(id => id !== categoryId)
+  } else {
+    expandedCategories.value.push(categoryId)
+  }
+}
+
+const isExpanded = (categoryId: number) => expandedCategories.value.includes(categoryId)
+
+const handleLanguageChange = (language: string) => {
+  selectedLanguage.value = language
+  fetchCategories(language)
+}
+
+const filteredCategories = computed(() => categories.value.filter(c => c.type === activeFilter.value))
+
+// Load categories when entering step 3
+watch(currentStep, (step) => {
+  if (step === 3 && categories.value.length === 0) {
+    fetchCategories(selectedLanguage.value)
+  }
+}, { immediate: true })
+
 const form = reactive({
   fullName: '',
   email: '',
@@ -398,81 +464,150 @@ const togglePasswordVisibility = () => {
             <div class="max-w-3xl mx-auto lg:mx-0">
               <h2 class="text-4xl font-black text-slate-900 dark:text-white mb-4">Choose Categories</h2>
               <p class="text-lg text-slate-500 dark:text-slate-400 leading-relaxed">
-                CoinFlow can prefill your file with a standard set of categories based on your preferred language.
+                Select your preferred language to load the categories that will be created for your account.
               </p>
             </div>
           </header>
 
           <section class="px-8 lg:px-16 pb-32 w-full max-w-4xl mx-auto space-y-8">
-            <!-- Configuration Section -->
+            <!-- Language Selector -->
             <div class="bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 p-6 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-6 max-w-3xl">
               <div class="flex items-center gap-4">
                 <div class="bg-primary/10 p-3 rounded-xl">
                   <span class="material-symbols-outlined text-primary">translate</span>
                 </div>
                 <div class="text-left">
-                  <p class="font-bold text-slate-900 dark:text-white">Setup categories for my language</p>
-                  <p class="text-sm text-slate-500">Automatically populate common categories</p>
+                  <p class="font-bold text-slate-900 dark:text-white">Select your language</p>
+                  <p class="text-sm text-slate-500">Categories will be created in this language</p>
                 </div>
-                <label class="relative inline-flex items-center cursor-pointer ml-4">
-                  <input checked class="sr-only peer" type="checkbox" value=""/>
-                  <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
-                </label>
               </div>
               <div class="flex flex-col gap-1 min-w-[200px] text-left">
-                <label class="text-xs font-bold text-slate-500 uppercase ml-1">Preset file</label>
+                <label class="text-xs font-bold text-slate-500 uppercase ml-1">Language</label>
                 <div class="relative">
-                  <select class="appearance-none w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 pr-10 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-slate-900 dark:text-white">
-                    <option>English (Standard)</option>
-                    <option>Spanish (Estandar)</option>
-                    <option>French (Standard)</option>
-                    <option>German (Standard)</option>
+                  <select
+                    v-model="selectedLanguage"
+                    @change="handleLanguageChange(selectedLanguage)"
+                    class="appearance-none w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 pr-10 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-slate-900 dark:text-white"
+                  >
+                    <option v-for="lang in languages" :key="lang.code" :value="lang.code">
+                      {{ lang.name }}
+                    </option>
                   </select>
                   <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">unfold_more</span>
                 </div>
               </div>
             </div>
 
-            <!-- Categories Grid -->
-            <div class="flex flex-col gap-6 max-w-3xl">
-              <div class="flex items-center justify-between">
-                <h3 class="text-xl font-bold text-slate-900 dark:text-white">Included Categories</h3>
-                <span class="text-sm font-medium text-primary bg-primary/10 px-3 py-1 rounded-full">8 Categories selected</span>
+            <!-- Categories Table -->
+            <div class="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden max-w-3xl">
+              <!-- Loading State -->
+              <div v-if="isLoadingCategories" class="flex items-center justify-center py-16">
+                <div class="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
               </div>
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <!-- Category Card: Automobile -->
-                <div class="p-5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-primary/50 transition-all bg-white dark:bg-slate-900 text-left">
-                  <div class="flex items-start justify-between mb-4">
-                    <div class="flex items-center gap-3">
-                      <div class="size-10 rounded-lg bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-primary">
-                        <span class="material-symbols-outlined">directions_car</span>
-                      </div>
-                      <h4 class="font-bold text-lg text-slate-900 dark:text-white">Automobile</h4>
-                    </div>
-                    <input checked class="rounded-full w-5 h-5 text-primary border-slate-300 focus:ring-primary/30" type="checkbox"/>
+
+              <!-- Error State -->
+              <div v-else-if="categoriesError" class="flex flex-col items-center justify-center py-16 text-center">
+                <span class="material-symbols-outlined text-red-400 text-4xl mb-2">error</span>
+                <p class="text-red-500 font-medium">{{ categoriesError }}</p>
+                <button @click="fetchCategories(selectedLanguage)" class="mt-4 px-4 py-2 bg-primary text-black text-sm font-bold rounded-lg hover:bg-primary/90">
+                  Retry
+                </button>
+              </div>
+
+              <!-- Categories List -->
+              <div v-else-if="categories.length" class="max-h-[500px] overflow-y-auto">
+                <!-- Header with Filter Toggle -->
+                <div class="px-6 py-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
+                  <div class="inline-flex rounded-2xl bg-white p-1 border border-slate-200 shadow-sm">
+                    <button
+                      type="button"
+                      class="rounded-xl px-5 py-2.5 text-sm font-semibold transition"
+                      :class="activeFilter === 'EXPENSE' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-500 hover:text-slate-900'"
+                      @click="activeFilter = 'EXPENSE'"
+                    >
+                      Expenses
+                    </button>
+                    <button
+                      type="button"
+                      class="rounded-xl px-5 py-2.5 text-sm font-semibold transition"
+                      :class="activeFilter === 'INCOME' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-500 hover:text-slate-900'"
+                      @click="activeFilter = 'INCOME'"
+                    >
+                      Income
+                    </button>
                   </div>
-                  <div class="flex flex-wrap gap-2">
-                    <span class="px-2.5 py-1 rounded-lg bg-slate-50 dark:bg-slate-800 text-xs font-medium text-slate-500">Fuel</span>
-                    <span class="px-2.5 py-1 rounded-lg bg-slate-50 dark:bg-slate-800 text-xs font-medium text-slate-500">Maintenance</span>
-                    <span class="px-2.5 py-1 rounded-lg bg-slate-50 dark:bg-slate-800 text-xs font-medium text-slate-500">Parking</span>
+                  <p class="text-sm text-slate-500">
+                    {{ filteredCategories.length }} result{{ filteredCategories.length !== 1 ? 's' : '' }}
+                  </p>
+                </div>
+
+                <!-- Categories Table -->
+                <div class="divide-y divide-slate-100">
+                  <div v-for="category in filteredCategories" :key="category.id" class="group">
+                    <div class="grid grid-cols-12 gap-4 items-center px-6 py-4 hover:bg-slate-50 transition-colors">
+                      <div class="col-span-10 flex items-center gap-4 min-w-0">
+                        <button
+                          type="button"
+                          class="flex size-8 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-900"
+                          :class="category.children.length === 0 ? 'invisible' : ''"
+                          @click="toggleExpanded(category.id)"
+                        >
+                          <span class="material-symbols-outlined text-xl">
+                            {{ isExpanded(category.id) ? 'expand_more' : 'chevron_right' }}
+                          </span>
+                        </button>
+
+                        <div class="flex size-11 items-center justify-center rounded-2xl" :class="activeFilter === 'EXPENSE' ? 'bg-rose-100' : 'bg-emerald-100'">
+                          <span class="material-symbols-outlined" :class="activeFilter === 'EXPENSE' ? 'text-rose-600' : 'text-emerald-600'">{{ category.icon }}</span>
+                        </div>
+
+                        <div class="min-w-0">
+                          <p class="truncate text-sm font-semibold text-slate-900">{{ category.name }}</p>
+                          <p class="text-xs text-slate-500">{{ category.children.length }} subcategories</p>
+                        </div>
+                      </div>
+
+                      <div class="col-span-2 flex justify-center">
+                        <span
+                          class="rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wide"
+                          :class="activeFilter === 'EXPENSE' ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'"
+                        >
+                          {{ activeFilter === 'EXPENSE' ? 'Expense' : 'Income' }}
+                        </span>
+                      </div>
+                    </div>
+
+                    <!-- Subcategories -->
+                    <div v-if="category.children.length > 0 && isExpanded(category.id)" class="bg-slate-50/80">
+                      <div
+                        v-for="child in category.children"
+                        :key="child.id"
+                        class="grid grid-cols-12 gap-4 items-center px-6 py-3 hover:bg-white transition-colors"
+                      >
+                        <div class="col-span-10 flex items-center gap-4 pl-14">
+                          <span class="size-2 rounded-full bg-slate-300"></span>
+                          <span class="text-sm text-slate-600">{{ child.name }}</span>
+                        </div>
+                        <div class="col-span-2 flex justify-center">
+                          <span
+                            class="rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wide"
+                            :class="activeFilter === 'EXPENSE' ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'"
+                          >
+                            {{ activeFilter === 'EXPENSE' ? 'Expense' : 'Income' }}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <!-- Category Card: Bank Charges -->
-                <div class="p-5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-primary/50 transition-all bg-white dark:bg-slate-900 text-left">
-                  <div class="flex items-start justify-between mb-4">
-                    <div class="flex items-center gap-3">
-                      <div class="size-10 rounded-lg bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-primary">
-                        <span class="material-symbols-outlined">account_balance</span>
-                      </div>
-                      <h4 class="font-bold text-lg text-slate-900 dark:text-white">Bank Charges</h4>
-                    </div>
-                    <input checked class="rounded-full w-5 h-5 text-primary border-slate-300 focus:ring-primary/30" type="checkbox"/>
-                  </div>
-                  <div class="flex flex-wrap gap-2">
-                    <span class="px-2.5 py-1 rounded-lg bg-slate-50 dark:bg-slate-800 text-xs font-medium text-slate-500">Fees</span>
-                    <span class="px-2.5 py-1 rounded-lg bg-slate-50 dark:bg-slate-800 text-xs font-medium text-slate-500">Interest</span>
-                  </div>
+              </div>
+
+              <div v-else class="px-6 py-16 text-center">
+                <div class="mx-auto flex size-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
+                  <span class="material-symbols-outlined">folder_open</span>
                 </div>
+                <h3 class="mt-4 text-lg font-semibold text-slate-900">No categories available</h3>
+                <p class="mt-2 text-sm text-slate-500">Try selecting a different language.</p>
               </div>
             </div>
           </section>
