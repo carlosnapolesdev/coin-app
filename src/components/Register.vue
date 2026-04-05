@@ -83,7 +83,8 @@ const fetchCategories = async (language: string) => {
     const response = await api.get<Category[]>('/categories', { params: { language } })
     categories.value = response.data
     // Expand only the first category by default
-    expandedCategories.value = response.data.length > 0 ? [response.data[0].id] : []
+    const firstCategory = response.data[0]
+    expandedCategories.value = firstCategory ? [firstCategory.id] : []
   } catch (e) {
     categoriesError.value = 'Failed to load categories'
     console.error(e)
