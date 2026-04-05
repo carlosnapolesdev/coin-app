@@ -637,14 +637,7 @@ const togglePasswordVisibility = () => {
                           <span class="size-2 rounded-full bg-slate-300"></span>
                           <span class="text-sm text-slate-600">{{ child.name }}</span>
                         </div>
-                        <div class="col-span-2 flex justify-center">
-                          <span
-                            class="rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wide"
-                            :class="activeFilter === 'EXPENSE' ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'"
-                          >
-                            {{ activeFilter === 'EXPENSE' ? 'Expense' : 'Income' }}
-                          </span>
-                        </div>
+                        <div class="col-span-2"></div>
                       </div>
                     </div>
                   </div>

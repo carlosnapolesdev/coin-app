@@ -1,13 +1,16 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import Sidebar from './Sidebar.vue'
 import CategoryModal from './CategoryModal.vue'
+import api from '../../services/api'
 
 type FlowType = 'expense' | 'income'
 
 type Subcategory = {
   id: number
   name: string
+  type: FlowType
+  icon: string
 }
 
 type Category = {
@@ -22,41 +25,65 @@ type Category = {
 const activeFilter = ref<FlowType>('expense')
 const searchQuery = ref('')
 const isModalOpen = ref(false)
+const isLoading = ref(false)
+const error = ref('')
 
-const categories = ref<Category[]>([
-  {
-    id: 1,
-    name: 'Car',
-    type: 'expense',
-    icon: 'directions_car',
-    iconClass: 'bg-sky-100 text-sky-700',
-    children: [
-      { id: 11, name: 'Car payment' },
-      { id: 12, name: 'Fuel' },
-    ],
-  },
-  {
-    id: 2,
-    name: 'Bills',
-    type: 'expense',
-    icon: 'receipt_long',
-    iconClass: 'bg-orange-100 text-orange-700',
-    children: [
-      { id: 21, name: 'Electricity' },
-      { id: 22, name: 'Internet' },
-    ],
-  },
-  {
-    id: 3,
-    name: 'Salary',
-    type: 'income',
-    icon: 'payments',
-    iconClass: 'bg-emerald-100 text-emerald-700',
-    children: [],
-  },
-])
+interface BackendCategory {
+  id: number
+  name: string
+  type: 'EXPENSE' | 'INCOME'
+  icon: string
+  parentId: number | null
+  active: boolean
+  custom: boolean | null
+  children: BackendCategory[]
+}
 
-const expandedCategories = ref<number[]>([1, 2])
+const categories = ref<Category[]>([])
+
+const fetchCategories = async () => {
+  isLoading.value = true
+  error.value = ''
+  try {
+    const response = await api.get<BackendCategory[]>('/users/me/categories')
+    categories.value = mapBackendCategories(response.data)
+    // Expand first category by default
+    if (categories.value.length > 0) {
+      expandedCategories.value = [categories.value[0].id]
+    }
+  } catch (e) {
+    error.value = 'Failed to load categories'
+    console.error(e)
+  } finally {
+    isLoading.value = false
+  }
+}
+
+const mapBackendCategories = (backendCategories: BackendCategory[]): Category[] => {
+  const getIconClass = (type: 'EXPENSE' | 'INCOME'): string => {
+    return type === 'EXPENSE'
+      ? 'bg-rose-100 text-rose-700'
+      : 'bg-emerald-100 text-emerald-700'
+  }
+
+  const mapCategory = (cat: BackendCategory): Category => ({
+    id: cat.id,
+    name: cat.name,
+    type: cat.type.toLowerCase() as FlowType,
+    icon: cat.icon,
+    iconClass: getIconClass(cat.type),
+    children: cat.children.map((child) => ({
+      id: child.id,
+      name: child.name,
+      type: child.type.toLowerCase() as FlowType,
+      icon: child.icon,
+    })),
+  })
+
+  return backendCategories.map(mapCategory)
+}
+
+const expandedCategories = ref<number[]>([])
 
 const filteredCategories = computed(() => {
   const query = searchQuery.value.trim().toLowerCase()
@@ -82,6 +109,10 @@ const toggleExpanded = (categoryId: number) => {
 }
 
 const isExpanded = (categoryId: number) => expandedCategories.value.includes(categoryId)
+
+onMounted(() => {
+  fetchCategories()
+})
 </script>
 
 <template>
@@ -180,7 +211,19 @@ const isExpanded = (categoryId: number) => expandedCategories.value.includes(cat
             </div>
           </div>
 
-          <div v-if="filteredCategories.length" class="divide-y divide-slate-100">
+          <div v-if="isLoading" class="flex items-center justify-center py-16">
+            <div class="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          </div>
+
+          <div v-else-if="error" class="flex flex-col items-center justify-center py-16 text-center">
+            <span class="material-symbols-outlined text-red-400 text-4xl mb-2">error</span>
+            <p class="text-red-500 font-medium">{{ error }}</p>
+            <button @click="fetchCategories" class="mt-4 px-4 py-2 bg-primary text-black text-sm font-bold rounded-lg hover:bg-primary/90">
+              Retry
+            </button>
+          </div>
+
+          <div v-else-if="filteredCategories.length" class="divide-y divide-slate-100">
             <div v-for="category in filteredCategories" :key="category.id" class="group">
               <div class="grid grid-cols-12 gap-4 items-center px-6 py-4 hover:bg-slate-50 transition-colors">
                 <div class="col-span-7 md:col-span-8 flex items-center gap-4 min-w-0">
@@ -257,8 +300,8 @@ const isExpanded = (categoryId: number) => expandedCategories.value.includes(cat
             <div class="mx-auto flex size-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
               <span class="material-symbols-outlined">folder_open</span>
             </div>
-            <h3 class="mt-4 text-lg font-semibold text-slate-900">No results</h3>
-            <p class="mt-2 text-sm text-slate-500">Adjust the search or switch the flow type to see more categories.</p>
+            <h3 class="mt-4 text-lg font-semibold text-slate-900">No categories yet</h3>
+            <p class="mt-2 text-sm text-slate-500">Create your first category to get started.</p>
           </div>
         </section>
       </div>
