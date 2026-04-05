@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@material-symbols/metadata": "^0.44.0",
     "axios": "1.14.0",
     "vue": "^3.5.25",
     "vue-router": "^4.5.1"

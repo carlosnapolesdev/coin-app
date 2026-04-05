@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import Sidebar from './Sidebar.vue'
-import CategoryModal from './CategoryModal.vue'
+import EditCategoryModal from './EditCategoryModal.vue'
 import api from '../../services/api'
 
 type FlowType = 'expense' | 'income'
@@ -24,9 +24,19 @@ type Category = {
 
 const activeFilter = ref<FlowType>('expense')
 const searchQuery = ref('')
-const isModalOpen = ref(false)
+const categoryFormOpen = ref(false)
+const categoryFormMode = ref<'create' | 'edit'>('create')
 const isLoading = ref(false)
 const error = ref('')
+
+interface EditingItem {
+  id: number
+  name: string
+  icon: string
+  isSubcategory: boolean
+}
+
+const editingItem = ref<EditingItem | null>(null)
 
 interface BackendCategory {
   id: number
@@ -48,8 +58,9 @@ const fetchCategories = async () => {
     const response = await api.get<BackendCategory[]>('/users/me/categories')
     categories.value = mapBackendCategories(response.data)
     // Expand first category by default
-    if (categories.value.length > 0) {
-      expandedCategories.value = [categories.value[0].id]
+    const firstCategory = categories.value[0]
+    if (firstCategory) {
+      expandedCategories.value = [firstCategory.id]
     }
   } catch (e) {
     error.value = 'Failed to load categories'
@@ -110,6 +121,64 @@ const toggleExpanded = (categoryId: number) => {
 
 const isExpanded = (categoryId: number) => expandedCategories.value.includes(categoryId)
 
+const openCreateModal = () => {
+  categoryFormMode.value = 'create'
+  editingItem.value = null
+  categoryFormOpen.value = true
+}
+
+const openEditModal = (id: number, name: string, icon: string, isSubcategory: boolean = false) => {
+  categoryFormMode.value = 'edit'
+  editingItem.value = { id, name, icon, isSubcategory }
+  categoryFormOpen.value = true
+}
+
+const handleCategoryFormClose = () => {
+  categoryFormOpen.value = false
+  editingItem.value = null
+}
+
+const handleCategorySaved = (updatedData: { mode: 'create' | 'edit'; id?: number; name: string; icon: string; type: FlowType }) => {
+  if (updatedData.mode === 'create') {
+    categoryFormOpen.value = false
+    editingItem.value = null
+    activeFilter.value = updatedData.type
+    fetchCategories()
+    return
+  }
+
+  if (!updatedData.id) {
+    categoryFormOpen.value = false
+    editingItem.value = null
+    return
+  }
+
+  // Update categories in the list
+  const categoryIndex = categories.value.findIndex((cat) => cat.id === updatedData.id)
+  if (categoryIndex !== -1) {
+    const categoryToUpdate = categories.value[categoryIndex]
+    if (categoryToUpdate) {
+      categoryToUpdate.name = updatedData.name
+      categoryToUpdate.icon = updatedData.icon
+    }
+  } else {
+    // Check if it's a subcategory
+    for (const category of categories.value) {
+      const subcategoryIndex = category.children.findIndex((sub) => sub.id === updatedData.id)
+      if (subcategoryIndex !== -1) {
+        const subcategoryToUpdate = category.children[subcategoryIndex]
+        if (subcategoryToUpdate) {
+          subcategoryToUpdate.name = updatedData.name
+          subcategoryToUpdate.icon = updatedData.icon
+        }
+        break
+      }
+    }
+  }
+  categoryFormOpen.value = false
+  editingItem.value = null
+}
+
 onMounted(() => {
   fetchCategories()
 })
@@ -144,7 +213,7 @@ onMounted(() => {
           <button
             type="button"
             class="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-bold text-slate-900 shadow-lg shadow-primary/20 transition hover:bg-primary/90"
-            @click="isModalOpen = true"
+            @click="openCreateModal"
           >
             <span class="material-symbols-outlined text-xl">add_circle</span>
             <span>New category</span>
@@ -261,7 +330,7 @@ onMounted(() => {
                   <button type="button" class="rounded-lg p-2 transition hover:bg-slate-100 hover:text-primary">
                     <span class="material-symbols-outlined text-[20px]">add_box</span>
                   </button>
-                  <button type="button" class="rounded-lg p-2 transition hover:bg-slate-100 hover:text-slate-900">
+                  <button type="button" class="rounded-lg p-2 transition hover:bg-slate-100 hover:text-slate-900" @click="openEditModal(category.id, category.name, category.icon, false)">
                     <span class="material-symbols-outlined text-[20px]">edit</span>
                   </button>
                   <button type="button" class="rounded-lg p-2 transition hover:bg-slate-100 hover:text-rose-600">
@@ -284,7 +353,7 @@ onMounted(() => {
                   <div class="col-span-2"></div>
 
                   <div class="col-span-3 md:col-span-2 flex justify-end gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity text-slate-400">
-                    <button type="button" class="rounded-lg p-2 transition hover:bg-slate-100 hover:text-slate-900">
+                    <button type="button" class="rounded-lg p-2 transition hover:bg-slate-100 hover:text-slate-900" @click="openEditModal(child.id, child.name, child.icon, true)">
                       <span class="material-symbols-outlined text-[18px]">edit</span>
                     </button>
                     <button type="button" class="rounded-lg p-2 transition hover:bg-slate-100 hover:text-rose-600">
@@ -307,6 +376,16 @@ onMounted(() => {
       </div>
     </main>
 
-    <CategoryModal :is-open="isModalOpen" @close="isModalOpen = false" />
+    <EditCategoryModal
+      :is-open="categoryFormOpen"
+      :mode="categoryFormMode"
+      :category-id="editingItem?.id"
+      :initial-name="editingItem?.name"
+      :initial-icon="editingItem?.icon"
+      :initial-type="activeFilter"
+      :is-subcategory="editingItem?.isSubcategory ?? false"
+      @close="handleCategoryFormClose"
+      @saved="handleCategorySaved"
+    />
   </div>
 </template>
