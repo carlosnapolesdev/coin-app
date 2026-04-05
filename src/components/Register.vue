@@ -14,9 +14,29 @@ const registrationCompleted = ref(false)
 const submissionError = ref('')
 
 // Step 2: Currencies
+interface Currency {
+  id: number
+  code: string
+  name: string
+  symbol: string
+}
 const setupAdditionalCurrencies = ref(false)
 const additionalCurrencies = ref<string[]>([])
+const availableCurrencies = ref<Currency[]>([])
+const isLoadingCurrencies = ref(false)
 const isCurrencyModalOpen = ref(false)
+
+const fetchAvailableCurrencies = async () => {
+  isLoadingCurrencies.value = true
+  try {
+    const response = await api.get<Currency[]>('/currencies')
+    availableCurrencies.value = response.data
+  } catch (e) {
+    console.error('Failed to load currencies', e)
+  } finally {
+    isLoadingCurrencies.value = false
+  }
+}
 
 const openCurrencyModal = () => {
   isCurrencyModalOpen.value = true
@@ -94,6 +114,9 @@ watch(currentStep, (step) => {
   if (step === 3 && categories.value.length === 0) {
     fetchCategories(selectedLanguage.value)
   }
+  if (step === 2 && availableCurrencies.value.length === 0) {
+    fetchAvailableCurrencies()
+  }
 }, { immediate: true })
 
 const form = reactive({
@@ -144,11 +167,37 @@ const completeRegistration = async () => {
   isSubmitting.value = true
 
   try {
+    // Build currencies payload
+    const currenciesPayload: { currencyId: number; base: boolean; exchangeRate: number }[] = []
+
+    // Add base currency (USD)
+    const usdCurrency = availableCurrencies.value.find(c => c.code === 'USD')
+    if (usdCurrency) {
+      currenciesPayload.push({
+        currencyId: usdCurrency.id,
+        base: true,
+        exchangeRate: 1.0,
+      })
+    }
+
+    // Add additional currencies
+    for (const code of additionalCurrencies.value) {
+      const currency = availableCurrencies.value.find(c => c.code === code)
+      if (currency) {
+        currenciesPayload.push({
+          currencyId: currency.id,
+          base: false,
+          exchangeRate: 1.0,
+        })
+      }
+    }
+
     await api.post('/auth/register', {
       fullName: form.fullName,
       email: form.email,
       password: form.password,
       language: navigator.language,
+      currencies: currenciesPayload,
     })
 
     currentStep.value = 4
@@ -672,8 +721,8 @@ const togglePasswordVisibility = () => {
                 <span class="material-symbols-outlined text-sm">arrow_back</span>
                 {{ currentStep === 1 ? 'Back' : 'Previous' }}
               </button>
-              <button @click="handleNext" :disabled="isSubmitting" class="px-10 py-3 bg-primary text-slate-900 font-bold rounded-xl hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all flex items-center gap-2 disabled:cursor-not-allowed disabled:opacity-60">
-                {{ isSubmitting ? 'Creating account...' : 'Next Step' }}
+              <button @click="handleNext" :disabled="isSubmitting || isLoadingCurrencies" class="px-10 py-3 bg-primary text-slate-900 font-bold rounded-xl hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all flex items-center gap-2 disabled:cursor-not-allowed disabled:opacity-60">
+                {{ isSubmitting ? 'Creating account...' : (isLoadingCurrencies ? 'Loading currencies...' : 'Next Step') }}
                 <span class="material-symbols-outlined text-sm">arrow_forward</span>
               </button>
             </div>
