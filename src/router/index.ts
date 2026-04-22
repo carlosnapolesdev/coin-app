@@ -3,6 +3,7 @@ import Login from '../components/Login.vue'
 import Register from '../components/Register.vue'
 import Dashboard from '../components/dashboard/Dashboard.vue'
 import CategoriesView from '../components/dashboard/CategoriesView.vue'
+import AccountsView from '../components/dashboard/AccountsView.vue'
 import { initializeAuth, isAuthenticated } from '../services/auth'
 
 const router = createRouter({
@@ -34,6 +35,12 @@ const router = createRouter({
       path: '/categories',
       name: 'categories',
       component: CategoriesView,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/accounts',
+      name: 'accounts',
+      component: AccountsView,
       meta: { requiresAuth: true },
     },
   ],

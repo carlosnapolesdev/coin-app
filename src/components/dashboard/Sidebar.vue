@@ -6,6 +6,7 @@ import { logout, useAuthState } from '../../services/auth'
 const navItems = [
   { icon: 'grid_view', label: 'Dashboard', routeName: 'dashboard' },
   { icon: 'category', label: 'Categories', routeName: 'categories' },
+  { icon: 'account_balance_wallet', label: 'Accounts', routeName: 'accounts' },
   { icon: 'swap_horiz', label: 'Transactions' },
   { icon: 'pie_chart', label: 'Budgets' },
   { icon: 'bar_chart', label: 'Reports' },
