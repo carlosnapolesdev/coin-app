@@ -17,6 +17,7 @@ interface UserCurrency {
   code: string
   symbol: string
   active: boolean
+  base: boolean
 }
 
 const searchQuery = ref('')
@@ -30,6 +31,8 @@ const error = ref('')
 const accounts = ref<AccountSummary[]>([])
 const userCurrencies = ref<UserCurrency[]>([])
 const lastUpdatedAt = ref<string | null>(null)
+
+const baseCurrencyId = computed(() => userCurrencies.value.find(c => c.base)?.currencyId ?? null)
 
 const iconPickerOpen = ref(false)
 const iconSearch = ref('')
@@ -132,7 +135,7 @@ const populateForm = (account: AccountDetail) => {
 const resetForm = () => {
   selectedAccount.value = {
     name: '', type: 'NO_TYPE', institution: '', accountNumber: '',
-    currencyId: null, groupName: '', startBalance: '0.00', notes: '',
+    currencyId: baseCurrencyId.value, groupName: '', startBalance: '0.00', notes: '',
     icon: 'account_balance', closed: false,
   }
   selectedAccountBehaviour.value = {
@@ -169,6 +172,9 @@ const fetchUserCurrencies = async () => {
   try {
     const { data } = await api.get<UserCurrency[]>('/users/me/currencies')
     userCurrencies.value = data.filter(c => c.active)
+    if (isCreating.value && selectedAccount.value.currencyId === null) {
+      selectedAccount.value.currencyId = baseCurrencyId.value
+    }
   } catch (e) {
     console.error('Failed to load currencies', e)
   }
@@ -454,7 +460,6 @@ onMounted(() => {
                     <div class="group">
                       <label class="text-[12px] font-black uppercase tracking-widest text-slate-400 mb-2 block">Currency</label>
                       <select v-model="selectedAccount.currencyId" class="w-full bg-slate-100 border-none rounded-xl py-3 px-4 text-slate-900 font-medium focus:ring-2 focus:ring-primary transition-all">
-                        <option :value="null">(none)</option>
                         <option v-for="c in userCurrencies" :key="c.currencyId" :value="c.currencyId">
                           {{ c.code }} ({{ c.symbol }})
                         </option>
