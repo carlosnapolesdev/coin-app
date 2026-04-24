@@ -181,15 +181,17 @@ const completeRegistration = async () => {
       })
     }
 
-    // Add additional currencies
+    // Add additional currencies (skip duplicates like USD if selected in modal)
+    const addedIds = new Set<number>(currenciesPayload.map(c => c.currencyId))
     for (const code of additionalCurrencies.value) {
       const currency = availableCurrencies.value.find(c => c.code === code)
-      if (currency) {
+      if (currency && !addedIds.has(currency.id)) {
         currenciesPayload.push({
           currencyId: currency.id,
           base: false,
           exchangeRate: 1.0,
         })
+        addedIds.add(currency.id)
       }
     }
 
@@ -197,7 +199,7 @@ const completeRegistration = async () => {
       fullName: form.fullName,
       email: form.email,
       password: form.password,
-      language: navigator.language,
+      language: selectedLanguage.value,
       currencies: currenciesPayload,
     })
 
@@ -687,11 +689,16 @@ const togglePasswordVisibility = () => {
               </div>
             </div>
 
-            <button 
+            <p v-if="submissionError" class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/40 dark:bg-red-950/40 dark:text-red-300 mb-4">
+              {{ submissionError }}
+            </p>
+
+            <button
               @click="handleNext"
-              class="group relative px-12 py-5 bg-primary text-slate-900 font-black text-xl rounded-2xl hover:bg-primary/90 transition-all shadow-xl shadow-primary/30 flex items-center gap-4"
+              :disabled="isSubmitting"
+              class="group relative px-12 py-5 bg-primary text-slate-900 font-black text-xl rounded-2xl hover:bg-primary/90 transition-all shadow-xl shadow-primary/30 flex items-center gap-4 disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              Create Account
+              {{ isSubmitting ? 'Creating account...' : 'Create Account' }}
               <span class="material-symbols-outlined group-hover:translate-x-2 transition-transform font-bold">rocket_launch</span>
             </button>
             
