@@ -69,6 +69,33 @@ const isLoadingCategories = ref(false)
 const categoriesError = ref('')
 const expandedCategories = ref<number[]>([])
 const activeFilter = ref<'EXPENSE' | 'INCOME'>('EXPENSE')
+const selectedCategoryIds = ref<Set<number>>(new Set())
+
+const getCategoryState = (category: Category): 'selected' | 'indeterminate' | 'none' => {
+  if (category.children.length === 0) {
+    return selectedCategoryIds.value.has(category.id) ? 'selected' : 'none'
+  }
+  const selectedCount = category.children.filter(c => selectedCategoryIds.value.has(c.id)).length
+  if (selectedCount === 0) return 'none'
+  if (selectedCount === category.children.length) return 'selected'
+  return 'indeterminate'
+}
+
+const toggleCategory = (category: Category) => {
+  const ids = new Set(selectedCategoryIds.value)
+  const state = getCategoryState(category)
+  if (category.children.length === 0) {
+    if (state === 'selected') ids.delete(category.id)
+    else ids.add(category.id)
+  } else {
+    if (state === 'selected') {
+      category.children.forEach(child => ids.delete(child.id))
+    } else {
+      category.children.forEach(child => ids.add(child.id))
+    }
+  }
+  selectedCategoryIds.value = ids
+}
 
 const languages = [
   { code: 'en', name: 'English' },
@@ -79,9 +106,20 @@ const languages = [
 const fetchCategories = async (language: string) => {
   isLoadingCategories.value = true
   categoriesError.value = ''
+  selectedCategoryIds.value = new Set()
   try {
     const response = await api.get<Category[]>('/categories', { params: { language } })
     categories.value = response.data
+    // Pre-select all categories by default
+    const allLeafIds = new Set<number>()
+    for (const category of response.data) {
+      if (category.children.length === 0) {
+        allLeafIds.add(category.id)
+      } else {
+        category.children.forEach(child => allLeafIds.add(child.id))
+      }
+    }
+    selectedCategoryIds.value = allLeafIds
     // Expand only the first category by default
     const firstCategory = response.data[0]
     expandedCategories.value = firstCategory ? [firstCategory.id] : []
@@ -109,6 +147,21 @@ const handleLanguageChange = (language: string) => {
 }
 
 const filteredCategories = computed(() => categories.value.filter(c => c.type === activeFilter.value))
+
+const filteredSelectedCount = computed(() => {
+  let count = 0
+  for (const category of categories.value) {
+    if (category.type !== activeFilter.value) continue
+    if (category.children.length === 0) {
+      if (selectedCategoryIds.value.has(category.id)) count++
+    } else {
+      for (const child of category.children) {
+        if (selectedCategoryIds.value.has(child.id)) count++
+      }
+    }
+  }
+  return count
+})
 
 // Load categories when entering step 3
 watch(currentStep, (step) => {
@@ -195,12 +248,26 @@ const completeRegistration = async () => {
       }
     }
 
+    // Build active category IDs: selected leaf nodes + parent nodes with at least one selected child
+    const activeCategoryIds: number[] = []
+    for (const category of categories.value) {
+      if (getCategoryState(category) !== 'none') {
+        activeCategoryIds.push(category.id)
+      }
+      for (const child of category.children) {
+        if (selectedCategoryIds.value.has(child.id)) {
+          activeCategoryIds.push(child.id)
+        }
+      }
+    }
+
     await api.post('/auth/register', {
       fullName: form.fullName,
       email: form.email,
       password: form.password,
       language: selectedLanguage.value,
       currencies: currenciesPayload,
+      categoryIds: activeCategoryIds,
     })
 
     currentStep.value = 4
@@ -567,9 +634,9 @@ const togglePasswordVisibility = () => {
               </div>
 
               <!-- Categories List -->
-              <div v-else-if="categories.length" class="max-h-[500px] overflow-y-auto">
+              <div v-else-if="categories.length" class="flex flex-col">
                 <!-- Header with Filter Toggle -->
-                <div class="px-6 py-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
+                <div class="shrink-0 px-6 py-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
                   <div class="inline-flex rounded-2xl bg-white p-1 border border-slate-200 shadow-sm">
                     <button
                       type="button"
@@ -590,14 +657,29 @@ const togglePasswordVisibility = () => {
                   </div>
                   <p class="text-sm text-slate-500">
                     {{ filteredCategories.length }} result{{ filteredCategories.length !== 1 ? 's' : '' }}
+                    <span v-if="filteredSelectedCount > 0" class="text-primary font-semibold">· {{ filteredSelectedCount }} selected</span>
                   </p>
                 </div>
 
                 <!-- Categories Table -->
-                <div class="divide-y divide-slate-100">
+                <div class="divide-y divide-slate-100 overflow-y-auto max-h-[420px]">
                   <div v-for="category in filteredCategories" :key="category.id" class="group">
                     <div class="grid grid-cols-12 gap-4 items-center px-6 py-4 hover:bg-slate-50 transition-colors">
                       <div class="col-span-10 flex items-center gap-4 min-w-0">
+                        <button
+                          type="button"
+                          class="flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-all duration-200 focus:outline-none"
+                          :class="{
+                            'bg-primary border-primary': getCategoryState(category) === 'selected',
+                            'border-primary bg-primary/15': getCategoryState(category) === 'indeterminate',
+                            'border-slate-300 dark:border-slate-600 hover:border-primary/60': getCategoryState(category) === 'none',
+                          }"
+                          @click.stop="toggleCategory(category)"
+                        >
+                          <span v-if="getCategoryState(category) === 'selected'" class="material-symbols-outlined text-slate-900" style="font-size: 12px">check</span>
+                          <span v-else-if="getCategoryState(category) === 'indeterminate'" class="block w-2 h-0.5 bg-primary rounded-full"></span>
+                        </button>
+
                         <button
                           type="button"
                           class="flex size-8 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-900"
@@ -636,8 +718,19 @@ const togglePasswordVisibility = () => {
                         :key="child.id"
                         class="grid grid-cols-12 gap-4 items-center px-6 py-3 hover:bg-white transition-colors"
                       >
-                        <div class="col-span-10 flex items-center gap-4 pl-14">
-                          <span class="size-2 rounded-full bg-slate-300"></span>
+                        <div class="col-span-10 flex items-center gap-3 pl-14">
+                          <button
+                            type="button"
+                            class="flex-shrink-0 w-4 h-4 rounded border-2 flex items-center justify-center transition-all duration-200 focus:outline-none"
+                            :class="{
+                              'bg-primary border-primary': selectedCategoryIds.has(child.id),
+                              'border-slate-300 dark:border-slate-600 hover:border-primary/60': !selectedCategoryIds.has(child.id),
+                            }"
+                            @click.stop="toggleCategory(child)"
+                          >
+                            <span v-if="selectedCategoryIds.has(child.id)" class="material-symbols-outlined text-slate-900" style="font-size: 10px">check</span>
+                          </button>
+                          <span class="size-1.5 rounded-full bg-slate-300 flex-shrink-0"></span>
                           <span class="text-sm text-slate-600">{{ child.name }}</span>
                         </div>
                         <div class="col-span-2"></div>
