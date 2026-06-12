@@ -5,6 +5,7 @@ import { useRouter } from 'vue-router'
 import { useRoute } from 'vue-router'
 import TopHeader from './common/TopHeader.vue'
 import { getApiErrorMessage, login } from '../services/auth'
+import { getSavedIdentifier } from '../services/auth-session'
 
 const router = useRouter()
 const route = useRoute()
@@ -81,6 +82,11 @@ const togglePasswordVisibility = () => {
 }
 
 onMounted(() => {
+  const savedIdentifier = getSavedIdentifier()
+  if (savedIdentifier) {
+    form.identifier = savedIdentifier
+  }
+
   if (typeof route.query.email === 'string') {
     form.identifier = route.query.email
   }
@@ -228,7 +234,7 @@ onMounted(() => {
                   type="checkbox"
                 />
                 <label class="text-sm font-medium text-slate-600 dark:text-slate-400 cursor-pointer" for="remember"
-                  >Remember me for 30 days</label
+                  >Remember me for 7 days</label
                 >
               </div>
 

@@ -14,6 +14,7 @@ export type AuthResponse = {
 }
 
 const AUTH_STORAGE_KEY = 'coinflow.auth'
+const REMEMBER_IDENTIFIER_KEY = 'coinflow.remember.identifier'
 
 type StorageMode = 'local' | 'session'
 
@@ -26,7 +27,12 @@ const readStoredSession = (storage: Storage): AuthResponse | null => {
   }
 
   try {
-    return JSON.parse(value) as AuthResponse
+    const session = JSON.parse(value) as AuthResponse
+    if (new Date(session.expiresAt) <= new Date()) {
+      storage.removeItem(AUTH_STORAGE_KEY)
+      return null
+    }
+    return session
   } catch {
     storage.removeItem(AUTH_STORAGE_KEY)
     return null
@@ -66,4 +72,16 @@ export const updateStoredUser = (user: AuthUser) => {
 export const clearAuthSession = () => {
   window.localStorage.removeItem(AUTH_STORAGE_KEY)
   window.sessionStorage.removeItem(AUTH_STORAGE_KEY)
+}
+
+export const getSavedIdentifier = (): string | null => {
+  return window.localStorage.getItem(REMEMBER_IDENTIFIER_KEY)
+}
+
+export const saveIdentifier = (identifier: string) => {
+  window.localStorage.setItem(REMEMBER_IDENTIFIER_KEY, identifier)
+}
+
+export const clearSavedIdentifier = () => {
+  window.localStorage.removeItem(REMEMBER_IDENTIFIER_KEY)
 }

@@ -3,10 +3,12 @@ import { reactive, readonly } from 'vue'
 import api from './api'
 import {
   clearAuthSession,
+  clearSavedIdentifier,
   getAccessToken,
   getStoredSession,
   getStoredUser,
   saveAuthSession,
+  saveIdentifier,
   updateStoredUser,
   type AuthResponse,
   type AuthUser,
@@ -64,10 +66,15 @@ export const initializeAuth = async () => {
 }
 
 export const login = async (payload: LoginPayload, remember: boolean) => {
-  const { data } = await api.post<AuthResponse>('/auth/login', payload)
+  const { data } = await api.post<AuthResponse>('/auth/login', { ...payload, rememberMe: remember })
   saveAuthSession(data, remember)
   setAuthenticatedState(data)
   authState.initialized = true
+  if (remember) {
+    saveIdentifier(payload.identifier)
+  } else {
+    clearSavedIdentifier()
+  }
   return data
 }
 
