@@ -23,12 +23,21 @@ type Category = {
   children: Subcategory[]
 }
 
+type DeletedSubcategory = {
+  id: number
+  name: string
+  type: FlowType
+  icon: string
+}
+
 type DeletedCategory = {
   id: number
   name: string
   type: FlowType
   icon: string
   iconClass: string
+  children: DeletedSubcategory[]
+  orphan: boolean
 }
 
 interface BackendCategory {
@@ -59,6 +68,7 @@ const error = ref('')
 const errorDeleted = ref('')
 const editingItem = ref<EditingItem | null>(null)
 const expandedCategories = ref<number[]>([])
+const expandedDeletedCategories = ref<number[]>([])
 
 const categories = ref<Category[]>([])
 const deletedCategories = ref<DeletedCategory[]>([])
@@ -81,48 +91,88 @@ const mapBackendCategories = (backendCategories: BackendCategory[]): Category[] 
     })),
   }))
 
-const fetchCategories = async () => {
-  isLoading.value = true
+const fetchCategories = async (silent = false) => {
+  if (!silent) isLoading.value = true
   error.value = ''
   try {
     const response = await api.get<BackendCategory[]>('/users/me/categories')
     categories.value = mapBackendCategories(response.data)
-    const first = categories.value[0]
-    if (first) expandedCategories.value = [first.id]
+    if (expandedCategories.value.length === 0) {
+      const first = categories.value[0]
+      if (first) expandedCategories.value = [first.id]
+    } else {
+      const existingIds = new Set(categories.value.map(c => c.id))
+      expandedCategories.value = expandedCategories.value.filter(id => existingIds.has(id))
+    }
   } catch (e) {
     error.value = 'Failed to load categories'
     console.error(e)
   } finally {
-    isLoading.value = false
+    if (!silent) isLoading.value = false
   }
 }
 
-const fetchDeletedCategories = async () => {
-  isLoadingDeleted.value = true
+const fetchDeletedCategories = async (silent = false) => {
+  if (!silent) isLoadingDeleted.value = true
   errorDeleted.value = ''
   try {
-    const response = await api.get<BackendCategory[]>('/users/me/categories', { params: { active: false } })
-    deletedCategories.value = response.data.map(cat => ({
-      id: cat.id,
-      name: cat.name,
-      type: cat.type.toLowerCase() as FlowType,
-      icon: cat.icon,
-      iconClass: getIconClass(cat.type),
-    }))
+    const response = await api.get<BackendCategory[]>('/users/me/categories', { params: { includeInactive: true } })
+    const deleted: DeletedCategory[] = []
+
+    for (const root of response.data) {
+      if (!root.active) {
+        deleted.push({
+          id: root.id,
+          name: root.name,
+          type: root.type.toLowerCase() as FlowType,
+          icon: root.icon,
+          iconClass: getIconClass(root.type),
+          orphan: false,
+          children: root.children
+            .filter(c => !c.active)
+            .map(c => ({ id: c.id, name: c.name, type: c.type.toLowerCase() as FlowType, icon: c.icon })),
+        })
+      } else {
+        for (const child of root.children) {
+          if (!child.active) {
+            deleted.push({
+              id: child.id,
+              name: child.name,
+              type: child.type.toLowerCase() as FlowType,
+              icon: child.icon,
+              iconClass: getIconClass(child.type),
+              orphan: true,
+              children: [],
+            })
+          }
+        }
+      }
+    }
+
+    deletedCategories.value = deleted
   } catch (e) {
     errorDeleted.value = 'Failed to load deleted categories'
     console.error(e)
   } finally {
-    isLoadingDeleted.value = false
+    if (!silent) isLoadingDeleted.value = false
   }
 }
 
 const restoreCategory = async (id: number) => {
   try {
     await api.patch(`/users/me/categories/${id}`, { active: true })
-    deletedCategories.value = deletedCategories.value.filter(c => c.id !== id)
+    await Promise.all([fetchCategories(true), fetchDeletedCategories(true)])
   } catch (e) {
     console.error('Failed to restore category', e)
+  }
+}
+
+const deleteCategory = async (id: number) => {
+  try {
+    await api.delete(`/users/me/categories/${id}`)
+    await Promise.all([fetchCategories(true), fetchDeletedCategories(true)])
+  } catch (e) {
+    console.error('Failed to delete category', e)
   }
 }
 
@@ -143,7 +193,10 @@ const filteredCategories = computed(() => {
 const filteredDeletedCategories = computed(() => {
   const query = searchQuery.value.trim().toLowerCase()
   if (!query) return deletedCategories.value
-  return deletedCategories.value.filter(c => c.name.toLowerCase().includes(query))
+  return deletedCategories.value.filter(c =>
+    c.name.toLowerCase().includes(query) ||
+    c.children.some(ch => ch.name.toLowerCase().includes(query))
+  )
 })
 
 const toggleExpanded = (categoryId: number) => {
@@ -155,6 +208,16 @@ const toggleExpanded = (categoryId: number) => {
 }
 
 const isExpanded = (categoryId: number) => expandedCategories.value.includes(categoryId)
+
+const toggleDeletedExpanded = (categoryId: number) => {
+  if (expandedDeletedCategories.value.includes(categoryId)) {
+    expandedDeletedCategories.value = expandedDeletedCategories.value.filter(id => id !== categoryId)
+  } else {
+    expandedDeletedCategories.value = [...expandedDeletedCategories.value, categoryId]
+  }
+}
+
+const isDeletedExpanded = (categoryId: number) => expandedDeletedCategories.value.includes(categoryId)
 
 const openCreateModal = () => {
   categoryFormMode.value = 'create'
@@ -264,7 +327,9 @@ onMounted(() => {
             <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
               <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">Subcategories</p>
               <p class="mt-3 text-3xl font-bold text-slate-900">
-                {{ activeFilter === 'deleted' ? '—' : filteredCategories.reduce((total, cat) => total + cat.children.length, 0) }}
+                {{ activeFilter === 'deleted'
+                  ? filteredDeletedCategories.reduce((t, c) => t + c.children.length, 0)
+                  : filteredCategories.reduce((total, cat) => total + cat.children.length, 0) }}
               </p>
               <p class="mt-2 text-sm text-slate-500">Available breakdown for reporting and budgeting.</p>
             </article>
@@ -374,7 +439,7 @@ onMounted(() => {
                       <button type="button" class="rounded-lg p-2 transition hover:bg-slate-100 hover:text-slate-900" @click="openEditModal(category.id, category.name, category.icon, false)">
                         <span class="material-symbols-outlined text-[20px]">edit</span>
                       </button>
-                      <button type="button" class="rounded-lg p-2 transition hover:bg-slate-100 hover:text-rose-600">
+                      <button type="button" class="rounded-lg p-2 transition hover:bg-slate-100 hover:text-rose-600" @click="deleteCategory(category.id)">
                         <span class="material-symbols-outlined text-[20px]">delete</span>
                       </button>
                     </div>
@@ -397,7 +462,7 @@ onMounted(() => {
                         <button type="button" class="rounded-lg p-2 transition hover:bg-slate-100 hover:text-slate-900" @click="openEditModal(child.id, child.name, child.icon, true)">
                           <span class="material-symbols-outlined text-[18px]">edit</span>
                         </button>
-                        <button type="button" class="rounded-lg p-2 transition hover:bg-slate-100 hover:text-rose-600">
+                        <button type="button" class="rounded-lg p-2 transition hover:bg-slate-100 hover:text-rose-600" @click="deleteCategory(child.id)">
                           <span class="material-symbols-outlined text-[18px]">delete</span>
                         </button>
                       </div>
@@ -430,42 +495,70 @@ onMounted(() => {
               </div>
 
               <div v-else-if="filteredDeletedCategories.length" class="flex-1 overflow-y-auto divide-y divide-slate-100">
-                <div
-                  v-for="category in filteredDeletedCategories"
-                  :key="category.id"
-                  class="grid grid-cols-12 gap-4 items-center px-6 py-4 hover:bg-slate-50 transition-colors"
-                >
-                  <div class="col-span-7 md:col-span-8 flex items-center gap-4 min-w-0">
-                    <div class="flex size-8 items-center justify-center invisible"></div>
+                <div v-for="category in filteredDeletedCategories" :key="category.id" class="group">
+                  <!-- Parent / orphan row -->
+                  <div class="grid grid-cols-12 gap-4 items-center px-6 py-4 hover:bg-slate-50 transition-colors">
+                    <div class="col-span-7 md:col-span-8 flex items-center gap-4 min-w-0">
+                      <button
+                        v-if="!category.orphan && category.children.length > 0"
+                        type="button"
+                        class="flex size-8 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-900"
+                        @click="toggleDeletedExpanded(category.id)"
+                      >
+                        <span class="material-symbols-outlined text-xl">
+                          {{ isDeletedExpanded(category.id) ? 'expand_more' : 'chevron_right' }}
+                        </span>
+                      </button>
+                      <div v-else class="flex size-8 items-center justify-center invisible"></div>
 
-                    <div :class="['flex size-11 items-center justify-center rounded-2xl opacity-50', category.iconClass]">
-                      <span class="material-symbols-outlined">{{ category.icon }}</span>
+                      <div :class="['flex size-11 items-center justify-center rounded-2xl opacity-50', category.iconClass]">
+                        <span class="material-symbols-outlined">{{ category.icon }}</span>
+                      </div>
+
+                      <div class="min-w-0">
+                        <p class="truncate text-sm font-semibold text-slate-500 line-through">{{ category.name }}</p>
+                        <p class="text-xs text-slate-400">
+                          {{ category.orphan ? 'Deleted subcategory' : `${category.children.length} subcategories` }}
+                        </p>
+                      </div>
                     </div>
 
-                    <div class="min-w-0">
-                      <p class="truncate text-sm font-semibold text-slate-500 line-through">{{ category.name }}</p>
-                      <p class="text-xs text-slate-400">Deleted category</p>
+                    <div class="col-span-2 flex justify-center">
+                      <span
+                        class="rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wide opacity-60"
+                        :class="category.type === 'expense' ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'"
+                      >
+                        {{ category.type === 'expense' ? 'Expense' : 'Income' }}
+                      </span>
+                    </div>
+
+                    <div class="col-span-3 md:col-span-2 flex justify-end">
+                      <button
+                        type="button"
+                        class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition"
+                        @click="restoreCategory(category.id)"
+                      >
+                        <span class="material-symbols-outlined text-[16px]">restore</span>
+                        Restore
+                      </button>
                     </div>
                   </div>
 
-                  <div class="col-span-2 flex justify-center">
-                    <span
-                      class="rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wide opacity-60"
-                      :class="category.type === 'expense' ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'"
+                  <!-- Children rows (only for deleted parents) -->
+                  <div v-if="!category.orphan && category.children.length > 0 && isDeletedExpanded(category.id)" class="bg-slate-50/80">
+                    <div
+                      v-for="child in category.children"
+                      :key="child.id"
+                      class="grid grid-cols-12 gap-4 items-center px-6 py-3 hover:bg-white transition-colors"
                     >
-                      {{ category.type === 'expense' ? 'Expense' : 'Income' }}
-                    </span>
-                  </div>
+                      <div class="col-span-7 md:col-span-8 flex items-center gap-4 pl-14">
+                        <span class="size-2 rounded-full bg-slate-300"></span>
+                        <span class="text-sm text-slate-500 line-through">{{ child.name }}</span>
+                      </div>
 
-                  <div class="col-span-3 md:col-span-2 flex justify-end">
-                    <button
-                      type="button"
-                      class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition"
-                      @click="restoreCategory(category.id)"
-                    >
-                      <span class="material-symbols-outlined text-[16px]">restore</span>
-                      Restore
-                    </button>
+                      <div class="col-span-2"></div>
+                      <div class="col-span-3 md:col-span-2"></div>
+                    </div>
                   </div>
                 </div>
               </div>
