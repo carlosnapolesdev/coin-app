@@ -1,14 +1,42 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import Sidebar from './Sidebar.vue'
+import { accountsApi, type AccountDetail, type AccountType } from '../../services/accounts'
 
 const activeTopTab = ref<'accounts' | 'budgets'>('accounts')
 
-const accounts = [
-  { id: 1, name: 'Main Checking', institution: 'Chase Bank', balance: '+$4,250.00', positive: true, icon: 'account_balance' },
-  { id: 2, name: 'Savings Account', institution: 'Wells Fargo', balance: '+$8,200.00', positive: true, icon: 'savings' },
-  { id: 3, name: 'Credit Card', institution: 'Amex', balance: '-$1,320.00', positive: false, icon: 'credit_card' },
-]
+const accounts = ref<AccountDetail[]>([])
+const isLoadingAccounts = ref(false)
+
+const typeIconMap: Record<AccountType, string> = {
+  BANK: 'account_balance',
+  CASH: 'payments',
+  ASSET: 'home',
+  CREDIT_CARD: 'credit_card',
+  LIABILITY: 'money_off',
+  CHECKING: 'account_balance',
+  SAVINGS: 'savings',
+  NO_TYPE: 'account_balance_wallet',
+}
+
+const accountIcon = (account: AccountDetail): string =>
+  account.icon ?? typeIconMap[account.type] ?? 'account_balance_wallet'
+
+const formatBalance = (account: AccountDetail): string => {
+  const symbol = account.currencySymbol ?? '$'
+  const abs = Math.abs(account.startBalance).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  return account.startBalance >= 0 ? `+${symbol}${abs}` : `-${symbol}${abs}`
+}
+
+onMounted(async () => {
+  isLoadingAccounts.value = true
+  try {
+    const { data } = await accountsApi.list()
+    accounts.value = data
+  } finally {
+    isLoadingAccounts.value = false
+  }
+})
 
 const budgets = [
   { id: 1, name: 'Food & Dining', spent: 320, limit: 500, color: 'bg-amber-500' },
@@ -86,20 +114,25 @@ const transactions = [
 
             <!-- Accounts grid -->
             <div v-if="activeTopTab === 'accounts'" class="p-3 flex flex-col gap-0.5">
+              <div v-if="isLoadingAccounts" class="flex items-center justify-center py-6">
+                <span class="material-symbols-outlined text-slate-300 dark:text-zinc-600 animate-spin text-[20px]">progress_activity</span>
+              </div>
+              <p v-else-if="accounts.length === 0" class="text-[10px] text-slate-400 text-center py-6">No accounts found</p>
               <div
+                v-else
                 v-for="account in accounts"
                 :key="account.id"
                 class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-zinc-800 cursor-pointer transition-all group"
               >
                 <div class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-zinc-800 flex items-center justify-center shrink-0">
-                  <span class="material-symbols-outlined text-slate-500 dark:text-zinc-400 text-[18px]">{{ account.icon }}</span>
+                  <span class="material-symbols-outlined text-slate-500 dark:text-zinc-400 text-[18px]">{{ accountIcon(account) }}</span>
                 </div>
                 <div class="flex-1 min-w-0">
                   <p class="text-xs font-bold text-slate-900 dark:text-white truncate group-hover:text-primary transition-colors">{{ account.name }}</p>
-                  <p class="text-[10px] text-slate-400 uppercase tracking-wider truncate">{{ account.institution }}</p>
+                  <p class="text-[10px] text-slate-400 uppercase tracking-wider truncate">{{ account.institution ?? '—' }}</p>
                 </div>
-                <span class="text-xs font-bold shrink-0" :class="account.positive ? 'text-emerald-600' : 'text-rose-600'">
-                  {{ account.balance }}
+                <span class="text-xs font-bold shrink-0" :class="account.startBalance >= 0 ? 'text-emerald-600' : 'text-rose-600'">
+                  {{ formatBalance(account) }}
                 </span>
               </div>
             </div>
