@@ -7,11 +7,13 @@ const navItems = [
   { icon: 'grid_view', label: 'Dashboard', routeName: 'dashboard' },
   { icon: 'category', label: 'Categories', routeName: 'categories' },
   { icon: 'account_balance_wallet', label: 'Accounts', routeName: 'accounts' },
-  { icon: 'swap_horiz', label: 'Transactions' },
+  { icon: 'receipt_long', label: 'Transactions', routeName: 'transactions' },
   { icon: 'pie_chart', label: 'Budgets' },
   { icon: 'bar_chart', label: 'Reports' },
   { icon: 'settings', label: 'Settings' },
 ]
+
+const emit = defineEmits<{ 'add-transaction': [] }>()
 
 const router = useRouter()
 const route = useRoute()
@@ -51,7 +53,10 @@ const handleLogout = async () => {
     </nav>
     
     <div class="p-4 border-t border-slate-200 dark:border-zinc-800">
-      <button class="w-full bg-primary hover:bg-primary/90 text-white font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all">
+      <button
+        class="w-full bg-primary hover:bg-primary/90 text-white font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all"
+        @click="route.name === 'transactions' ? emit('add-transaction') : router.push({ name: 'transactions' })"
+      >
         <span class="material-symbols-outlined">add</span>
         <span>Add Transaction</span>
       </button>

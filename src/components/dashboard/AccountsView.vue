@@ -156,7 +156,7 @@ const fetchAccounts = async () => {
     const { data } = await accountsApi.list()
     accounts.value = data.map(a => ({ id: a.id, name: a.name, institution: a.institution, icon: a.icon }))
     if (data.length > 0) {
-      await selectAccount(data[0].id)
+      await selectAccount(data[0]!.id)
     } else {
       startCreating()
     }

@@ -393,7 +393,7 @@ onMounted(() => {
               <div v-else-if="error" class="flex flex-col items-center justify-center py-16 text-center">
                 <span class="material-symbols-outlined text-red-400 text-4xl mb-2">error</span>
                 <p class="text-red-500 font-medium">{{ error }}</p>
-                <button @click="fetchCategories" class="mt-4 px-4 py-2 bg-primary text-black text-sm font-bold rounded-lg hover:bg-primary/90">
+                <button @click="() => fetchCategories()" class="mt-4 px-4 py-2 bg-primary text-black text-sm font-bold rounded-lg hover:bg-primary/90">
                   Retry
                 </button>
               </div>
@@ -489,7 +489,7 @@ onMounted(() => {
               <div v-else-if="errorDeleted" class="flex flex-col items-center justify-center py-16 text-center">
                 <span class="material-symbols-outlined text-red-400 text-4xl mb-2">error</span>
                 <p class="text-red-500 font-medium">{{ errorDeleted }}</p>
-                <button @click="fetchDeletedCategories" class="mt-4 px-4 py-2 bg-primary text-black text-sm font-bold rounded-lg hover:bg-primary/90">
+                <button @click="() => fetchDeletedCategories()" class="mt-4 px-4 py-2 bg-primary text-black text-sm font-bold rounded-lg hover:bg-primary/90">
                   Retry
                 </button>
               </div>
