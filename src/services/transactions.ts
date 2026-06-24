@@ -38,10 +38,8 @@ export interface CreateTransactionPayload {
 export type UpdateTransactionPayload = Partial<CreateTransactionPayload>
 
 export const transactionsApi = {
-  list: (accountId?: number) =>
-    api.get<TransactionDetail[]>('/users/me/transactions', {
-      params: accountId ? { accountId } : undefined,
-    }),
+  list: (params?: { accountId?: number; from?: string; to?: string }) =>
+    api.get<TransactionDetail[]>('/users/me/transactions', { params }),
 
   get: (id: number) =>
     api.get<TransactionDetail>(`/users/me/transactions/${id}`),

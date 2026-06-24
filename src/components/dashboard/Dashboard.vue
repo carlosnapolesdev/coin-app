@@ -2,8 +2,9 @@
 import { computed, ref, onMounted } from 'vue'
 import Sidebar from './Sidebar.vue'
 import { accountsApi, type AccountDetail, type AccountType } from '../../services/accounts'
+import { transactionsApi, type TransactionDetail } from '../../services/transactions'
 
-const activeTopTab = ref<'accounts' | 'budgets'>('accounts')
+const activeTopTab = ref<'accounts' | 'balances'>('accounts')
 
 const accounts = ref<AccountDetail[]>([])
 const isLoadingAccounts = ref(false)
@@ -29,36 +30,65 @@ const formatBalance = (account: AccountDetail): string => {
 }
 
 onMounted(async () => {
+  const now = new Date()
+  const from = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10)
+  const to = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().slice(0, 10)
+
   isLoadingAccounts.value = true
-  try {
-    const { data } = await accountsApi.list()
-    accounts.value = data
-  } finally {
-    isLoadingAccounts.value = false
-  }
+  isLoadingChart.value = true
+
+  const [accountsRes, txRes] = await Promise.allSettled([
+    accountsApi.list(),
+    transactionsApi.list({ from, to }),
+  ])
+
+  if (accountsRes.status === 'fulfilled') accounts.value = accountsRes.value.data
+  if (txRes.status === 'fulfilled') currentMonthTransactions.value = txRes.value.data
+
+  isLoadingAccounts.value = false
+  isLoadingChart.value = false
 })
 
-const budgets = [
-  { id: 1, name: 'Food & Dining', spent: 320, limit: 500, color: 'bg-amber-500' },
-  { id: 2, name: 'Transport', spent: 90, limit: 150, color: 'bg-blue-500' },
-  { id: 3, name: 'Entertainment', spent: 60, limit: 100, color: 'bg-purple-500' },
-  { id: 4, name: 'Health & Fitness', spent: 45, limit: 80, color: 'bg-rose-500' },
-]
+const balancesByCurrency = computed(() => {
+  const map = new Map<string, { code: string; symbol: string; net: number }>()
+  for (const account of accounts.value) {
+    const code = account.currencyCode ?? 'N/A'
+    const symbol = account.currencySymbol ?? ''
+    const entry = map.get(code) ?? { code, symbol, net: 0 }
+    entry.net += account.startBalance
+    map.set(code, entry)
+  }
+  return Array.from(map.values())
+})
 
-const monthlyCategories = [
-  { label: 'Housing', amount: 750, color: '#2ecc70' },
-  { label: 'Food & Dining', amount: 538, color: '#3b82f6' },
-  { label: 'Transport', amount: 323, color: '#f59e0b' },
-  { label: 'Entertainment', amount: 216, color: '#a855f7' },
-  { label: 'Other', amount: 150, color: '#64748b' },
-]
+const CHART_COLORS = ['#3b82f6', '#f59e0b', '#a855f7', '#2ecc70', '#ef4444', '#14b8a6', '#f97316', '#64748b']
 
-const totalMonthly = computed(() => monthlyCategories.reduce((s, c) => s + c.amount, 0))
+const currentMonthTransactions = ref<TransactionDetail[]>([])
+const isLoadingChart = ref(false)
+
+const currentMonthLabel = computed(() => {
+  const now = new Date()
+  return now.toLocaleString('en-US', { month: 'long', year: 'numeric' })
+})
+
+const monthlyCategories = computed(() => {
+  const map = new Map<string, number>()
+  for (const t of currentMonthTransactions.value) {
+    if (t.type !== 'EXPENSE') continue
+    const label = t.categoryName ?? 'Uncategorized'
+    map.set(label, (map.get(label) ?? 0) + t.amount)
+  }
+  return Array.from(map.entries())
+    .sort((a, b) => b[1] - a[1])
+    .map(([label, amount], i) => ({ label, amount, color: CHART_COLORS[i % CHART_COLORS.length] }))
+})
+
+const totalMonthly = computed(() => monthlyCategories.value.reduce((s, c) => s + c.amount, 0))
 
 const chartSegments = computed(() => {
   let offset = 0
-  return monthlyCategories.map(cat => {
-    const pct = (cat.amount / totalMonthly.value) * 100
+  return monthlyCategories.value.map(cat => {
+    const pct = totalMonthly.value > 0 ? (cat.amount / totalMonthly.value) * 100 : 0
     const seg = { ...cat, pct, offset }
     offset += pct
     return seg
@@ -102,11 +132,11 @@ const transactions = [
             >Accounts</button>
             <button
               class="px-4 py-3 border-b-2 transition-all text-xs font-black tracking-widest uppercase"
-              :class="activeTopTab === 'budgets'
+              :class="activeTopTab === 'balances'
                 ? 'border-primary text-slate-900 dark:text-white'
                 : 'border-transparent text-slate-400 hover:text-primary'"
-              @click="activeTopTab = 'budgets'"
-            >Budgets</button>
+              @click="activeTopTab = 'balances'"
+            >Balances</button>
           </div>
 
           <!-- Tab content -->
@@ -137,24 +167,27 @@ const transactions = [
               </div>
             </div>
 
-            <!-- Budgets grid -->
-            <div v-if="activeTopTab === 'budgets'" class="p-3 flex flex-col gap-2">
+            <!-- Balances by currency -->
+            <div v-if="activeTopTab === 'balances'" class="p-3 flex flex-col gap-0.5">
+              <div v-if="isLoadingAccounts" class="flex items-center justify-center py-6">
+                <span class="material-symbols-outlined text-slate-300 dark:text-zinc-600 animate-spin text-[20px]">progress_activity</span>
+              </div>
+              <p v-else-if="balancesByCurrency.length === 0" class="text-[10px] text-slate-400 text-center py-6">No data</p>
               <div
-                v-for="budget in budgets"
-                :key="budget.id"
-                class="px-3 py-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-zinc-800 transition-all"
+                v-else
+                v-for="row in balancesByCurrency"
+                :key="row.code"
+                class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-zinc-800 transition-all"
               >
-                <div class="flex justify-between items-center mb-1.5">
-                  <span class="text-xs font-bold text-slate-900 dark:text-white">{{ budget.name }}</span>
-                  <span class="text-[10px] text-slate-400">${{ budget.spent }} / ${{ budget.limit }}</span>
+                <div class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-zinc-800 flex items-center justify-center shrink-0">
+                  <span class="text-[10px] font-black text-slate-500 dark:text-zinc-400 uppercase tracking-tight">{{ row.code }}</span>
                 </div>
-                <div class="w-full bg-slate-100 dark:bg-zinc-800 rounded-full h-1.5">
-                  <div
-                    class="h-1.5 rounded-full transition-all"
-                    :class="budget.color"
-                    :style="{ width: Math.min((budget.spent / budget.limit) * 100, 100) + '%' }"
-                  ></div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-xs font-bold text-slate-900 dark:text-white">{{ row.code }}</p>
                 </div>
+                <span class="text-xs font-bold shrink-0" :class="row.net >= 0 ? 'text-emerald-600' : 'text-rose-600'">
+                  {{ row.net >= 0 ? '+' : '-' }}{{ row.symbol }}{{ Math.abs(row.net).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
+                </span>
               </div>
             </div>
 
@@ -165,51 +198,64 @@ const transactions = [
         <div class="flex-1 min-w-0 bg-white dark:bg-zinc-900 flex flex-col overflow-hidden p-5 border-l border-slate-100 dark:border-zinc-800">
           <div class="flex justify-between items-center mb-3 shrink-0">
             <h4 class="font-bold text-sm text-slate-900 dark:text-white">Monthly Spending by Category</h4>
-            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">May 2024</span>
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{ currentMonthLabel }}</span>
           </div>
 
           <div class="flex-1 flex items-center gap-10 min-h-0 overflow-hidden">
 
-            <!-- Donut chart -->
-            <div class="relative shrink-0" style="width: 100px; height: 100px">
-              <svg class="w-full h-full -rotate-90" viewBox="0 0 36 36">
-                <path
-                  class="text-slate-100 dark:text-zinc-800"
-                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                  fill="none" stroke="currentColor" stroke-width="3.5"
-                ></path>
-                <path
-                  v-for="seg in chartSegments"
-                  :key="seg.label"
-                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                  fill="none"
-                  :stroke="seg.color"
-                  :stroke-dasharray="`${seg.pct} ${100 - seg.pct}`"
-                  :stroke-dashoffset="`-${seg.offset}`"
-                  stroke-width="3.5"
-                ></path>
-              </svg>
-              <div class="absolute inset-0 flex flex-col items-center justify-center">
-                <span class="text-[8px] font-semibold text-slate-400">Total</span>
-                <span class="text-xs font-bold text-slate-900 dark:text-white">${{ totalMonthly.toLocaleString() }}</span>
-              </div>
+            <!-- Loading -->
+            <div v-if="isLoadingChart" class="flex-1 flex items-center justify-center">
+              <span class="material-symbols-outlined text-slate-300 dark:text-zinc-600 animate-spin text-[20px]">progress_activity</span>
             </div>
 
-            <!-- Category breakdown list -->
-            <div class="flex-1 grid grid-cols-2 gap-x-8 gap-y-2.5 min-w-0">
-              <div v-for="seg in chartSegments" :key="seg.label" class="flex items-center gap-2 min-w-0">
-                <div class="w-2 h-2 rounded-full shrink-0" :style="{ backgroundColor: seg.color }"></div>
-                <div class="flex-1 min-w-0">
-                  <div class="flex justify-between items-baseline">
-                    <span class="text-xs font-bold text-slate-700 dark:text-zinc-300 truncate">{{ seg.label }}</span>
-                    <span class="text-[10px] text-slate-400 ml-1 shrink-0">${{ seg.amount }}</span>
-                  </div>
-                  <div class="w-full bg-slate-100 dark:bg-zinc-800 rounded-full h-1 mt-0.5">
-                    <div class="h-1 rounded-full" :style="{ width: seg.pct + '%', backgroundColor: seg.color }"></div>
+            <!-- Empty state -->
+            <p v-else-if="monthlyCategories.length === 0" class="flex-1 text-[10px] text-slate-400 text-center">
+              No expenses recorded this month
+            </p>
+
+            <!-- Chart + breakdown -->
+            <template v-else>
+              <!-- Donut chart -->
+              <div class="relative shrink-0" style="width: 100px; height: 100px">
+                <svg class="w-full h-full -rotate-90" viewBox="0 0 36 36">
+                  <path
+                    class="text-slate-100 dark:text-zinc-800"
+                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                    fill="none" stroke="currentColor" stroke-width="3.5"
+                  ></path>
+                  <path
+                    v-for="seg in chartSegments"
+                    :key="seg.label"
+                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                    fill="none"
+                    :stroke="seg.color"
+                    :stroke-dasharray="`${seg.pct} ${100 - seg.pct}`"
+                    :stroke-dashoffset="`-${seg.offset}`"
+                    stroke-width="3.5"
+                  ></path>
+                </svg>
+                <div class="absolute inset-0 flex flex-col items-center justify-center">
+                  <span class="text-[8px] font-semibold text-slate-400">Total</span>
+                  <span class="text-xs font-bold text-slate-900 dark:text-white">{{ totalMonthly.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</span>
+                </div>
+              </div>
+
+              <!-- Category breakdown list -->
+              <div class="flex-1 grid grid-cols-2 gap-x-8 gap-y-2.5 min-w-0">
+                <div v-for="seg in chartSegments" :key="seg.label" class="flex items-center gap-2 min-w-0">
+                  <div class="w-2 h-2 rounded-full shrink-0" :style="{ backgroundColor: seg.color }"></div>
+                  <div class="flex-1 min-w-0">
+                    <div class="flex justify-between items-baseline">
+                      <span class="text-xs font-bold text-slate-700 dark:text-zinc-300 truncate">{{ seg.label }}</span>
+                      <span class="text-[10px] text-slate-400 ml-1 shrink-0">{{ seg.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</span>
+                    </div>
+                    <div class="w-full bg-slate-100 dark:bg-zinc-800 rounded-full h-1 mt-0.5">
+                      <div class="h-1 rounded-full" :style="{ width: seg.pct + '%', backgroundColor: seg.color }"></div>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            </template>
 
           </div>
         </div>
