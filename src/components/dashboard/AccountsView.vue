@@ -32,6 +32,7 @@ const error = ref('')
 const accounts = ref<AccountSummary[]>([])
 const userCurrencies = ref<UserCurrency[]>([])
 const lastUpdatedAt = ref<string | null>(null)
+const currentBalanceDisplay = ref(0)
 
 const baseCurrencyId = computed(() => userCurrencies.value.find(c => c.base)?.currencyId ?? null)
 
@@ -128,6 +129,7 @@ const populateForm = (account: AccountDetail) => {
     checkbook2: account.checkbook2,
   }
   lastUpdatedAt.value = account.updatedAt
+  currentBalanceDisplay.value = account.currentBalance
   iconPickerOpen.value = false
   iconSearch.value = ''
   visibleIconLimit.value = 60
@@ -145,6 +147,7 @@ const resetForm = () => {
   }
   selectedAccountMisc.value = { overdraftAt: 0, maximumBalance: 0, checkbook1: 0, checkbook2: 0 }
   lastUpdatedAt.value = null
+  currentBalanceDisplay.value = 0
   iconPickerOpen.value = false
   iconSearch.value = ''
   visibleIconLimit.value = 60
@@ -451,6 +454,19 @@ onMounted(() => {
                       <span class="absolute left-4 top-1/2 -translate-y-1/2 font-semibold text-faint">$</span>
                       <input v-model="selectedAccount.startBalance" class="field-input pl-8" type="number" />
                     </div>
+                  </div>
+                  <div v-if="!isCreating">
+                    <label class="field-label">Current Balance</label>
+                    <div class="flex items-center gap-2 rounded-xl border border-line bg-surface-2 px-4 py-2.5">
+                      <span class="font-semibold text-faint">$</span>
+                      <span
+                        class="text-sm font-bold"
+                        :class="currentBalanceDisplay >= 0 ? 'text-success' : 'text-danger'"
+                      >
+                        {{ Math.abs(currentBalanceDisplay).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
+                      </span>
+                    </div>
+                    <p class="mt-1 text-xs text-muted">Calculated from start balance + all transactions.</p>
                   </div>
                   <div>
                     <label class="field-label">Icon</label>

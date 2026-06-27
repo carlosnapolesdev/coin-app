@@ -70,15 +70,15 @@ const openEdit = (t: TransactionDetail) => {
   modalOpen.value = true
 }
 
-const onSaved = () => {
-  loadTransactions()
+const onSaved = async () => {
+  await Promise.all([loadAccounts(), loadTransactions()])
 }
 
 const deleteTransaction = async (id: number) => {
   if (!confirm('Delete this transaction?')) return
   try {
     await transactionsApi.remove(id)
-    await loadTransactions()
+    await Promise.all([loadAccounts(), loadTransactions()])
   } catch {
     error.value = 'Failed to delete transaction.'
   }

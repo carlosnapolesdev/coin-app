@@ -14,6 +14,7 @@ export interface AccountDetail {
   currencySymbol: string | null
   groupName: string | null
   startBalance: number
+  currentBalance: number
   notes: string | null
   icon: string | null
   closed: boolean

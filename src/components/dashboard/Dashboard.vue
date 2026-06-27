@@ -29,8 +29,8 @@ const accountIcon = (account: AccountDetail): string =>
 
 const formatBalance = (account: AccountDetail): string => {
   const symbol = account.currencySymbol ?? '$'
-  const abs = Math.abs(account.startBalance).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-  return account.startBalance >= 0 ? `+${symbol}${abs}` : `-${symbol}${abs}`
+  const abs = Math.abs(account.currentBalance).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  return account.currentBalance >= 0 ? `+${symbol}${abs}` : `-${symbol}${abs}`
 }
 
 onMounted(async () => {
@@ -59,7 +59,7 @@ const balancesByCurrency = computed(() => {
     const code = account.currencyCode ?? 'N/A'
     const symbol = account.currencySymbol ?? ''
     const entry = map.get(code) ?? { code, symbol, net: 0 }
-    entry.net += account.startBalance
+    entry.net += account.currentBalance
     map.set(code, entry)
   }
   return Array.from(map.values())
@@ -191,7 +191,7 @@ const goToTransactions = () => router.push({ name: 'transactions' })
                     <p class="truncate text-sm font-semibold text-content">{{ account.name }}</p>
                     <p class="truncate text-xs text-muted">{{ account.institution ?? '—' }}</p>
                   </div>
-                  <span class="shrink-0 text-sm font-semibold" :class="account.startBalance >= 0 ? 'text-success' : 'text-danger'">
+                  <span class="shrink-0 text-sm font-semibold" :class="account.currentBalance >= 0 ? 'text-success' : 'text-danger'">
                     {{ formatBalance(account) }}
                   </span>
                 </div>
