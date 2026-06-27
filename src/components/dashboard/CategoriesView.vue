@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import Sidebar from './Sidebar.vue'
 import EditCategoryModal from './EditCategoryModal.vue'
+import { AppBadge, AppButton, AppIconButton, AppSpinner, PageHeader } from '../ui'
 import api from '../../services/api'
 
 type FlowType = 'expense' | 'income'
@@ -74,7 +75,7 @@ const categories = ref<Category[]>([])
 const deletedCategories = ref<DeletedCategory[]>([])
 
 const getIconClass = (type: 'EXPENSE' | 'INCOME') =>
-  type === 'EXPENSE' ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'
+  type === 'EXPENSE' ? 'bg-danger/10 text-danger' : 'bg-success/10 text-success'
 
 const mapBackendCategories = (backendCategories: BackendCategory[]): Category[] =>
   backendCategories.map(cat => ({
@@ -276,39 +277,24 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex h-screen overflow-hidden bg-background-light">
+  <div class="flex h-screen overflow-hidden bg-bg">
     <Sidebar />
 
     <main class="flex-1 flex flex-col overflow-hidden">
-
-      <!-- Header -->
-      <header class="shrink-0 bg-background-light/90 backdrop-blur-md border-b border-slate-200 px-8 py-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <div>
-          <h2 class="text-2xl font-bold text-slate-900">Manage Categories</h2>
-          <p class="text-sm text-slate-500">Organize categories and subcategories without leaving the main dashboard.</p>
-        </div>
-
-        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-          <label class="relative block min-w-0 sm:w-72">
-            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xl">search</span>
+      <PageHeader title="Categories" subtitle="Organize your categories and subcategories." :sticky="false">
+        <template #actions>
+          <div class="relative w-full sm:w-72">
+            <span class="material-symbols-outlined pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[20px] text-faint">search</span>
             <input
               v-model="searchQuery"
               type="text"
               placeholder="Search category or subcategory"
-              class="w-full rounded-xl border border-slate-200 bg-white pl-10 pr-4 py-3 text-sm shadow-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+              class="field-input pl-11"
             />
-          </label>
-
-          <button
-            type="button"
-            class="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-bold text-slate-900 shadow-lg shadow-primary/20 transition hover:bg-primary/90"
-            @click="openCreateModal"
-          >
-            <span class="material-symbols-outlined text-xl">add_circle</span>
-            <span>New category</span>
-          </button>
-        </div>
-      </header>
+          </div>
+          <AppButton icon="add" @click="openCreateModal">New Category</AppButton>
+        </template>
+      </PageHeader>
 
       <!-- Scrollable content -->
       <div class="flex-1 min-h-0 flex flex-col">
@@ -316,68 +302,58 @@ onMounted(() => {
 
           <!-- Stats cards -->
           <section class="shrink-0 grid gap-4 md:grid-cols-3">
-            <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-              <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">Categories</p>
-              <p class="mt-3 text-3xl font-bold text-slate-900">
+            <article class="surface-card p-5">
+              <p class="field-label">Categories</p>
+              <p class="mt-3 text-3xl font-bold text-content">
                 {{ activeFilter === 'deleted' ? filteredDeletedCategories.length : filteredCategories.length }}
               </p>
-              <p class="mt-2 text-sm text-slate-500">Visible under the current filter.</p>
+              <p class="mt-2 text-sm text-muted">Visible under the current filter.</p>
             </article>
 
-            <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-              <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">Subcategories</p>
-              <p class="mt-3 text-3xl font-bold text-slate-900">
+            <article class="surface-card p-5">
+              <p class="field-label">Subcategories</p>
+              <p class="mt-3 text-3xl font-bold text-content">
                 {{ activeFilter === 'deleted'
                   ? filteredDeletedCategories.reduce((t, c) => t + c.children.length, 0)
                   : filteredCategories.reduce((total, cat) => total + cat.children.length, 0) }}
               </p>
-              <p class="mt-2 text-sm text-slate-500">Available breakdown for reporting and budgeting.</p>
+              <p class="mt-2 text-sm text-muted">Available breakdown for reporting and budgeting.</p>
             </article>
 
-            <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-              <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">Active flow</p>
-              <p class="mt-3 text-3xl font-bold text-slate-900">
+            <article class="surface-card p-5">
+              <p class="field-label">Active flow</p>
+              <p class="mt-3 text-3xl font-bold text-content">
                 {{ activeFilter === 'expense' ? 'Expenses' : activeFilter === 'income' ? 'Income' : 'Deleted' }}
               </p>
-              <p class="mt-2 text-sm text-slate-500">Switch the view using the selector below.</p>
+              <p class="mt-2 text-sm text-muted">Switch the view using the selector below.</p>
             </article>
           </section>
 
           <!-- Table section -->
-          <section class="flex-1 min-h-0 rounded-3xl border border-slate-200 bg-white shadow-sm flex flex-col overflow-hidden">
+          <section class="surface-card flex flex-1 min-h-0 flex-col overflow-hidden">
 
             <!-- Filter bar -->
-            <div class="shrink-0 border-b border-slate-200 bg-slate-50 px-6 py-5 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-              <div class="inline-flex rounded-2xl bg-white p-1 border border-slate-200 shadow-sm">
+            <div class="shrink-0 border-b border-line bg-surface-2/50 px-6 py-5 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div class="inline-flex rounded-lg border border-line bg-surface-2 p-1">
                 <button
+                  v-for="opt in (['expense', 'income', 'deleted'] as FilterType[])"
+                  :key="opt"
                   type="button"
-                  class="rounded-xl px-5 py-2.5 text-sm font-semibold transition"
-                  :class="activeFilter === 'expense' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-500 hover:text-slate-900'"
-                  @click="activeFilter = 'expense'"
-                >Expenses</button>
-                <button
-                  type="button"
-                  class="rounded-xl px-5 py-2.5 text-sm font-semibold transition"
-                  :class="activeFilter === 'income' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-500 hover:text-slate-900'"
-                  @click="activeFilter = 'income'"
-                >Income</button>
-                <button
-                  type="button"
-                  class="rounded-xl px-5 py-2.5 text-sm font-semibold transition"
-                  :class="activeFilter === 'deleted' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-500 hover:text-slate-900'"
-                  @click="activeFilter = 'deleted'"
-                >Deleted</button>
+                  class="rounded-md px-5 py-2 text-sm font-semibold capitalize transition"
+                  :class="activeFilter === opt ? 'bg-surface text-content shadow-sm' : 'text-muted hover:text-content'"
+                  @click="activeFilter = opt"
+                >{{ opt === 'expense' ? 'Expenses' : opt === 'income' ? 'Income' : 'Deleted' }}</button>
               </div>
 
-              <p class="text-sm text-slate-500">
+              <p class="text-sm text-muted">
                 {{ activeFilter === 'deleted' ? filteredDeletedCategories.length : filteredCategories.length }}
                 result<span v-if="(activeFilter === 'deleted' ? filteredDeletedCategories.length : filteredCategories.length) !== 1">s</span>
               </p>
             </div>
 
             <!-- Column headers -->
-            <div class="shrink-0 px-6 py-4 border-b border-slate-100">
-              <div class="grid grid-cols-12 gap-4 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">
+            <div class="shrink-0 px-6 py-4 border-b border-line">
+              <div class="grid grid-cols-12 gap-4 text-[11px] font-semibold uppercase tracking-wide text-faint">
                 <div class="col-span-7 md:col-span-8">Category / Subcategory</div>
                 <div class="col-span-2 text-center">Type</div>
                 <div class="col-span-3 md:col-span-2 text-right">Actions</div>
@@ -386,25 +362,23 @@ onMounted(() => {
 
             <!-- ── Expenses / Income rows ── -->
             <template v-if="activeFilter !== 'deleted'">
-              <div v-if="isLoading" class="flex items-center justify-center py-16">
-                <div class="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+              <div v-if="isLoading" class="flex items-center justify-center py-16 text-primary">
+                <AppSpinner size="lg" />
               </div>
 
               <div v-else-if="error" class="flex flex-col items-center justify-center py-16 text-center">
-                <span class="material-symbols-outlined text-red-400 text-4xl mb-2">error</span>
-                <p class="text-red-500 font-medium">{{ error }}</p>
-                <button @click="() => fetchCategories()" class="mt-4 px-4 py-2 bg-primary text-black text-sm font-bold rounded-lg hover:bg-primary/90">
-                  Retry
-                </button>
+                <span class="material-symbols-outlined text-danger text-4xl mb-2">error</span>
+                <p class="text-danger font-medium">{{ error }}</p>
+                <AppButton class="mt-4" variant="secondary" size="sm" @click="() => fetchCategories()">Retry</AppButton>
               </div>
 
-              <div v-else-if="filteredCategories.length" class="flex-1 overflow-y-auto divide-y divide-slate-100">
+              <div v-else-if="filteredCategories.length" class="flex-1 overflow-y-auto divide-y divide-line">
                 <div v-for="category in filteredCategories" :key="category.id" class="group">
-                  <div class="grid grid-cols-12 gap-4 items-center px-6 py-4 hover:bg-slate-50 transition-colors">
+                  <div class="grid grid-cols-12 gap-4 items-center px-6 py-4 hover:bg-surface-2 transition-colors">
                     <div class="col-span-7 md:col-span-8 flex items-center gap-4 min-w-0">
                       <button
                         type="button"
-                        class="flex size-8 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-900"
+                        class="flex size-8 items-center justify-center rounded-full text-faint transition hover:bg-surface-2 hover:text-content"
                         :class="category.children.length === 0 ? 'invisible' : ''"
                         @click="toggleExpanded(category.id)"
                       >
@@ -413,58 +387,45 @@ onMounted(() => {
                         </span>
                       </button>
 
-                      <div :class="['flex size-11 items-center justify-center rounded-2xl', category.iconClass]">
+                      <div :class="['icon-tile size-11', category.iconClass]">
                         <span class="material-symbols-outlined">{{ category.icon }}</span>
                       </div>
 
                       <div class="min-w-0">
-                        <p class="truncate text-sm font-semibold text-slate-900">{{ category.name }}</p>
-                        <p class="text-xs text-slate-500">{{ category.children.length }} subcategories</p>
+                        <p class="truncate text-sm font-semibold text-content">{{ category.name }}</p>
+                        <p class="text-xs text-muted">{{ category.children.length }} subcategories</p>
                       </div>
                     </div>
 
                     <div class="col-span-2 flex justify-center">
-                      <span
-                        class="rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wide"
-                        :class="category.type === 'expense' ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'"
-                      >
+                      <AppBadge :variant="category.type === 'expense' ? 'danger' : 'success'">
                         {{ category.type === 'expense' ? 'Expense' : 'Income' }}
-                      </span>
+                      </AppBadge>
                     </div>
 
-                    <div class="col-span-3 md:col-span-2 flex justify-end gap-1 text-slate-400">
-                      <button type="button" class="rounded-lg p-2 transition hover:bg-slate-100 hover:text-primary">
-                        <span class="material-symbols-outlined text-[20px]">add_box</span>
-                      </button>
-                      <button type="button" class="rounded-lg p-2 transition hover:bg-slate-100 hover:text-slate-900" @click="openEditModal(category.id, category.name, category.icon, false)">
-                        <span class="material-symbols-outlined text-[20px]">edit</span>
-                      </button>
-                      <button type="button" class="rounded-lg p-2 transition hover:bg-slate-100 hover:text-rose-600" @click="deleteCategory(category.id)">
-                        <span class="material-symbols-outlined text-[20px]">delete</span>
-                      </button>
+                    <div class="col-span-3 md:col-span-2 flex justify-end gap-1">
+                      <AppIconButton icon="add" variant="primary" aria-label="Add subcategory" />
+                      <AppIconButton icon="edit" aria-label="Edit" @click="openEditModal(category.id, category.name, category.icon, false)" />
+                      <AppIconButton icon="delete" variant="danger" aria-label="Delete" @click="deleteCategory(category.id)" />
                     </div>
                   </div>
 
-                  <div v-if="category.children.length > 0 && isExpanded(category.id)" class="bg-slate-50/80">
+                  <div v-if="category.children.length > 0 && isExpanded(category.id)" class="bg-surface-2/50">
                     <div
                       v-for="child in category.children"
                       :key="child.id"
-                      class="grid grid-cols-12 gap-4 items-center px-6 py-3 hover:bg-white transition-colors"
+                      class="grid grid-cols-12 gap-4 items-center px-6 py-3 hover:bg-surface-2 transition-colors"
                     >
                       <div class="col-span-7 md:col-span-8 flex items-center gap-4 pl-14">
-                        <span class="size-2 rounded-full bg-slate-300"></span>
-                        <span class="text-sm text-slate-600">{{ child.name }}</span>
+                        <span class="size-2 rounded-full bg-line-strong"></span>
+                        <span class="text-sm text-muted">{{ child.name }}</span>
                       </div>
 
                       <div class="col-span-2"></div>
 
-                      <div class="col-span-3 md:col-span-2 flex justify-end gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity text-slate-400">
-                        <button type="button" class="rounded-lg p-2 transition hover:bg-slate-100 hover:text-slate-900" @click="openEditModal(child.id, child.name, child.icon, true)">
-                          <span class="material-symbols-outlined text-[18px]">edit</span>
-                        </button>
-                        <button type="button" class="rounded-lg p-2 transition hover:bg-slate-100 hover:text-rose-600" @click="deleteCategory(child.id)">
-                          <span class="material-symbols-outlined text-[18px]">delete</span>
-                        </button>
+                      <div class="col-span-3 md:col-span-2 flex justify-end gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                        <AppIconButton icon="edit" size="sm" aria-label="Edit" @click="openEditModal(child.id, child.name, child.icon, true)" />
+                        <AppIconButton icon="delete" size="sm" variant="danger" aria-label="Delete" @click="deleteCategory(child.id)" />
                       </div>
                     </div>
                   </div>
@@ -472,37 +433,35 @@ onMounted(() => {
               </div>
 
               <div v-else class="px-6 py-16 text-center">
-                <div class="mx-auto flex size-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
+                <div class="icon-tile mx-auto size-14 bg-surface-2 text-faint">
                   <span class="material-symbols-outlined">folder_open</span>
                 </div>
-                <h3 class="mt-4 text-lg font-semibold text-slate-900">No categories yet</h3>
-                <p class="mt-2 text-sm text-slate-500">Create your first category to get started.</p>
+                <h3 class="mt-4 text-lg font-semibold text-content">No categories yet</h3>
+                <p class="mt-2 text-sm text-muted">Create your first category to get started.</p>
               </div>
             </template>
 
             <!-- ── Deleted rows ── -->
             <template v-else>
-              <div v-if="isLoadingDeleted" class="flex items-center justify-center py-16">
-                <div class="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+              <div v-if="isLoadingDeleted" class="flex items-center justify-center py-16 text-primary">
+                <AppSpinner size="lg" />
               </div>
 
               <div v-else-if="errorDeleted" class="flex flex-col items-center justify-center py-16 text-center">
-                <span class="material-symbols-outlined text-red-400 text-4xl mb-2">error</span>
-                <p class="text-red-500 font-medium">{{ errorDeleted }}</p>
-                <button @click="() => fetchDeletedCategories()" class="mt-4 px-4 py-2 bg-primary text-black text-sm font-bold rounded-lg hover:bg-primary/90">
-                  Retry
-                </button>
+                <span class="material-symbols-outlined text-danger text-4xl mb-2">error</span>
+                <p class="text-danger font-medium">{{ errorDeleted }}</p>
+                <AppButton class="mt-4" variant="secondary" size="sm" @click="() => fetchDeletedCategories()">Retry</AppButton>
               </div>
 
-              <div v-else-if="filteredDeletedCategories.length" class="flex-1 overflow-y-auto divide-y divide-slate-100">
+              <div v-else-if="filteredDeletedCategories.length" class="flex-1 overflow-y-auto divide-y divide-line">
                 <div v-for="category in filteredDeletedCategories" :key="category.id" class="group">
                   <!-- Parent / orphan row -->
-                  <div class="grid grid-cols-12 gap-4 items-center px-6 py-4 hover:bg-slate-50 transition-colors">
+                  <div class="grid grid-cols-12 gap-4 items-center px-6 py-4 hover:bg-surface-2 transition-colors">
                     <div class="col-span-7 md:col-span-8 flex items-center gap-4 min-w-0">
                       <button
                         v-if="!category.orphan && category.children.length > 0"
                         type="button"
-                        class="flex size-8 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-900"
+                        class="flex size-8 items-center justify-center rounded-full text-faint transition hover:bg-surface-2 hover:text-content"
                         @click="toggleDeletedExpanded(category.id)"
                       >
                         <span class="material-symbols-outlined text-xl">
@@ -511,31 +470,28 @@ onMounted(() => {
                       </button>
                       <div v-else class="flex size-8 items-center justify-center invisible"></div>
 
-                      <div :class="['flex size-11 items-center justify-center rounded-2xl opacity-50', category.iconClass]">
+                      <div :class="['icon-tile size-11 opacity-50', category.iconClass]">
                         <span class="material-symbols-outlined">{{ category.icon }}</span>
                       </div>
 
                       <div class="min-w-0">
-                        <p class="truncate text-sm font-semibold text-slate-500 line-through">{{ category.name }}</p>
-                        <p class="text-xs text-slate-400">
+                        <p class="truncate text-sm font-semibold text-muted line-through">{{ category.name }}</p>
+                        <p class="text-xs text-faint">
                           {{ category.orphan ? 'Deleted subcategory' : `${category.children.length} subcategories` }}
                         </p>
                       </div>
                     </div>
 
-                    <div class="col-span-2 flex justify-center">
-                      <span
-                        class="rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wide opacity-60"
-                        :class="category.type === 'expense' ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'"
-                      >
+                    <div class="col-span-2 flex justify-center opacity-70">
+                      <AppBadge :variant="category.type === 'expense' ? 'danger' : 'success'">
                         {{ category.type === 'expense' ? 'Expense' : 'Income' }}
-                      </span>
+                      </AppBadge>
                     </div>
 
                     <div class="col-span-3 md:col-span-2 flex justify-end">
                       <button
                         type="button"
-                        class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition"
+                        class="inline-flex items-center gap-1.5 rounded-lg bg-success/10 px-3 py-1.5 text-xs font-bold text-success transition hover:bg-success/15"
                         @click="restoreCategory(category.id)"
                       >
                         <span class="material-symbols-outlined text-[16px]">restore</span>
@@ -545,15 +501,15 @@ onMounted(() => {
                   </div>
 
                   <!-- Children rows (only for deleted parents) -->
-                  <div v-if="!category.orphan && category.children.length > 0 && isDeletedExpanded(category.id)" class="bg-slate-50/80">
+                  <div v-if="!category.orphan && category.children.length > 0 && isDeletedExpanded(category.id)" class="bg-surface-2/50">
                     <div
                       v-for="child in category.children"
                       :key="child.id"
-                      class="grid grid-cols-12 gap-4 items-center px-6 py-3 hover:bg-white transition-colors"
+                      class="grid grid-cols-12 gap-4 items-center px-6 py-3 hover:bg-surface-2 transition-colors"
                     >
                       <div class="col-span-7 md:col-span-8 flex items-center gap-4 pl-14">
-                        <span class="size-2 rounded-full bg-slate-300"></span>
-                        <span class="text-sm text-slate-500 line-through">{{ child.name }}</span>
+                        <span class="size-2 rounded-full bg-line-strong"></span>
+                        <span class="text-sm text-muted line-through">{{ child.name }}</span>
                       </div>
 
                       <div class="col-span-2"></div>
@@ -564,11 +520,11 @@ onMounted(() => {
               </div>
 
               <div v-else class="px-6 py-16 text-center">
-                <div class="mx-auto flex size-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
+                <div class="icon-tile mx-auto size-14 bg-surface-2 text-faint">
                   <span class="material-symbols-outlined">delete_sweep</span>
                 </div>
-                <h3 class="mt-4 text-lg font-semibold text-slate-900">No deleted categories</h3>
-                <p class="mt-2 text-sm text-slate-500">Categories you delete will appear here for recovery.</p>
+                <h3 class="mt-4 text-lg font-semibold text-content">No deleted categories</h3>
+                <p class="mt-2 text-sm text-muted">Categories you delete will appear here for recovery.</p>
               </div>
             </template>
 

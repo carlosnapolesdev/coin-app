@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import Sidebar from './Sidebar.vue'
+import { AppButton, AppIconButton, AppSpinner, PageHeader } from '../ui'
 import api from '../../services/api'
 import { accountsApi, type AccountDetail, type AccountType, type AccountTemplate } from '../../services/accounts'
 import iconVersions from '@material-symbols/metadata/versions.json'
@@ -289,104 +290,83 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex h-screen overflow-hidden bg-background-light">
+  <div class="flex h-screen overflow-hidden bg-bg">
     <Sidebar />
 
     <main class="flex-1 overflow-y-auto">
-      <header
-        class="sticky top-0 z-10 bg-background-light/90 backdrop-blur-md border-b border-slate-200 px-8 py-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"
-      >
-        <div>
-          <h2 class="text-2xl font-bold text-slate-900">Manage Accounts</h2>
-          <p class="text-sm text-slate-500">Manage your financial accounts from one place.</p>
-        </div>
+      <PageHeader title="Accounts" subtitle="Manage your financial accounts from one place." />
 
-        <label class="relative block min-w-0 sm:w-72">
-          <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xl">
-            search
-          </span>
-          <input
-            v-model="searchQuery"
-            type="text"
-            placeholder="Search accounts..."
-            class="w-full rounded-xl border border-slate-200 bg-white pl-10 pr-4 py-3 text-sm shadow-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
-          />
-        </label>
-      </header>
+      <div class="mx-auto grid max-w-[1400px] grid-cols-12 gap-6 p-6 lg:gap-8 lg:p-8">
+        <!-- Account list (Master) -->
+        <aside class="col-span-12 flex h-fit flex-col gap-6 md:col-span-4 lg:col-span-3">
+          <div class="surface-card flex flex-col gap-4 p-6">
+            <h2 class="field-label !mb-0">Your accounts</h2>
 
-      <div class="max-w-[1400px] mx-auto p-8 grid grid-cols-12 gap-8">
-        <!-- Account Sidebar (Master) -->
-        <aside class="col-span-12 md:col-span-4 lg:col-span-3 flex flex-col gap-6 h-fit">
-          <div class="bg-white rounded-xl shadow-sm p-6 flex flex-col gap-4 border border-slate-200">
-            <h2 class="text-xs font-black uppercase tracking-widest text-slate-400">Manage Accounts</h2>
             <!-- Search -->
             <div class="relative">
-              <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">search</span>
+              <span class="material-symbols-outlined pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[20px] text-faint">search</span>
               <input
                 v-model="searchQuery"
-                class="w-full pl-10 pr-4 py-3 bg-slate-100 border-none rounded-xl text-sm focus:ring-2 focus:ring-primary focus:bg-white transition-all"
+                class="field-input pl-11"
                 placeholder="Search accounts..."
                 type="text"
               />
             </div>
 
             <!-- Account List -->
-            <div class="flex flex-col gap-2 overflow-y-auto max-h-[500px] pr-2">
-              <!-- Loading -->
-              <div v-if="isLoading" class="flex justify-center py-8">
-                <div class="w-6 h-6 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+            <div class="flex max-h-[500px] flex-col gap-1.5 overflow-y-auto pr-1">
+              <div v-if="isLoading" class="flex justify-center py-8 text-primary">
+                <AppSpinner size="md" />
               </div>
 
-              <!-- Error -->
               <div v-else-if="error" class="flex flex-col items-center gap-2 py-6 text-center">
-                <span class="material-symbols-outlined text-red-400 text-3xl">error</span>
-                <p class="text-sm text-red-500">{{ error }}</p>
-                <button @click="fetchAccounts" class="text-xs text-primary font-bold hover:underline">Retry</button>
+                <span class="material-symbols-outlined text-3xl text-danger">error</span>
+                <p class="text-sm text-danger">{{ error }}</p>
+                <AppButton variant="secondary" size="sm" @click="fetchAccounts">Retry</AppButton>
               </div>
 
-              <!-- List -->
               <template v-else>
                 <div
                   v-for="account in filteredAccounts"
                   :key="account.id"
-                  class="flex items-center justify-between w-full p-4 rounded-xl transition-all cursor-pointer"
-                  :class="account.id === activeAccountId ? 'bg-primary/10 border-r-4 border-primary' : 'hover:bg-slate-100'"
+                  class="flex cursor-pointer items-center justify-between rounded-xl p-3 transition-colors"
+                  :class="account.id === activeAccountId ? 'bg-primary/10' : 'hover:bg-surface-2'"
                   @click="selectAccount(account.id)"
                 >
-                  <div class="flex items-center gap-3">
+                  <div class="flex min-w-0 items-center gap-3">
                     <div
-                      class="w-10 h-10 rounded-lg flex items-center justify-center"
-                      :class="account.id === activeAccountId ? 'bg-primary text-black' : 'bg-slate-100 text-slate-500'"
+                      class="icon-tile size-10 shrink-0"
+                      :class="account.id === activeAccountId ? 'bg-primary text-primary-fg' : 'bg-surface-2 text-muted'"
                     >
-                      <span class="material-symbols-outlined">{{ account.icon ?? 'account_balance' }}</span>
+                      <span class="material-symbols-outlined text-[20px]">{{ account.icon ?? 'account_balance' }}</span>
                     </div>
-                    <div>
-                      <p class="text-sm font-bold text-slate-900">{{ account.name }}</p>
-                      <p class="text-[10px] uppercase font-black tracking-wider text-slate-400">{{ account.institution ?? '—' }}</p>
+                    <div class="min-w-0">
+                      <p class="truncate text-sm font-semibold text-content">{{ account.name }}</p>
+                      <p class="truncate text-xs text-muted">{{ account.institution ?? '—' }}</p>
                     </div>
                   </div>
-                  <div class="flex items-center gap-1">
-                    <button
+                  <div class="flex shrink-0 items-center">
+                    <AppIconButton
+                      icon="delete"
+                      variant="danger"
+                      size="sm"
+                      aria-label="Delete account"
                       @click.stop="deleteAccount(account.id)"
-                      class="w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all"
-                    >
-                      <span class="material-symbols-outlined text-[18px]">delete</span>
-                    </button>
+                    />
                     <span v-if="account.id === activeAccountId" class="material-symbols-outlined text-primary">chevron_right</span>
                   </div>
                 </div>
 
-                <!-- Empty filtered results -->
-                <div v-if="!filteredAccounts.length && !isLoading" class="text-center py-6">
-                  <p class="text-sm text-slate-400">No accounts found.</p>
+                <div v-if="!filteredAccounts.length && !isLoading" class="py-6 text-center">
+                  <p class="text-sm text-muted">No accounts found.</p>
                 </div>
               </template>
 
               <button
+                class="mt-2 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-line p-3 text-sm font-semibold text-muted transition-all hover:border-primary hover:text-primary"
                 @click="startCreating"
-                class="mt-4 flex items-center justify-center gap-2 w-full p-3 rounded-xl border-2 border-dashed border-slate-200 text-slate-400 hover:border-primary hover:text-primary transition-all text-sm font-bold"
               >
-                <span class="material-symbols-outlined">add</span>
+                <span class="material-symbols-outlined text-[20px]">add</span>
                 New Account
               </button>
             </div>
@@ -394,38 +374,33 @@ onMounted(() => {
         </aside>
 
         <!-- Configuration Panel (Detail) -->
-        <div class="col-span-12 md:col-span-8 lg:col-span-9 flex flex-col gap-6">
-          <div class="bg-white rounded-xl shadow-lg shadow-slate-200/40 border border-slate-200 flex flex-col flex-1 overflow-hidden">
-            <!-- Tab Header -->
-            <div class="flex items-center border-b border-slate-200 px-8 pt-6">
+        <div class="col-span-12 flex flex-col gap-6 md:col-span-8 lg:col-span-9">
+          <div class="surface-card flex flex-1 flex-col overflow-hidden p-0">
+            <!-- Tabs -->
+            <div class="flex items-center border-b border-line px-6 pt-4 lg:px-8">
               <button
                 v-for="tab in tabs"
                 :key="tab"
-                class="px-6 py-4 border-b-2 transition-all text-sm font-black tracking-widest uppercase"
-                :class="activeTab === tab.toLowerCase() ? 'border-primary text-slate-900' : 'border-transparent text-slate-400 hover:text-primary'"
+                class="border-b-2 px-5 py-3 text-sm font-semibold transition-colors"
+                :class="activeTab === tab.toLowerCase() ? 'border-primary text-content' : 'border-transparent text-muted hover:text-content'"
                 @click="handleTabChange(tab)"
               >
                 {{ tab }}
               </button>
             </div>
 
-            <!-- Tab Content: General -->
-            <div v-if="activeTab === 'general'" class="flex-1 overflow-y-auto p-8">
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <!-- Form Section Left -->
-                <div class="flex flex-col gap-6">
-                  <div class="group">
-                    <label class="text-[12px] font-black uppercase tracking-widest text-slate-400 mb-2 block">Account Name</label>
-                    <input
-                      v-model="selectedAccount.name"
-                      class="w-full bg-slate-100 border-none rounded-xl py-3 px-4 text-slate-900 font-medium focus:ring-2 focus:ring-primary transition-all"
-                      type="text"
-                      placeholder="e.g. Main Savings"
-                    />
+            <!-- General -->
+            <div v-if="activeTab === 'general'" class="flex-1 overflow-y-auto p-6 lg:p-8">
+              <div class="grid grid-cols-1 gap-8 md:grid-cols-2">
+                <!-- Left -->
+                <div class="flex flex-col gap-5">
+                  <div>
+                    <label class="field-label">Account Name</label>
+                    <input v-model="selectedAccount.name" class="field-input" type="text" placeholder="e.g. Main Savings" />
                   </div>
-                  <div class="group">
-                    <label class="text-[12px] font-black uppercase tracking-widest text-slate-400 mb-2 block">Account Type</label>
-                    <select v-model="selectedAccount.type" class="w-full bg-slate-100 border-none rounded-xl py-3 px-4 text-slate-900 font-medium focus:ring-2 focus:ring-primary transition-all">
+                  <div>
+                    <label class="field-label">Account Type</label>
+                    <select v-model="selectedAccount.type" class="field-input">
                       <option value="NO_TYPE">(no type)</option>
                       <option value="BANK">Bank</option>
                       <option value="CASH">Cash</option>
@@ -436,92 +411,75 @@ onMounted(() => {
                       <option value="SAVINGS">Savings</option>
                     </select>
                   </div>
-                  <div class="group">
-                    <label class="text-[12px] font-black uppercase tracking-widest text-slate-400 mb-2 block">Institution</label>
+                  <div>
+                    <label class="field-label">Institution</label>
                     <div class="relative">
-                      <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">account_balance</span>
-                      <input
-                        v-model="selectedAccount.institution"
-                        class="w-full bg-slate-100 border-none rounded-xl py-3 pl-12 pr-4 text-slate-900 font-medium focus:ring-2 focus:ring-primary transition-all"
-                        type="text"
-                      />
+                      <span class="material-symbols-outlined pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[20px] text-faint">account_balance</span>
+                      <input v-model="selectedAccount.institution" class="field-input pl-11" type="text" />
                     </div>
                   </div>
                   <div class="grid grid-cols-2 gap-4">
-                    <div class="group">
-                      <label class="text-[12px] font-black uppercase tracking-widest text-slate-400 mb-2 block">Account Number</label>
-                      <input
-                        v-model="selectedAccount.accountNumber"
-                        class="w-full bg-slate-100 border-none rounded-xl py-3 px-4 text-slate-900 font-medium focus:ring-2 focus:ring-primary transition-all"
-                        placeholder="**** 4829"
-                        type="text"
-                      />
+                    <div>
+                      <label class="field-label">Account Number</label>
+                      <input v-model="selectedAccount.accountNumber" class="field-input" placeholder="**** 4829" type="text" />
                     </div>
-                    <div class="group">
-                      <label class="text-[12px] font-black uppercase tracking-widest text-slate-400 mb-2 block">Currency</label>
-                      <select v-model="selectedAccount.currencyId" class="w-full bg-slate-100 border-none rounded-xl py-3 px-4 text-slate-900 font-medium focus:ring-2 focus:ring-primary transition-all">
+                    <div>
+                      <label class="field-label">Currency</label>
+                      <select v-model="selectedAccount.currencyId" class="field-input">
                         <option v-for="c in userCurrencies" :key="c.currencyId" :value="c.currencyId">
                           {{ c.code }} ({{ c.symbol }})
                         </option>
                       </select>
                     </div>
                   </div>
-                  <div class="flex items-center gap-3 p-4 rounded-xl bg-slate-50 border border-slate-200">
-                    <input v-model="selectedAccount.closed" class="w-5 h-5 rounded border-slate-200 text-primary focus:ring-primary cursor-pointer" type="checkbox" />
-                    <label class="text-sm font-bold text-slate-900">Account was closed</label>
-                    <span class="material-symbols-outlined text-slate-400 text-lg ml-auto cursor-help">info</span>
-                  </div>
+                  <label class="flex cursor-pointer items-center gap-3 rounded-xl border border-line bg-surface-2 p-4">
+                    <input v-model="selectedAccount.closed" class="size-5 rounded border-line" type="checkbox" />
+                    <span class="text-sm font-semibold text-content">Account was closed</span>
+                    <span class="material-symbols-outlined ml-auto cursor-help text-[20px] text-faint">info</span>
+                  </label>
                 </div>
-                <!-- Form Section Right -->
-                <div class="flex flex-col gap-6">
-                  <div class="group">
-                    <label class="text-[12px] font-black uppercase tracking-widest text-slate-400 mb-2 block">Account Group</label>
-                    <input
-                      v-model="selectedAccount.groupName"
-                      class="w-full bg-slate-100 border-none rounded-xl py-3 px-4 text-slate-900 font-medium focus:ring-2 focus:ring-primary transition-all"
-                      type="text"
-                    />
+
+                <!-- Right -->
+                <div class="flex flex-col gap-5">
+                  <div>
+                    <label class="field-label">Account Group</label>
+                    <input v-model="selectedAccount.groupName" class="field-input" type="text" />
                   </div>
-                  <div class="group">
-                    <label class="text-[12px] font-black uppercase tracking-widest text-slate-400 mb-2 block">Start Balance</label>
+                  <div>
+                    <label class="field-label">Start Balance</label>
                     <div class="relative">
-                      <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">$</span>
-                      <input
-                        v-model="selectedAccount.startBalance"
-                        class="w-full bg-slate-100 border-none rounded-xl py-3 pl-8 pr-4 text-slate-900 font-medium focus:ring-2 focus:ring-primary transition-all"
-                        type="number"
-                      />
+                      <span class="absolute left-4 top-1/2 -translate-y-1/2 font-semibold text-faint">$</span>
+                      <input v-model="selectedAccount.startBalance" class="field-input pl-8" type="number" />
                     </div>
                   </div>
-                  <div class="group">
-                    <label class="text-[12px] font-black uppercase tracking-widest text-slate-400 mb-2 block">Icon</label>
-
+                  <div>
+                    <label class="field-label">Icon</label>
                     <!-- Preview / Toggle -->
                     <button
                       type="button"
-                      class="flex items-center gap-3 w-full p-3 bg-slate-100 rounded-xl hover:bg-slate-200 transition-all text-left"
+                      class="flex w-full items-center gap-3 rounded-lg border border-line bg-surface-2 p-2.5 text-left transition-all hover:bg-surface"
                       @click="iconPickerOpen = !iconPickerOpen; iconSearch = ''; visibleIconLimit = 60"
                     >
-                      <div class="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                        <span class="material-symbols-outlined text-primary">{{ selectedAccount.icon || 'account_balance' }}</span>
+                      <div class="icon-tile size-9 shrink-0 bg-primary/10 text-primary">
+                        <span class="material-symbols-outlined">{{ selectedAccount.icon || 'account_balance' }}</span>
                       </div>
-                      <span class="text-sm font-medium text-slate-700 flex-1 truncate">{{ selectedAccount.icon || 'account_balance' }}</span>
-                      <span class="material-symbols-outlined text-slate-400 text-base">{{ iconPickerOpen ? 'expand_less' : 'expand_more' }}</span>
+                      <span class="flex-1 truncate text-sm font-medium text-content">{{ selectedAccount.icon || 'account_balance' }}</span>
+                      <span class="material-symbols-outlined text-[20px] text-faint">{{ iconPickerOpen ? 'expand_less' : 'expand_more' }}</span>
                     </button>
 
-                    <!-- Picker (collapsible) -->
+                    <!-- Picker -->
                     <div v-if="iconPickerOpen" class="mt-2 flex flex-col gap-2">
                       <div class="relative">
-                        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">search</span>
+                        <span class="material-symbols-outlined pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[20px] text-faint">search</span>
                         <input
                           v-model="iconSearch"
                           type="text"
                           placeholder="Search icon..."
-                          class="w-full bg-slate-100 border-none rounded-xl py-2.5 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary transition-all"
+                          class="field-input pl-11"
                           @input="visibleIconLimit = 60"
                         />
                       </div>
-                      <div class="max-h-52 overflow-y-auto rounded-xl border border-slate-200 bg-slate-50 p-2">
+                      <div class="max-h-52 overflow-y-auto rounded-xl border border-line bg-surface-2 p-2">
                         <div class="grid grid-cols-6 gap-1.5">
                           <button
                             v-for="icon in displayedIcons"
@@ -530,33 +488,29 @@ onMounted(() => {
                             :title="icon"
                             class="flex h-10 items-center justify-center rounded-lg border transition"
                             :class="selectedAccount.icon === icon
-                              ? 'border-primary bg-primary text-slate-900 shadow-md shadow-primary/20'
-                              : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300'"
+                              ? 'border-primary bg-primary text-primary-fg shadow-sm'
+                              : 'border-line bg-surface text-muted hover:border-line-strong'"
                             @click="selectIcon(icon)"
                           >
                             <span class="material-symbols-outlined text-[20px]">{{ icon }}</span>
                           </button>
                         </div>
                         <div v-if="hasMoreIcons" class="mt-3 flex justify-center">
-                          <button
-                            type="button"
-                            class="text-xs text-primary font-bold hover:underline"
-                            @click="visibleIconLimit += 60"
-                          >
+                          <button type="button" class="text-xs font-semibold text-primary hover:underline" @click="visibleIconLimit += 60">
                             Load more ({{ filteredIcons.length - displayedIcons.length }} remaining)
                           </button>
                         </div>
-                        <div v-if="filteredIcons.length === 0" class="py-8 text-center text-sm text-slate-400">
+                        <div v-if="filteredIcons.length === 0" class="py-8 text-center text-sm text-muted">
                           No icons found for "{{ iconSearch }}"
                         </div>
                       </div>
                     </div>
                   </div>
-                  <div class="group flex-1">
-                    <label class="text-[12px] font-black uppercase tracking-widest text-slate-400 mb-2 block">Notes</label>
+                  <div class="flex-1">
+                    <label class="field-label">Notes</label>
                     <textarea
                       v-model="selectedAccount.notes"
-                      class="w-full h-full min-h-[120px] bg-slate-100 border-none rounded-xl py-4 px-4 text-slate-900 font-medium focus:ring-2 focus:ring-primary transition-all resize-none"
+                      class="field-input h-full min-h-[120px] resize-none"
                       placeholder="Add account details, emergency contacts, or internal references..."
                     ></textarea>
                   </div>
@@ -564,51 +518,49 @@ onMounted(() => {
               </div>
             </div>
 
-            <!-- Tab Content: Behaviour -->
-            <div v-if="activeTab === 'behaviour'" class="flex-1 overflow-y-auto p-8">
+            <!-- Behaviour -->
+            <div v-if="activeTab === 'behaviour'" class="flex-1 overflow-y-auto p-6 lg:p-8">
               <div class="flex flex-col gap-8">
-                <!-- Automation Section -->
-                <div class="group">
-                  <label class="text-[12px] font-black uppercase tracking-widest text-slate-400 mb-3 block">Default Template</label>
-                  <select v-model="selectedAccountBehaviour.defaultTemplate" class="w-full max-w-sm bg-slate-100 border-none rounded-xl py-3 px-4 text-slate-900 font-medium focus:ring-2 focus:ring-primary transition-all">
+                <div>
+                  <label class="field-label">Default Template</label>
+                  <select v-model="selectedAccountBehaviour.defaultTemplate" class="field-input max-w-sm">
                     <option value="NONE">(none)</option>
                     <option value="STANDARD_TRANSACTIONS">Standard Transactions</option>
                     <option value="INCOME_TRACKING">Income Tracking</option>
                     <option value="EXPENSE_TRACKING">Expense Tracking</option>
                   </select>
-                  <p class="mt-2 text-xs text-slate-400">Select a template to automate operations associated with this account.</p>
+                  <p class="mt-2 text-xs text-muted">Select a template to automate operations associated with this account.</p>
                 </div>
 
-                <!-- Report Exclusion Section -->
                 <div class="flex flex-col gap-4">
-                  <label class="text-[12px] font-black uppercase tracking-widest text-slate-400 mb-2 block">Report Exclusion</label>
-                  <div class="flex flex-col gap-3 max-w-md">
-                    <label class="flex items-center gap-3 p-4 rounded-xl bg-slate-50 border border-slate-200 cursor-pointer hover:bg-slate-100 transition-all">
-                      <input v-model="selectedAccountBehaviour.excludeFromAccountSummary" class="w-5 h-5 rounded border-slate-300 text-primary focus:ring-primary" type="checkbox" />
+                  <label class="field-label">Report Exclusion</label>
+                  <div class="flex max-w-md flex-col gap-3">
+                    <label class="flex cursor-pointer items-center gap-3 rounded-xl border border-line bg-surface-2 p-4 transition-all hover:bg-surface">
+                      <input v-model="selectedAccountBehaviour.excludeFromAccountSummary" class="size-5 rounded border-line" type="checkbox" />
                       <div>
-                        <span class="text-sm font-bold text-slate-900">Exclude from account summary</span>
-                        <p class="text-xs text-slate-500 mt-0.5">Prevents the account from appearing in the general summary.</p>
+                        <span class="text-sm font-semibold text-content">Exclude from account summary</span>
+                        <p class="mt-0.5 text-xs text-muted">Prevents the account from appearing in the general summary.</p>
                       </div>
                     </label>
-                    <label class="flex items-center gap-3 p-4 rounded-xl bg-slate-50 border border-slate-200 cursor-pointer hover:bg-slate-100 transition-all">
-                      <input v-model="selectedAccountBehaviour.outlineIntoSummary" class="w-5 h-5 rounded border-slate-300 text-primary focus:ring-primary" type="checkbox" />
+                    <label class="flex cursor-pointer items-center gap-3 rounded-xl border border-line bg-surface-2 p-4 transition-all hover:bg-surface">
+                      <input v-model="selectedAccountBehaviour.outlineIntoSummary" class="size-5 rounded border-line" type="checkbox" />
                       <div>
-                        <span class="text-sm font-bold text-slate-900">Outline into summary</span>
-                        <p class="text-xs text-slate-500 mt-0.5">Show as reference only without including values.</p>
+                        <span class="text-sm font-semibold text-content">Outline into summary</span>
+                        <p class="mt-0.5 text-xs text-muted">Show as reference only without including values.</p>
                       </div>
                     </label>
-                    <label class="flex items-center gap-3 p-4 rounded-xl bg-slate-50 border border-slate-200 cursor-pointer hover:bg-slate-100 transition-all">
-                      <input v-model="selectedAccountBehaviour.excludeFromBudget" class="w-5 h-5 rounded border-slate-300 text-primary focus:ring-primary" type="checkbox" />
+                    <label class="flex cursor-pointer items-center gap-3 rounded-xl border border-line bg-surface-2 p-4 transition-all hover:bg-surface">
+                      <input v-model="selectedAccountBehaviour.excludeFromBudget" class="size-5 rounded border-line" type="checkbox" />
                       <div>
-                        <span class="text-sm font-bold text-slate-900">Exclude from the budget</span>
-                        <p class="text-xs text-slate-500 mt-0.5">Removes the account from budget calculations.</p>
+                        <span class="text-sm font-semibold text-content">Exclude from the budget</span>
+                        <p class="mt-0.5 text-xs text-muted">Removes the account from budget calculations.</p>
                       </div>
                     </label>
-                    <label class="flex items-center gap-3 p-4 rounded-xl bg-slate-50 border border-slate-200 cursor-pointer hover:bg-slate-100 transition-all">
-                      <input v-model="selectedAccountBehaviour.excludeFromAnyReports" class="w-5 h-5 rounded border-slate-300 text-primary focus:ring-primary" type="checkbox" />
+                    <label class="flex cursor-pointer items-center gap-3 rounded-xl border border-line bg-surface-2 p-4 transition-all hover:bg-surface">
+                      <input v-model="selectedAccountBehaviour.excludeFromAnyReports" class="size-5 rounded border-line" type="checkbox" />
                       <div>
-                        <span class="text-sm font-bold text-slate-900">Exclude from any reports</span>
-                        <p class="text-xs text-slate-500 mt-0.5">Removes the account from all generated reports.</p>
+                        <span class="text-sm font-semibold text-content">Exclude from any reports</span>
+                        <p class="mt-0.5 text-xs text-muted">Removes the account from all generated reports.</p>
                       </div>
                     </label>
                   </div>
@@ -616,89 +568,69 @@ onMounted(() => {
               </div>
             </div>
 
-            <!-- Tab Content: Misc -->
-            <div v-if="activeTab === 'misc'" class="flex-1 overflow-y-auto p-8">
+            <!-- Misc -->
+            <div v-if="activeTab === 'misc'" class="flex-1 overflow-y-auto p-6 lg:p-8">
               <div class="flex flex-col gap-8">
-                <!-- Balance Limits Section -->
                 <div class="flex flex-col gap-4">
-                  <label class="text-[12px] font-black uppercase tracking-widest text-slate-400 mb-2 block">Balance Limits</label>
-                  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-md">
-                    <div class="group">
-                      <label class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-2 block">Overdraft at</label>
+                  <label class="field-label">Balance Limits</label>
+                  <div class="grid max-w-md grid-cols-1 gap-6 md:grid-cols-2">
+                    <div>
+                      <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-muted">Overdraft at</label>
                       <div class="flex items-center gap-2">
-                        <button @click="decrement('overdraftAt')" class="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition-all">
+                        <button @click="decrement('overdraftAt')" class="flex size-10 items-center justify-center rounded-lg bg-surface-2 text-muted transition-all hover:bg-line">
                           <span class="material-symbols-outlined">remove</span>
                         </button>
-                        <input
-                          v-model="selectedAccountMisc.overdraftAt"
-                          class="w-full bg-slate-100 border-none rounded-xl py-3 px-4 text-slate-900 font-medium text-center focus:ring-2 focus:ring-primary transition-all"
-                          type="number"
-                          step="0.01"
-                        />
-                        <button @click="increment('overdraftAt')" class="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition-all">
+                        <input v-model="selectedAccountMisc.overdraftAt" class="field-input text-center" type="number" step="0.01" />
+                        <button @click="increment('overdraftAt')" class="flex size-10 items-center justify-center rounded-lg bg-surface-2 text-muted transition-all hover:bg-line">
                           <span class="material-symbols-outlined">add</span>
                         </button>
                       </div>
-                      <p class="mt-1 text-xs text-slate-400">Maximum allowed negative balance.</p>
+                      <p class="mt-1 text-xs text-muted">Maximum allowed negative balance.</p>
                     </div>
-                    <div class="group">
-                      <label class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-2 block">Maximum</label>
+                    <div>
+                      <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-muted">Maximum</label>
                       <div class="flex items-center gap-2">
-                        <button @click="decrement('maximumBalance')" class="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition-all">
+                        <button @click="decrement('maximumBalance')" class="flex size-10 items-center justify-center rounded-lg bg-surface-2 text-muted transition-all hover:bg-line">
                           <span class="material-symbols-outlined">remove</span>
                         </button>
-                        <input
-                          v-model="selectedAccountMisc.maximumBalance"
-                          class="w-full bg-slate-100 border-none rounded-xl py-3 px-4 text-slate-900 font-medium text-center focus:ring-2 focus:ring-primary transition-all"
-                          type="number"
-                          step="0.01"
-                        />
-                        <button @click="increment('maximumBalance')" class="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition-all">
+                        <input v-model="selectedAccountMisc.maximumBalance" class="field-input text-center" type="number" step="0.01" />
+                        <button @click="increment('maximumBalance')" class="flex size-10 items-center justify-center rounded-lg bg-surface-2 text-muted transition-all hover:bg-line">
                           <span class="material-symbols-outlined">add</span>
                         </button>
                       </div>
-                      <p class="mt-1 text-xs text-slate-400">Maximum allowed balance.</p>
+                      <p class="mt-1 text-xs text-muted">Maximum allowed balance.</p>
                     </div>
                   </div>
                 </div>
 
-                <!-- Current Check Number Section -->
                 <div class="flex flex-col gap-4">
-                  <label class="text-[12px] font-black uppercase tracking-widest text-slate-400 mb-2 block">Current Check Number</label>
-                  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-md">
-                    <div class="group">
-                      <label class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-2 block">Checkbook 1</label>
+                  <label class="field-label">Current Check Number</label>
+                  <div class="grid max-w-md grid-cols-1 gap-6 md:grid-cols-2">
+                    <div>
+                      <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-muted">Checkbook 1</label>
                       <div class="flex items-center gap-2">
-                        <button @click="decrement('checkbook1')" class="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition-all">
+                        <button @click="decrement('checkbook1')" class="flex size-10 items-center justify-center rounded-lg bg-surface-2 text-muted transition-all hover:bg-line">
                           <span class="material-symbols-outlined">remove</span>
                         </button>
-                        <input
-                          v-model="selectedAccountMisc.checkbook1"
-                          class="w-full bg-slate-100 border-none rounded-xl py-3 px-4 text-slate-900 font-medium text-center focus:ring-2 focus:ring-primary transition-all"
-                          type="number"
-                        />
-                        <button @click="increment('checkbook1')" class="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition-all">
+                        <input v-model="selectedAccountMisc.checkbook1" class="field-input text-center" type="number" />
+                        <button @click="increment('checkbook1')" class="flex size-10 items-center justify-center rounded-lg bg-surface-2 text-muted transition-all hover:bg-line">
                           <span class="material-symbols-outlined">add</span>
                         </button>
                       </div>
-                      <p class="mt-1 text-xs text-slate-400">Current check number for checkbook 1.</p>
+                      <p class="mt-1 text-xs text-muted">Current check number for checkbook 1.</p>
                     </div>
-                    <div class="group">
-                      <label class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-2 block">Checkbook 2</label>
+                    <div>
+                      <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-muted">Checkbook 2</label>
                       <div class="flex items-center gap-2">
-                        <button @click="decrement('checkbook2')" class="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition-all">
+                        <button @click="decrement('checkbook2')" class="flex size-10 items-center justify-center rounded-lg bg-surface-2 text-muted transition-all hover:bg-line">
                           <span class="material-symbols-outlined">remove</span>
                         </button>
-                        <input
-                          v-model="selectedAccountMisc.checkbook2"
-                          class="w-full bg-slate-100 border-none rounded-xl py-3 px-4 text-slate-900 font-medium text-center focus:ring-2 focus:ring-primary transition-all"
-                          type="number"
-                        />
-                        <button @click="increment('checkbook2')" class="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition-all">
+                        <input v-model="selectedAccountMisc.checkbook2" class="field-input text-center" type="number" />
+                        <button @click="increment('checkbook2')" class="flex size-10 items-center justify-center rounded-lg bg-surface-2 text-muted transition-all hover:bg-line">
                           <span class="material-symbols-outlined">add</span>
                         </button>
                       </div>
-                      <p class="mt-1 text-xs text-slate-400">Current check number for checkbook 2.</p>
+                      <p class="mt-1 text-xs text-muted">Current check number for checkbook 2.</p>
                     </div>
                   </div>
                 </div>
@@ -706,33 +638,25 @@ onMounted(() => {
             </div>
 
             <!-- Footer Actions -->
-            <div class="p-8 bg-slate-50 flex items-center justify-end">
-              <button
-                @click="saveChanges"
-                :disabled="isSaving"
-                class="flex items-center gap-2 px-8 py-3 rounded-xl bg-primary text-black font-black uppercase tracking-widest text-[12px] shadow-lg shadow-primary/20 hover:scale-95 active:scale-90 transition-all disabled:opacity-60 disabled:cursor-not-allowed disabled:scale-100"
-              >
-                <span v-if="isSaving" class="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></span>
-                <template v-else>
-                  {{ isCreating ? 'Create Account' : 'Save Changes' }}
-                  <span class="material-symbols-outlined text-lg">check</span>
-                </template>
-              </button>
+            <div class="flex items-center justify-end border-t border-line bg-surface-2/40 p-6 lg:px-8">
+              <AppButton :loading="isSaving" trailing-icon="check" @click="saveChanges">
+                {{ isCreating ? 'Create Account' : 'Save Changes' }}
+              </AppButton>
             </div>
           </div>
 
-          <!-- Contextual Insight Card (Bento Style) -->
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="md:col-span-2 bg-primary/5 rounded-xl p-6 border border-primary/20 flex gap-4 items-start">
-              <span class="material-symbols-outlined text-primary bg-primary/10 p-2 rounded-lg">lightbulb</span>
+          <!-- Contextual Insight -->
+          <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
+            <div class="flex items-start gap-4 rounded-2xl border border-primary/20 bg-primary/5 p-6 md:col-span-2">
+              <span class="material-symbols-outlined rounded-lg bg-primary/10 p-2 text-primary">lightbulb</span>
               <div>
-                <h4 class="font-black text-sm uppercase tracking-wide text-slate-900 mb-1">Pro Tip: Balance Sync</h4>
-                <p class="text-sm text-slate-500 leading-relaxed">Connecting your institution via <strong>Orbit Link</strong> will automatically populate transaction numbers and start balances, saving you manual entry time.</p>
+                <h4 class="mb-1 text-sm font-bold text-content">Tip: Keep balances current</h4>
+                <p class="text-sm leading-relaxed text-muted">Set an accurate <strong>start balance</strong> when you create an account. Every transaction is calculated from it, so your running balance and reports stay correct.</p>
               </div>
             </div>
-            <div class="bg-white rounded-xl p-6 border border-slate-200 flex flex-col justify-center items-center text-center">
-              <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Last Updated</p>
-              <p class="text-lg font-black text-slate-900">{{ formattedLastUpdated }}</p>
+            <div class="surface-card flex flex-col items-center justify-center p-6 text-center">
+              <p class="field-label !mb-1">Last Updated</p>
+              <p class="text-lg font-bold text-content">{{ formattedLastUpdated }}</p>
             </div>
           </div>
         </div>

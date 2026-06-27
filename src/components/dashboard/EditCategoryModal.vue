@@ -2,6 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import api from '../../services/api'
 import iconVersions from '@material-symbols/metadata/versions.json'
+import { AppButton, AppModal } from '../ui'
 
 type FlowType = 'expense' | 'income'
 type FormMode = 'create' | 'edit'
@@ -150,137 +151,105 @@ const handleSave = async () => {
 </script>
 
 <template>
-  <div
-    v-if="isOpen"
-    class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm"
-    @click.self="handleClose"
+  <AppModal
+    :is-open="isOpen"
+    :title="isCreateMode ? 'New category' : (isSubcategory ? 'Edit subcategory' : 'Edit category')"
+    :subtitle="isCreateMode
+      ? 'Create a category with a type and icon to keep your dashboard consistent.'
+      : `Update the name and icon for this ${isSubcategory ? 'subcategory' : 'category'}.`"
+    icon="category"
+    size="lg"
+    @close="handleClose"
   >
-    <div class="w-full max-w-4xl overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl">
-      <div class="flex items-start justify-between gap-4 border-b border-slate-100 bg-slate-50 px-6 py-5">
-        <div>
-          <h3 class="text-xl font-bold text-slate-900">
-            {{ isCreateMode ? 'New category' : (isSubcategory ? 'Edit subcategory' : 'Edit category') }}
-          </h3>
-          <p class="mt-1 text-sm text-slate-500">
-            {{ isCreateMode ? 'Create a category with type and icon to keep your dashboard consistent.' : `Update the name and icon for this ${isSubcategory ? 'subcategory' : 'category'}.` }}
-          </p>
-        </div>
-
-        <button
-          type="button"
-          class="flex size-10 items-center justify-center rounded-full bg-white text-slate-400 shadow-sm transition hover:text-slate-900"
-          @click="handleClose"
-        >
-          <span class="material-symbols-outlined">close</span>
-        </button>
+    <div class="space-y-6 p-6 lg:p-8">
+      <div v-if="error" class="rounded-xl border border-danger/30 bg-danger/10 p-4 text-sm font-medium text-danger">
+        {{ error }}
       </div>
 
-      <div class="space-y-6 px-6 py-6">
-        <div v-if="error" class="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-600">
-          {{ error }}
-        </div>
-
-        <div class="grid gap-6 lg:grid-cols-2">
-          <div class="space-y-5">
-            <div class="space-y-2">
-              <label class="block text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">Name</label>
-              <div class="relative">
-                <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">label</span>
-                <input
-                  v-model="editName"
-                  type="text"
-                  placeholder="Enter category name"
-                  class="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-12 pr-4 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
-                  :disabled="isLoading"
-                />
-              </div>
-              <p v-if="editName.trim().length === 0" class="text-xs text-slate-400">Name is required</p>
-            </div>
-
-            <div v-if="isCreateMode" class="space-y-2">
-              <label class="block text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">Flow type</label>
-              <select
-                v-model="selectedFlow"
-                class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
-                :disabled="isLoading"
-              >
-                <option value="expense">Expense</option>
-                <option value="income">Income</option>
-              </select>
-            </div>
-
-            <div class="rounded-2xl border border-primary/10 bg-primary/5 p-4 text-sm text-slate-600">
-              {{ isCreateMode ? 'Top-level categories help with clean reporting. Use subcategories for details inside the same group.' : 'Changes are applied immediately after saving and reflected in the current list.' }}
-            </div>
-          </div>
-
-          <div class="space-y-3">
-            <label class="block text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">Icon</label>
+      <div class="grid gap-6 lg:grid-cols-2">
+        <!-- Left -->
+        <div class="space-y-5">
+          <div>
+            <label class="field-label">Name</label>
             <div class="relative">
-              <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+              <span class="material-symbols-outlined pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[20px] text-faint">label</span>
               <input
-                v-model="iconSearch"
+                v-model="editName"
                 type="text"
-                placeholder="Search icon"
-                class="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-12 pr-4 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                placeholder="Enter category name"
+                class="field-input pl-11"
                 :disabled="isLoading"
-                @input="visibleIconLimit = 180"
               />
             </div>
+            <p v-if="editName.trim().length === 0" class="mt-1.5 text-xs text-muted">Name is required</p>
+          </div>
 
-            <div class="max-h-72 overflow-y-auto rounded-2xl border border-slate-200 bg-slate-50 p-3">
-              <div class="grid grid-cols-5 gap-2 sm:grid-cols-6">
-                <button
-                  v-for="icon in displayedIconOptions"
-                  :key="icon"
-                  type="button"
-                  class="flex h-12 items-center justify-center rounded-xl border transition"
-                  :class="selectedIcon === icon ? 'border-primary bg-primary text-slate-900 shadow-lg shadow-primary/20' : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300'"
-                  :disabled="isLoading"
-                  @click="selectedIcon = icon"
-                >
-                  <span class="material-symbols-outlined">{{ icon }}</span>
-                </button>
-              </div>
+          <div v-if="isCreateMode">
+            <label class="field-label">Flow type</label>
+            <select v-model="selectedFlow" class="field-input" :disabled="isLoading">
+              <option value="expense">Expense</option>
+              <option value="income">Income</option>
+            </select>
+          </div>
 
-              <div v-if="hasMoreIcons" class="mt-4 flex justify-center">
-                <button
-                  type="button"
-                  class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
-                  :disabled="isLoading"
-                  @click="loadMoreIcons"
-                >
-                  Load more icons ({{ filteredIconOptions.length - displayedIconOptions.length }} remaining)
-                </button>
-              </div>
+          <div class="rounded-xl border border-primary/15 bg-primary/5 p-4 text-sm text-muted">
+            {{ isCreateMode
+              ? 'Top-level categories help with clean reporting. Use subcategories for details inside the same group.'
+              : 'Changes are applied immediately after saving and reflected in the current list.' }}
+          </div>
+        </div>
 
-              <div v-if="filteredIconOptions.length === 0" class="py-10 text-center text-sm text-slate-500">
-                No icons found for "{{ iconSearch }}"
-              </div>
+        <!-- Icon picker -->
+        <div class="space-y-3">
+          <label class="field-label">Icon</label>
+          <div class="relative">
+            <span class="material-symbols-outlined pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[20px] text-faint">search</span>
+            <input
+              v-model="iconSearch"
+              type="text"
+              placeholder="Search icon"
+              class="field-input pl-11"
+              :disabled="isLoading"
+              @input="visibleIconLimit = 180"
+            />
+          </div>
+
+          <div class="max-h-72 overflow-y-auto rounded-xl border border-line bg-surface-2 p-3">
+            <div class="grid grid-cols-5 gap-2 sm:grid-cols-6">
+              <button
+                v-for="icon in displayedIconOptions"
+                :key="icon"
+                type="button"
+                class="flex h-12 items-center justify-center rounded-lg border transition"
+                :class="selectedIcon === icon
+                  ? 'border-primary bg-primary text-primary-fg shadow-sm'
+                  : 'border-line bg-surface text-muted hover:border-line-strong'"
+                :disabled="isLoading"
+                @click="selectedIcon = icon"
+              >
+                <span class="material-symbols-outlined">{{ icon }}</span>
+              </button>
+            </div>
+
+            <div v-if="hasMoreIcons" class="mt-4 flex justify-center">
+              <AppButton variant="secondary" size="sm" :disabled="isLoading" @click="loadMoreIcons">
+                Load more icons ({{ filteredIconOptions.length - displayedIconOptions.length }} remaining)
+              </AppButton>
+            </div>
+
+            <div v-if="filteredIconOptions.length === 0" class="py-10 text-center text-sm text-muted">
+              No icons found for "{{ iconSearch }}"
             </div>
           </div>
         </div>
       </div>
-
-      <div class="flex flex-col-reverse gap-3 border-t border-slate-100 bg-slate-50 px-6 py-5 sm:flex-row sm:justify-end">
-        <button
-          type="button"
-          class="rounded-xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-600 transition hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed"
-          :disabled="isLoading"
-          @click="handleClose"
-        >
-          Cancel
-        </button>
-        <button
-          type="button"
-          class="rounded-xl bg-primary px-5 py-3 text-sm font-bold text-slate-900 shadow-lg shadow-primary/20 transition hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-          :disabled="isSaveDisabled"
-          @click="handleSave"
-        >
-          <span v-if="isLoading" class="w-4 h-4 border-2 border-slate-900 border-t-transparent rounded-full animate-spin"></span>
-          <span>{{ isLoading ? 'Saving...' : (isCreateMode ? 'Save category' : 'Save changes') }}</span>
-        </button>
-      </div>
     </div>
-  </div>
+
+    <template #footer>
+      <AppButton variant="secondary" :disabled="isLoading" @click="handleClose">Cancel</AppButton>
+      <AppButton :loading="isLoading" :disabled="isSaveDisabled" @click="handleSave">
+        {{ isCreateMode ? 'Save category' : 'Save changes' }}
+      </AppButton>
+    </template>
+  </AppModal>
 </template>

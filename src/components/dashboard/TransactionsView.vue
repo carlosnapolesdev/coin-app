@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import Sidebar from './Sidebar.vue'
 import AddTransactionModal from './AddTransactionModal.vue'
+import { AppBadge, AppButton, AppIconButton, AppSpinner, PageHeader } from '../ui'
 import { type AccountDetail, accountsApi } from '../../services/accounts'
 import { type TransactionDetail, type TransactionStatus, transactionsApi } from '../../services/transactions'
 
@@ -30,7 +31,7 @@ const loadTransactions = async () => {
   isLoading.value = true
   error.value = ''
   try {
-    const res = await transactionsApi.list(selectedAccountId.value ?? undefined)
+    const res = await transactionsApi.list({ accountId: selectedAccountId.value ?? undefined })
     transactions.value = res.data
   } catch {
     error.value = 'Failed to load transactions.'
@@ -92,10 +93,10 @@ const formatDate = (dateStr: string) => {
 const formatAmount = (amount: number) =>
   new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount)
 
-const statusConfig: Record<TransactionStatus, { label: string; class: string; icon: string }> = {
-  CLEARED: { label: 'Cleared', class: 'bg-emerald-100 text-emerald-700', icon: 'check_circle' },
-  PENDING: { label: 'Pending', class: 'bg-amber-100 text-amber-700', icon: 'pending' },
-  VOID: { label: 'Void', class: 'bg-slate-100 text-slate-500', icon: 'block' },
+const statusConfig: Record<TransactionStatus, { label: string; variant: 'success' | 'warning' | 'muted'; icon: string }> = {
+  CLEARED: { label: 'Cleared', variant: 'success', icon: 'check_circle' },
+  PENDING: { label: 'Pending', variant: 'warning', icon: 'pending' },
+  VOID: { label: 'Void', variant: 'muted', icon: 'block' },
 }
 
 const parseTags = (tags: string | null) =>
@@ -103,201 +104,155 @@ const parseTags = (tags: string | null) =>
 </script>
 
 <template>
-  <div class="flex h-screen overflow-hidden bg-background text-on-background">
-    <Sidebar @add-transaction="openCreate" />
+  <div class="flex h-screen overflow-hidden bg-bg">
+    <Sidebar />
 
     <main class="flex-1 overflow-y-auto">
-      <!-- Header -->
-      <header class="sticky top-0 z-40 flex items-center justify-between border-b border-slate-100 bg-background/80 px-8 py-6 backdrop-blur-md">
-        <div>
-          <h1 class="text-3xl font-black uppercase tracking-tighter text-slate-900">Transactions</h1>
-          <p class="mt-1 text-[12px] font-bold uppercase tracking-widest text-slate-500">Global Financial Ledger</p>
-        </div>
-        <div class="flex items-center gap-4">
-          <div class="hidden items-center rounded-full border border-slate-100 bg-white px-6 py-2 shadow-sm md:flex">
-            <span class="material-symbols-outlined mr-2 text-xl text-slate-400">search</span>
+      <PageHeader title="Transactions" subtitle="Your financial ledger">
+        <template #actions>
+          <div class="relative hidden md:block">
+            <span class="material-symbols-outlined pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[20px] text-faint">search</span>
             <input
               v-model="searchQuery"
-              class="w-48 border-none bg-transparent text-sm font-medium focus:ring-0"
-              placeholder="Search records..."
               type="text"
+              placeholder="Search records..."
+              class="field-input w-64 pl-11"
             />
           </div>
-          <button
-            class="flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-black uppercase tracking-widest text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95"
-            @click="openCreate"
-          >
-            <span class="material-symbols-outlined">add</span>
-            Add Transaction
-          </button>
-        </div>
-      </header>
+          <AppButton icon="add" @click="openCreate">Add Transaction</AppButton>
+        </template>
+      </PageHeader>
 
       <!-- Filters -->
-      <div class="border-b border-slate-100 bg-white px-8 py-4">
-        <div class="flex items-center gap-4">
-          <label class="text-[11px] font-bold uppercase tracking-widest text-slate-400">Account</label>
-          <select
-            v-model="selectedAccountId"
-            class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-semibold text-slate-700 focus:border-primary focus:ring-0"
-            @change="onAccountChange"
-          >
-            <option :value="null">All accounts</option>
-            <option v-for="acc in accounts" :key="acc.id" :value="acc.id">{{ acc.name }}</option>
-          </select>
-          <span v-if="selectedAccountId" class="text-[11px] text-slate-400">
-            Running balance shown
-          </span>
+      <div class="border-b border-line bg-surface px-6 py-4 lg:px-8">
+        <div class="flex flex-wrap items-center gap-3">
+          <span class="text-xs font-semibold uppercase tracking-wide text-muted">Account</span>
+          <div class="relative">
+            <select
+              v-model="selectedAccountId"
+              class="field-input appearance-none py-2 pr-10"
+              @change="onAccountChange"
+            >
+              <option :value="null">All accounts</option>
+              <option v-for="acc in accounts" :key="acc.id" :value="acc.id">{{ acc.name }}</option>
+            </select>
+            <span class="material-symbols-outlined pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[20px] text-faint">unfold_more</span>
+          </div>
+          <span v-if="selectedAccountId" class="text-xs text-muted">Running balance shown</span>
+
+          <!-- Mobile search -->
+          <div class="relative w-full md:hidden">
+            <span class="material-symbols-outlined pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[20px] text-faint">search</span>
+            <input v-model="searchQuery" type="text" placeholder="Search records..." class="field-input pl-11" />
+          </div>
         </div>
       </div>
 
       <!-- Content -->
-      <div class="px-8 py-6">
-        <div v-if="error" class="mb-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-600">
+      <div class="p-6 lg:p-8">
+        <div v-if="error" class="mb-4 rounded-xl border border-danger/30 bg-danger/10 p-4 text-sm font-medium text-danger">
           {{ error }}
         </div>
 
         <!-- Loading -->
-        <div v-if="isLoading" class="flex items-center justify-center py-24">
-          <span class="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></span>
+        <div v-if="isLoading" class="flex items-center justify-center py-24 text-primary">
+          <AppSpinner size="lg" />
         </div>
 
         <!-- Empty state -->
         <div
           v-else-if="filteredTransactions.length === 0"
-          class="flex flex-col items-center justify-center rounded-3xl border border-dashed border-slate-200 bg-white py-24 text-center"
+          class="flex flex-col items-center justify-center rounded-2xl border border-dashed border-line-strong bg-surface py-24 text-center"
         >
-          <span class="material-symbols-outlined mb-4 text-5xl text-slate-300">receipt_long</span>
-          <p class="font-bold text-slate-500">No transactions yet</p>
-          <p class="mt-1 text-sm text-slate-400">Click "Add Transaction" to get started</p>
-          <button
-            class="mt-6 rounded-xl bg-primary px-6 py-3 text-sm font-black uppercase tracking-widest text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-[1.02]"
-            @click="openCreate"
-          >
-            Add Transaction
-          </button>
+          <span class="material-symbols-outlined mb-4 text-5xl text-faint">receipt_long</span>
+          <p class="font-semibold text-content">No transactions yet</p>
+          <p class="mt-1 text-sm text-muted">Click "Add Transaction" to get started</p>
+          <AppButton class="mt-6" icon="add" @click="openCreate">Add Transaction</AppButton>
         </div>
 
         <!-- Table -->
-        <div v-else class="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
+        <div v-else class="surface-card overflow-hidden">
           <div class="overflow-x-auto">
             <table class="w-full min-w-[900px] text-sm">
               <thead>
-                <tr class="border-b border-slate-100 bg-slate-50 text-left">
-                  <th class="px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-slate-400">Date</th>
-                  <th class="px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-slate-400">Account</th>
-                  <th class="px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-slate-400">Payee</th>
-                  <th class="px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-slate-400">Category</th>
-                  <th class="px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-slate-400">Tags</th>
-                  <th class="px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-slate-400">Status</th>
-                  <th class="px-4 py-3 text-right text-[10px] font-bold uppercase tracking-widest text-rose-400">Expense</th>
-                  <th class="px-4 py-3 text-right text-[10px] font-bold uppercase tracking-widest text-emerald-500">Income</th>
-                  <th v-if="selectedAccountId" class="px-4 py-3 text-right text-[10px] font-bold uppercase tracking-widest text-slate-400">Balance</th>
-                  <th class="px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-slate-400">Memo</th>
-                  <th class="px-4 py-3"></th>
+                <tr class="border-b border-line bg-surface-2/50">
+                  <th class="data-th">Date</th>
+                  <th class="data-th">Account</th>
+                  <th class="data-th">Payee</th>
+                  <th class="data-th">Category</th>
+                  <th class="data-th">Tags</th>
+                  <th class="data-th">Status</th>
+                  <th class="data-th text-right text-danger">Expense</th>
+                  <th class="data-th text-right text-success">Income</th>
+                  <th v-if="selectedAccountId" class="data-th text-right">Balance</th>
+                  <th class="data-th">Memo</th>
+                  <th class="data-th"></th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-slate-50">
+              <tbody class="divide-y divide-line">
                 <tr
                   v-for="t in filteredTransactions"
                   :key="t.id"
-                  class="group transition-colors hover:bg-slate-50"
+                  class="group transition-colors hover:bg-surface-2"
                 >
-                  <!-- Date -->
-                  <td class="whitespace-nowrap px-4 py-3 font-semibold text-slate-700">
+                  <td class="whitespace-nowrap px-4 py-3 font-semibold text-content">
                     {{ formatDate(t.effectiveDate) }}
                   </td>
 
-                  <!-- Account / Info -->
                   <td class="px-4 py-3">
                     <div class="flex items-center gap-2">
-                      <span class="material-symbols-outlined text-base text-slate-400">account_balance_wallet</span>
-                      <span class="font-medium text-slate-600">{{ t.accountName }}</span>
+                      <span class="material-symbols-outlined text-base text-faint">account_balance_wallet</span>
+                      <span class="font-medium text-muted">{{ t.accountName }}</span>
                     </div>
-                    <div v-if="t.paymentMethod" class="mt-0.5 text-[11px] text-slate-400">{{ t.paymentMethod }}</div>
+                    <div v-if="t.paymentMethod" class="mt-0.5 text-[11px] text-faint">{{ t.paymentMethod }}</div>
                   </td>
 
-                  <!-- Payee -->
-                  <td class="px-4 py-3 font-semibold text-slate-800">
+                  <td class="px-4 py-3 font-semibold text-content">
                     {{ t.payee || '—' }}
                   </td>
 
-                  <!-- Category -->
-                  <td class="px-4 py-3 text-slate-600">
+                  <td class="px-4 py-3 text-muted">
                     {{ t.categoryName || '—' }}
                   </td>
 
-                  <!-- Tags -->
                   <td class="px-4 py-3">
                     <div class="flex flex-wrap gap-1">
-                      <span
-                        v-for="tag in parseTags(t.tags)"
-                        :key="tag"
-                        class="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-500"
-                      >
-                        {{ tag }}
-                      </span>
+                      <span v-for="tag in parseTags(t.tags)" :key="tag" class="badge badge-muted">{{ tag }}</span>
                     </div>
                   </td>
 
-                  <!-- Status -->
                   <td class="px-4 py-3">
-                    <span
-                      class="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold"
-                      :class="statusConfig[t.status].class"
-                    >
-                      <span class="material-symbols-outlined text-xs" style="font-size:14px">{{ statusConfig[t.status].icon }}</span>
+                    <AppBadge :variant="statusConfig[t.status].variant" :icon="statusConfig[t.status].icon">
                       {{ statusConfig[t.status].label }}
-                    </span>
+                    </AppBadge>
                   </td>
 
-                  <!-- Expense -->
                   <td class="px-4 py-3 text-right font-bold">
-                    <span v-if="t.type === 'EXPENSE'" class="text-rose-600">
-                      {{ formatAmount(t.amount) }}
-                    </span>
+                    <span v-if="t.type === 'EXPENSE'" class="text-danger">{{ formatAmount(t.amount) }}</span>
                   </td>
 
-                  <!-- Income -->
                   <td class="px-4 py-3 text-right font-bold">
-                    <span v-if="t.type === 'INCOME'" class="text-emerald-600">
-                      {{ formatAmount(t.amount) }}
-                    </span>
+                    <span v-if="t.type === 'INCOME'" class="text-success">{{ formatAmount(t.amount) }}</span>
                   </td>
 
-                  <!-- Balance (only when account filtered) -->
                   <td v-if="selectedAccountId" class="px-4 py-3 text-right font-bold">
                     <span
                       v-if="t.balance !== null && t.balance !== undefined"
-                      :class="t.balance >= 0 ? 'text-slate-700' : 'text-rose-600'"
+                      :class="t.balance >= 0 ? 'text-content' : 'text-danger'"
                     >
                       {{ formatAmount(t.balance) }}
                     </span>
-                    <span v-else class="text-slate-300">—</span>
+                    <span v-else class="text-faint">—</span>
                   </td>
 
-                  <!-- Memo -->
-                  <td class="max-w-[180px] truncate px-4 py-3 text-slate-400" :title="t.memo ?? ''">
+                  <td class="max-w-[180px] truncate px-4 py-3 text-faint" :title="t.memo ?? ''">
                     {{ t.memo || '' }}
                   </td>
 
-                  <!-- Actions -->
                   <td class="px-4 py-3">
                     <div class="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                      <button
-                        class="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
-                        title="Edit"
-                        @click="openEdit(t)"
-                      >
-                        <span class="material-symbols-outlined text-[18px]">edit</span>
-                      </button>
-                      <button
-                        class="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-red-50 hover:text-red-600"
-                        title="Delete"
-                        @click="deleteTransaction(t.id)"
-                      >
-                        <span class="material-symbols-outlined text-[18px]">delete</span>
-                      </button>
+                      <AppIconButton icon="edit" aria-label="Edit" @click="openEdit(t)" />
+                      <AppIconButton icon="delete" variant="danger" aria-label="Delete" @click="deleteTransaction(t.id)" />
                     </div>
                   </td>
                 </tr>
