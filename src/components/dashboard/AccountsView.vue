@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import Sidebar from './Sidebar.vue'
-import { AnimatedAmount, AppButton, AppIconButton, AppSpinner, PageHeader } from '../ui'
+import { AnimatedAmount, AppButton, AppIconButton, AppSpinner, AppTabs, ConfirmDialog, PageContainer, PageHeader } from '../ui'
 import api from '../../services/api'
 import { accountsApi, type AccountDetail, type AccountType, type AccountTemplate } from '../../services/accounts'
 import iconVersions from '@material-symbols/metadata/versions.json'
@@ -28,6 +28,7 @@ const isLoading = ref(false)
 const isSaving = ref(false)
 const isCreating = ref(false)
 const error = ref('')
+const confirmDeleteId = ref<number | null>(null)
 
 const accounts = ref<AccountSummary[]>([])
 const userCurrencies = ref<UserCurrency[]>([])
@@ -83,7 +84,11 @@ const selectedAccountMisc = ref({
   checkbook2: 0,
 })
 
-const tabs = ['General', 'Behaviour', 'Misc'] as const
+const tabs = [
+  { value: 'general', label: 'General' },
+  { value: 'behaviour', label: 'Behaviour' },
+  { value: 'misc', label: 'Misc' },
+] as const
 
 const filteredAccounts = computed(() => {
   const q = searchQuery.value.toLowerCase().trim()
@@ -250,7 +255,13 @@ const saveChanges = async () => {
   }
 }
 
-const deleteAccount = async (id: number) => {
+const requestDeleteAccount = (id: number) => {
+  confirmDeleteId.value = id
+}
+
+const confirmDeleteAccount = async () => {
+  if (confirmDeleteId.value === null) return
+  const id = confirmDeleteId.value
   try {
     await accountsApi.remove(id)
     accounts.value = accounts.value.filter(a => a.id !== id)
@@ -261,6 +272,8 @@ const deleteAccount = async (id: number) => {
     }
   } catch (e) {
     console.error('Failed to delete account', e)
+  } finally {
+    confirmDeleteId.value = null
   }
 }
 
@@ -280,12 +293,6 @@ const increment = (field: 'overdraftAt' | 'maximumBalance' | 'checkbook1' | 'che
   }
 }
 
-const handleTabChange = (tab: string) => {
-  if (tab === 'General') activeTab.value = 'general'
-  else if (tab === 'Behaviour') activeTab.value = 'behaviour'
-  else activeTab.value = 'misc'
-}
-
 onMounted(() => {
   fetchAccounts()
   fetchUserCurrencies()
@@ -299,7 +306,8 @@ onMounted(() => {
     <main class="flex-1 overflow-y-auto">
       <PageHeader title="Accounts" subtitle="Manage your financial accounts from one place." />
 
-      <div class="mx-auto grid max-w-[1400px] grid-cols-12 gap-6 p-6 lg:gap-8 lg:p-8">
+      <PageContainer>
+        <div class="grid grid-cols-12 gap-6 lg:gap-8">
         <!-- Account list (Master) -->
         <aside class="col-span-12 flex h-fit flex-col gap-6 md:col-span-4 lg:col-span-3">
           <div class="surface-card flex flex-col gap-4 p-6">
@@ -354,7 +362,7 @@ onMounted(() => {
                       variant="danger"
                       size="sm"
                       aria-label="Delete account"
-                      @click.stop="deleteAccount(account.id)"
+                      @click.stop="requestDeleteAccount(account.id)"
                     />
                     <span v-if="account.id === activeAccountId" class="material-symbols-outlined text-primary">chevron_right</span>
                   </div>
@@ -380,16 +388,8 @@ onMounted(() => {
         <div class="col-span-12 flex flex-col gap-6 md:col-span-8 lg:col-span-9">
           <div class="surface-card flex flex-1 flex-col overflow-hidden p-0">
             <!-- Tabs -->
-            <div class="flex items-center border-b border-line px-6 pt-4 lg:px-8">
-              <button
-                v-for="tab in tabs"
-                :key="tab"
-                class="border-b-2 px-5 py-3 text-sm font-semibold transition-colors"
-                :class="activeTab === tab.toLowerCase() ? 'border-primary text-content' : 'border-transparent text-muted hover:text-content'"
-                @click="handleTabChange(tab)"
-              >
-                {{ tab }}
-              </button>
+            <div class="border-b border-line p-4 lg:px-8">
+              <AppTabs v-model="activeTab" :tabs="[...tabs]" />
             </div>
 
             <!-- General -->
@@ -670,7 +670,16 @@ onMounted(() => {
             </div>
           </div>
         </div>
-      </div>
+        </div>
+      </PageContainer>
+
+      <ConfirmDialog
+        :is-open="confirmDeleteId !== null"
+        title="Delete account?"
+        message="This account and its association will be removed. Existing transactions are not deleted."
+        @confirm="confirmDeleteAccount"
+        @cancel="confirmDeleteId = null"
+      />
     </main>
   </div>
 </template>
