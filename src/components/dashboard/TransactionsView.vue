@@ -227,15 +227,15 @@ const parseTags = (tags: string | null) =>
                     </AppBadge>
                   </td>
 
-                  <td class="px-4 py-3 text-right font-bold">
+                  <td class="px-4 py-3 text-right font-bold tabular-nums">
                     <span v-if="t.type === 'EXPENSE'" class="text-danger">{{ formatAmount(t.amount) }}</span>
                   </td>
 
-                  <td class="px-4 py-3 text-right font-bold">
+                  <td class="px-4 py-3 text-right font-bold tabular-nums">
                     <span v-if="t.type === 'INCOME'" class="text-success">{{ formatAmount(t.amount) }}</span>
                   </td>
 
-                  <td v-if="selectedAccountId" class="px-4 py-3 text-right font-bold">
+                  <td v-if="selectedAccountId" class="px-4 py-3 text-right font-bold tabular-nums">
                     <span
                       v-if="t.balance !== null && t.balance !== undefined"
                       :class="t.balance >= 0 ? 'text-content' : 'text-danger'"

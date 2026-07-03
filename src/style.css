@@ -69,7 +69,7 @@
     /* Raw vars (not @apply) so the base layer never depends on a config color utility. */
     background-color: rgb(var(--color-bg));
     color: rgb(var(--color-content));
-    @apply font-display antialiased;
+    @apply font-body antialiased;
   }
 
   /* Native controls follow the brand */

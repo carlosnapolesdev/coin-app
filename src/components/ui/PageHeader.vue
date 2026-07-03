@@ -9,7 +9,7 @@ withDefaults(defineProps<{ title: string; subtitle?: string; sticky?: boolean }>
     :class="sticky ? 'sticky top-0 z-30' : ''"
   >
     <div class="min-w-0">
-      <h1 class="truncate text-2xl font-bold tracking-tight text-content">{{ title }}</h1>
+      <h1 class="truncate font-display text-2xl font-bold tracking-tight text-content">{{ title }}</h1>
       <p v-if="subtitle" class="mt-0.5 text-sm text-muted">{{ subtitle }}</p>
     </div>
     <div v-if="$slots.actions" class="flex flex-wrap items-center gap-3">

@@ -222,7 +222,7 @@ const goToTransactions = () => router.push({ name: 'transactions' })
           <!-- Monthly spending chart -->
           <AppCard class="flex flex-col lg:col-span-2">
             <div class="mb-4 flex items-center justify-between">
-              <h2 class="text-sm font-bold text-content">Monthly Spending by Category</h2>
+              <h2 class="font-display text-sm font-bold text-content">Monthly Spending by Category</h2>
               <span class="text-xs font-semibold uppercase tracking-wide text-faint">{{ currentMonthLabel }}</span>
             </div>
 
@@ -284,7 +284,7 @@ const goToTransactions = () => router.push({ name: 'transactions' })
         <!-- Recent transactions -->
         <AppCard padding="none">
           <div class="flex items-center justify-between border-b border-line px-6 py-4">
-            <h2 class="text-sm font-bold text-content">Recent Transactions</h2>
+            <h2 class="font-display text-sm font-bold text-content">Recent Transactions</h2>
             <button class="text-sm font-semibold text-primary hover:underline" @click="goToTransactions">View all</button>
           </div>
 
@@ -323,7 +323,7 @@ const goToTransactions = () => router.push({ name: 'transactions' })
                   <td class="px-6 py-3 text-sm text-muted">{{ t.categoryName || '—' }}</td>
                   <td class="px-6 py-3 text-sm text-muted">{{ t.accountName }}</td>
                   <td class="px-6 py-3 text-sm text-faint">{{ formatDate(t.effectiveDate) }}</td>
-                  <td class="px-6 py-3 text-right text-sm font-bold" :class="t.type === 'INCOME' ? 'text-success' : 'text-danger'">
+                  <td class="px-6 py-3 text-right text-sm font-bold tabular-nums" :class="t.type === 'INCOME' ? 'text-success' : 'text-danger'">
                     {{ t.type === 'INCOME' ? '+' : '-' }}{{ formatMoney(t.amount) }}
                   </td>
                 </tr>
