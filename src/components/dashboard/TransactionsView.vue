@@ -2,7 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import Sidebar from './Sidebar.vue'
 import AddTransactionModal from './AddTransactionModal.vue'
-import { AppBadge, AppButton, AppIconButton, AppSpinner, PageContainer, PageHeader } from '../ui'
+import { AppBadge, AppButton, AppIconButton, AppSpinner, ConfirmDialog, PageContainer, PageHeader } from '../ui'
 import { type AccountDetail, accountsApi } from '../../services/accounts'
 import { type TransactionDetail, type TransactionStatus, transactionsApi } from '../../services/transactions'
 
@@ -15,6 +15,8 @@ const error = ref('')
 const modalOpen = ref(false)
 const modalMode = ref<'create' | 'edit'>('create')
 const editingTransaction = ref<TransactionDetail | undefined>(undefined)
+const confirmDeleteId = ref<number | null>(null)
+const isDeleting = ref(false)
 
 const filteredTransactions = computed(() => {
   const q = searchQuery.value.trim().toLowerCase()
@@ -74,13 +76,21 @@ const onSaved = async () => {
   await Promise.all([loadAccounts(), loadTransactions()])
 }
 
-const deleteTransaction = async (id: number) => {
-  if (!confirm('Delete this transaction?')) return
+const requestDeleteTransaction = (id: number) => {
+  confirmDeleteId.value = id
+}
+
+const confirmDelete = async () => {
+  if (confirmDeleteId.value === null) return
+  isDeleting.value = true
   try {
-    await transactionsApi.remove(id)
+    await transactionsApi.remove(confirmDeleteId.value)
     await Promise.all([loadAccounts(), loadTransactions()])
+    confirmDeleteId.value = null
   } catch {
     error.value = 'Failed to delete transaction.'
+  } finally {
+    isDeleting.value = false
   }
 }
 
@@ -245,7 +255,7 @@ const parseTags = (tags: string | null) =>
                   <td class="px-4 py-3">
                     <div class="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
                       <AppIconButton icon="edit" aria-label="Edit" @click="openEdit(t)" />
-                      <AppIconButton icon="delete" variant="danger" aria-label="Delete" @click="deleteTransaction(t.id)" />
+                      <AppIconButton icon="delete" variant="danger" aria-label="Delete" @click="requestDeleteTransaction(t.id)" />
                     </div>
                   </td>
                 </tr>
@@ -255,6 +265,15 @@ const parseTags = (tags: string | null) =>
         </div>
       </PageContainer>
     </main>
+
+    <ConfirmDialog
+      :is-open="confirmDeleteId !== null"
+      title="Delete transaction?"
+      message="This transaction will be permanently removed. This can't be undone."
+      :loading="isDeleting"
+      @confirm="confirmDelete"
+      @cancel="confirmDeleteId = null"
+    />
 
     <AddTransactionModal
       :is-open="modalOpen"
