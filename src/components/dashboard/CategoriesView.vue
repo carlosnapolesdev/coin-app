@@ -2,7 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import Sidebar from './Sidebar.vue'
 import EditCategoryModal from './EditCategoryModal.vue'
-import { AppBadge, AppButton, AppIconButton, AppSpinner, PageHeader } from '../ui'
+import { AppBadge, AppButton, AppIconButton, AppSpinner, AppTabs, ConfirmDialog, PageContainer, PageHeader } from '../ui'
 import api from '../../services/api'
 
 type FlowType = 'expense' | 'income'
@@ -68,6 +68,7 @@ const isLoadingDeleted = ref(false)
 const error = ref('')
 const errorDeleted = ref('')
 const editingItem = ref<EditingItem | null>(null)
+const confirmDeleteId = ref<number | null>(null)
 const expandedCategories = ref<number[]>([])
 const expandedDeletedCategories = ref<number[]>([])
 
@@ -168,12 +169,19 @@ const restoreCategory = async (id: number) => {
   }
 }
 
-const deleteCategory = async (id: number) => {
+const requestDeleteCategory = (id: number) => {
+  confirmDeleteId.value = id
+}
+
+const confirmDeleteCategory = async () => {
+  if (confirmDeleteId.value === null) return
   try {
-    await api.delete(`/users/me/categories/${id}`)
+    await api.delete(`/users/me/categories/${confirmDeleteId.value}`)
     await Promise.all([fetchCategories(true), fetchDeletedCategories(true)])
   } catch (e) {
     console.error('Failed to delete category', e)
+  } finally {
+    confirmDeleteId.value = null
   }
 }
 
@@ -280,75 +288,42 @@ onMounted(() => {
   <div class="flex h-screen overflow-hidden bg-bg">
     <Sidebar />
 
-    <main class="flex-1 flex flex-col overflow-hidden">
-      <PageHeader title="Categories" subtitle="Organize your categories and subcategories." :sticky="false">
-        <template #actions>
-          <div class="relative w-full sm:w-72">
-            <span class="material-symbols-outlined pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[20px] text-faint">search</span>
-            <input
-              v-model="searchQuery"
-              type="text"
-              placeholder="Search category or subcategory"
-              class="field-input pl-11"
-            />
-          </div>
-          <AppButton icon="add" @click="openCreateModal">New Category</AppButton>
-        </template>
-      </PageHeader>
+    <main class="flex-1 overflow-y-auto">
+      <PageHeader title="Categories" subtitle="Organize your categories and subcategories." />
 
-      <!-- Scrollable content -->
-      <div class="flex-1 min-h-0 flex flex-col">
-        <div class="flex-1 min-h-0 max-w-6xl w-full mx-auto px-8 py-8 flex flex-col gap-8">
-
-          <!-- Stats cards -->
-          <section class="shrink-0 grid gap-4 md:grid-cols-3">
-            <article class="surface-card p-5">
-              <p class="field-label">Categories</p>
-              <p class="mt-3 text-3xl font-bold text-content">
-                {{ activeFilter === 'deleted' ? filteredDeletedCategories.length : filteredCategories.length }}
-              </p>
-              <p class="mt-2 text-sm text-muted">Visible under the current filter.</p>
-            </article>
-
-            <article class="surface-card p-5">
-              <p class="field-label">Subcategories</p>
-              <p class="mt-3 text-3xl font-bold text-content">
-                {{ activeFilter === 'deleted'
-                  ? filteredDeletedCategories.reduce((t, c) => t + c.children.length, 0)
-                  : filteredCategories.reduce((total, cat) => total + cat.children.length, 0) }}
-              </p>
-              <p class="mt-2 text-sm text-muted">Available breakdown for reporting and budgeting.</p>
-            </article>
-
-            <article class="surface-card p-5">
-              <p class="field-label">Active flow</p>
-              <p class="mt-3 text-3xl font-bold text-content">
-                {{ activeFilter === 'expense' ? 'Expenses' : activeFilter === 'income' ? 'Income' : 'Deleted' }}
-              </p>
-              <p class="mt-2 text-sm text-muted">Switch the view using the selector below.</p>
-            </article>
-          </section>
-
-          <!-- Table section -->
-          <section class="surface-card flex flex-1 min-h-0 flex-col overflow-hidden">
+      <PageContainer>
+        <!-- Table section -->
+        <section class="surface-card flex flex-col overflow-hidden">
 
             <!-- Filter bar -->
-            <div class="shrink-0 border-b border-line bg-surface-2/50 px-6 py-5 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-              <div class="inline-flex rounded-lg border border-line bg-surface-2 p-1">
-                <button
-                  v-for="opt in (['expense', 'income', 'deleted'] as FilterType[])"
-                  :key="opt"
-                  type="button"
-                  class="rounded-md px-5 py-2 text-sm font-semibold capitalize transition"
-                  :class="activeFilter === opt ? 'bg-surface text-content shadow-sm' : 'text-muted hover:text-content'"
-                  @click="activeFilter = opt"
-                >{{ opt === 'expense' ? 'Expenses' : opt === 'income' ? 'Income' : 'Deleted' }}</button>
+            <div class="shrink-0 border-b border-line bg-surface-2/50 px-6 py-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <div class="flex flex-wrap items-center gap-3">
+                <AppTabs
+                  v-model="activeFilter"
+                  :tabs="[
+                    { value: 'expense', label: 'Expenses' },
+                    { value: 'income', label: 'Income' },
+                    { value: 'deleted', label: 'Deleted' },
+                  ]"
+                />
+                <p class="text-sm text-muted">
+                  {{ activeFilter === 'deleted' ? filteredDeletedCategories.length : filteredCategories.length }}
+                  result<span v-if="(activeFilter === 'deleted' ? filteredDeletedCategories.length : filteredCategories.length) !== 1">s</span>
+                </p>
               </div>
 
-              <p class="text-sm text-muted">
-                {{ activeFilter === 'deleted' ? filteredDeletedCategories.length : filteredCategories.length }}
-                result<span v-if="(activeFilter === 'deleted' ? filteredDeletedCategories.length : filteredCategories.length) !== 1">s</span>
-              </p>
+              <div class="flex items-center gap-3">
+                <div class="relative flex-1 md:flex-none">
+                  <span class="material-symbols-outlined pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[20px] text-faint">search</span>
+                  <input
+                    v-model="searchQuery"
+                    type="text"
+                    placeholder="Search category or subcategory"
+                    class="field-input w-full pl-11 md:w-72"
+                  />
+                </div>
+                <AppButton icon="add" @click="openCreateModal">New Category</AppButton>
+              </div>
             </div>
 
             <!-- Column headers -->
@@ -406,7 +381,7 @@ onMounted(() => {
                     <div class="col-span-3 md:col-span-2 flex justify-end gap-1">
                       <AppIconButton icon="add" variant="primary" aria-label="Add subcategory" />
                       <AppIconButton icon="edit" aria-label="Edit" @click="openEditModal(category.id, category.name, category.icon, false)" />
-                      <AppIconButton icon="delete" variant="danger" aria-label="Delete" @click="deleteCategory(category.id)" />
+                      <AppIconButton icon="delete" variant="danger" aria-label="Delete" @click="requestDeleteCategory(category.id)" />
                     </div>
                   </div>
 
@@ -425,7 +400,7 @@ onMounted(() => {
 
                       <div class="col-span-3 md:col-span-2 flex justify-end gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                         <AppIconButton icon="edit" size="sm" aria-label="Edit" @click="openEditModal(child.id, child.name, child.icon, true)" />
-                        <AppIconButton icon="delete" size="sm" variant="danger" aria-label="Delete" @click="deleteCategory(child.id)" />
+                        <AppIconButton icon="delete" size="sm" variant="danger" aria-label="Delete" @click="requestDeleteCategory(child.id)" />
                       </div>
                     </div>
                   </div>
@@ -529,10 +504,17 @@ onMounted(() => {
             </template>
 
           </section>
-        </div>
-      </div>
+      </PageContainer>
     </main>
 
+    <ConfirmDialog
+      :is-open="confirmDeleteId !== null"
+      title="Delete category?"
+      message="Deleted categories can be restored from the Deleted filter."
+      confirm-label="Delete"
+      @confirm="confirmDeleteCategory"
+      @cancel="confirmDeleteId = null"
+    />
     <EditCategoryModal
       :is-open="categoryFormOpen"
       :mode="categoryFormMode"
