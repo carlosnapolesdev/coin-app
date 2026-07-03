@@ -128,11 +128,12 @@
 
   /* Sidebar / nav items */
   .nav-link {
-    @apply flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold text-muted
+    @apply relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold text-muted
            transition-colors hover:bg-surface-2 hover:text-content;
   }
   .nav-link-active {
-    @apply bg-primary/10 text-primary hover:bg-primary/10 hover:text-primary;
+    @apply bg-transparent text-primary hover:bg-transparent hover:text-primary
+           before:absolute before:inset-y-1 before:left-0 before:w-[3px] before:rounded-full before:bg-primary;
   }
 }
 

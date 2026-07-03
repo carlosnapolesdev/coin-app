@@ -25,7 +25,7 @@ const handleLogout = async () => {
 </script>
 
 <template>
-  <aside class="hidden h-screen w-64 flex-shrink-0 flex-col border-r border-line bg-surface md:flex">
+  <aside class="hidden h-screen w-64 flex-shrink-0 flex-col border-r border-line bg-bg md:flex">
     <div class="px-6 py-6">
       <BrandMark :subtitle="authState.user?.email ?? 'Personal Dashboard'" />
     </div>
