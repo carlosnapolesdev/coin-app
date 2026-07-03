@@ -1,7 +1,6 @@
 <script setup lang="ts">
-// Canonical page header. Left: title/subtitle. Right: persistent UserMenu.
-// The #actions slot is transitional — view controls are moving into per-view
-// toolbars; the slot is retired once every view has migrated.
+// Canonical page header. Left: title/subtitle. Right: persistent UserMenu only.
+// View controls live in per-view toolbars; the #actions slot has been retired.
 import UserMenu from '../common/UserMenu.vue'
 withDefaults(defineProps<{ title: string; subtitle?: string; sticky?: boolean }>(), { sticky: true })
 </script>
@@ -15,8 +14,7 @@ withDefaults(defineProps<{ title: string; subtitle?: string; sticky?: boolean }>
       <h1 class="truncate font-display text-2xl font-bold tracking-tight text-content">{{ title }}</h1>
       <p v-if="subtitle" class="mt-0.5 text-sm text-muted">{{ subtitle }}</p>
     </div>
-    <div class="flex flex-wrap items-center gap-3 lg:justify-end">
-      <slot name="actions" />
+    <div class="flex items-center lg:justify-end">
       <UserMenu />
     </div>
   </header>
