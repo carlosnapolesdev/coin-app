@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import Sidebar from './Sidebar.vue'
-import { AppButton, AppIconButton, AppSpinner, PageHeader } from '../ui'
+import { AnimatedAmount, AppButton, AppIconButton, AppSpinner, PageHeader } from '../ui'
 import api from '../../services/api'
 import { accountsApi, type AccountDetail, type AccountType, type AccountTemplate } from '../../services/accounts'
 import iconVersions from '@material-symbols/metadata/versions.json'
@@ -458,13 +458,7 @@ onMounted(() => {
                   <div v-if="!isCreating">
                     <label class="field-label">Current Balance</label>
                     <div class="flex items-center gap-2 rounded-xl border border-line bg-surface-2 px-4 py-2.5">
-                      <span class="font-semibold text-faint">$</span>
-                      <span
-                        class="text-sm font-bold"
-                        :class="currentBalanceDisplay >= 0 ? 'text-success' : 'text-danger'"
-                      >
-                        {{ Math.abs(currentBalanceDisplay).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
-                      </span>
+                      <AnimatedAmount :value="currentBalanceDisplay" size="md" :show-sign="false" />
                     </div>
                     <p class="mt-1 text-xs text-muted">Calculated from start balance + all transactions.</p>
                   </div>

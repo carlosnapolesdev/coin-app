@@ -2,7 +2,7 @@
 import { computed, ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import Sidebar from './Sidebar.vue'
-import { AppButton, AppCard, AppSpinner, PageHeader } from '../ui'
+import { AnimatedAmount, AppButton, AppCard, AppSpinner, PageHeader } from '../ui'
 import { accountsApi, type AccountDetail, type AccountType } from '../../services/accounts'
 import { transactionsApi, type TransactionDetail } from '../../services/transactions'
 
@@ -143,12 +143,12 @@ const goToTransactions = () => router.push({ name: 'transactions' })
           </AppCard>
           <AppCard>
             <p class="field-label">Income · {{ currentMonthLabel }}</p>
-            <p class="mt-2 text-3xl font-bold text-success">+{{ formatMoney(monthlyIncome) }}</p>
+            <AnimatedAmount class="mt-2 block" :value="monthlyIncome" />
             <p class="mt-1 text-sm text-muted">Received this month</p>
           </AppCard>
           <AppCard>
             <p class="field-label">Spending · {{ currentMonthLabel }}</p>
-            <p class="mt-2 text-3xl font-bold text-danger">-{{ formatMoney(totalMonthly) }}</p>
+            <AnimatedAmount class="mt-2 block" :value="-totalMonthly" />
             <p class="mt-1 text-sm text-muted">Across {{ monthlyCategories.length }} categories</p>
           </AppCard>
         </section>
