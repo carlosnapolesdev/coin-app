@@ -2,7 +2,7 @@
 import { computed, ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import Sidebar from './Sidebar.vue'
-import { AnimatedAmount, AppCard, AppSpinner, PageContainer, PageHeader } from '../ui'
+import { AnimatedAmount, AppCard, AppSpinner, AppTabs, PageContainer, PageHeader } from '../ui'
 import { accountsApi, type AccountDetail, type AccountType } from '../../services/accounts'
 import { transactionsApi, type TransactionDetail } from '../../services/transactions'
 
@@ -153,18 +153,11 @@ const goToTransactions = () => router.push({ name: 'transactions' })
         <section class="grid gap-6 lg:grid-cols-3">
           <!-- Accounts & balances -->
           <AppCard padding="none" class="flex flex-col lg:col-span-1">
-            <div class="flex gap-1 border-b border-line px-4 pt-4">
-              <button
-                v-for="tab in (['accounts', 'balances'] as const)"
-                :key="tab"
-                class="border-b-2 px-3 py-2.5 text-sm font-semibold capitalize transition-colors"
-                :class="activeTopTab === tab
-                  ? 'border-primary text-content'
-                  : 'border-transparent text-muted hover:text-content'"
-                @click="activeTopTab = tab"
-              >
-                {{ tab }}
-              </button>
+            <div class="border-b border-line p-3">
+              <AppTabs
+                v-model="activeTopTab"
+                :tabs="[{ value: 'accounts', label: 'Accounts' }, { value: 'balances', label: 'Balances' }]"
+              />
             </div>
 
             <div class="max-h-[320px] flex-1 overflow-y-auto p-3">
