@@ -2,7 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import Sidebar from './Sidebar.vue'
 import AddTransactionModal from './AddTransactionModal.vue'
-import { AppBadge, AppButton, AppIconButton, AppSpinner, PageHeader } from '../ui'
+import { AppBadge, AppButton, AppIconButton, AppSpinner, PageContainer, PageHeader } from '../ui'
 import { type AccountDetail, accountsApi } from '../../services/accounts'
 import { type TransactionDetail, type TransactionStatus, transactionsApi } from '../../services/transactions'
 
@@ -108,48 +108,10 @@ const parseTags = (tags: string | null) =>
     <Sidebar />
 
     <main class="flex-1 overflow-y-auto">
-      <PageHeader title="Transactions" subtitle="Your financial ledger">
-        <template #actions>
-          <div class="relative hidden md:block">
-            <span class="material-symbols-outlined pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[20px] text-faint">search</span>
-            <input
-              v-model="searchQuery"
-              type="text"
-              placeholder="Search records..."
-              class="field-input w-64 pl-11"
-            />
-          </div>
-          <AppButton icon="add" @click="openCreate">Add Transaction</AppButton>
-        </template>
-      </PageHeader>
-
-      <!-- Filters -->
-      <div class="border-b border-line bg-surface px-6 py-4 lg:px-8">
-        <div class="flex flex-wrap items-center gap-3">
-          <span class="text-xs font-semibold uppercase tracking-wide text-muted">Account</span>
-          <div class="relative">
-            <select
-              v-model="selectedAccountId"
-              class="field-input appearance-none py-2 pr-10"
-              @change="onAccountChange"
-            >
-              <option :value="null">All accounts</option>
-              <option v-for="acc in accounts" :key="acc.id" :value="acc.id">{{ acc.name }}</option>
-            </select>
-            <span class="material-symbols-outlined pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[20px] text-faint">unfold_more</span>
-          </div>
-          <span v-if="selectedAccountId" class="text-xs text-muted">Running balance shown</span>
-
-          <!-- Mobile search -->
-          <div class="relative w-full md:hidden">
-            <span class="material-symbols-outlined pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[20px] text-faint">search</span>
-            <input v-model="searchQuery" type="text" placeholder="Search records..." class="field-input pl-11" />
-          </div>
-        </div>
-      </div>
+      <PageHeader title="Transactions" subtitle="Your financial ledger" />
 
       <!-- Content -->
-      <div class="p-6 lg:p-8">
+      <PageContainer>
         <div v-if="error" class="mb-4 rounded-xl border border-danger/30 bg-danger/10 p-4 text-sm font-medium text-danger">
           {{ error }}
         </div>
@@ -172,6 +134,37 @@ const parseTags = (tags: string | null) =>
 
         <!-- Table -->
         <div v-else class="surface-card overflow-hidden">
+          <div class="flex flex-col gap-3 border-b border-line px-6 py-4 md:flex-row md:items-center md:justify-between">
+            <div class="flex flex-wrap items-center gap-3">
+              <span class="field-label !mb-0">Account</span>
+              <div class="relative">
+                <select
+                  v-model="selectedAccountId"
+                  class="field-input appearance-none py-2 pr-10"
+                  @change="onAccountChange"
+                >
+                  <option :value="null">All accounts</option>
+                  <option v-for="acc in accounts" :key="acc.id" :value="acc.id">{{ acc.name }}</option>
+                </select>
+                <span class="material-symbols-outlined pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[20px] text-faint">unfold_more</span>
+              </div>
+              <span v-if="selectedAccountId" class="text-xs text-muted">Running balance shown</span>
+            </div>
+
+            <div class="flex items-center gap-3">
+              <div class="relative flex-1 md:flex-none">
+                <span class="material-symbols-outlined pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[20px] text-faint">search</span>
+                <input
+                  v-model="searchQuery"
+                  type="text"
+                  placeholder="Search records..."
+                  class="field-input w-full pl-11 md:w-64"
+                />
+              </div>
+              <AppButton icon="add" @click="openCreate">Add Transaction</AppButton>
+            </div>
+          </div>
+
           <div class="overflow-x-auto">
             <table class="w-full min-w-[900px] text-sm">
               <thead>
@@ -260,7 +253,7 @@ const parseTags = (tags: string | null) =>
             </table>
           </div>
         </div>
-      </div>
+      </PageContainer>
     </main>
 
     <AddTransactionModal
