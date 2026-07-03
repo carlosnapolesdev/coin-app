@@ -4,11 +4,11 @@ export type Theme = 'light' | 'dark'
 
 const STORAGE_KEY = 'coinflow-theme'
 
-const resolveInitialTheme = (): Theme => {
-  if (typeof window === 'undefined') return 'light'
+export const resolveInitialTheme = (): Theme => {
+  if (typeof window === 'undefined') return 'dark'
   const stored = window.localStorage.getItem(STORAGE_KEY)
   if (stored === 'light' || stored === 'dark') return stored
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+  return 'dark'
 }
 
 // Module-level singleton so every component shares the same theme state.
