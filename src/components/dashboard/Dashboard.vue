@@ -2,7 +2,7 @@
 import { computed, ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import Sidebar from './Sidebar.vue'
-import { AnimatedAmount, AppButton, AppCard, AppSpinner, PageHeader } from '../ui'
+import { AnimatedAmount, AppCard, AppSpinner, PageContainer, PageHeader } from '../ui'
 import { accountsApi, type AccountDetail, type AccountType } from '../../services/accounts'
 import { transactionsApi, type TransactionDetail } from '../../services/transactions'
 
@@ -127,13 +127,9 @@ const goToTransactions = () => router.push({ name: 'transactions' })
     <Sidebar />
 
     <main class="flex-1 overflow-y-auto">
-      <PageHeader title="Dashboard" :subtitle="`Overview · ${currentMonthLabel}`">
-        <template #actions>
-          <AppButton icon="add" @click="goToTransactions">New Transaction</AppButton>
-        </template>
-      </PageHeader>
+      <PageHeader title="Dashboard" :subtitle="`Overview · ${currentMonthLabel}`" />
 
-      <div class="space-y-6 p-6 lg:p-8">
+      <PageContainer>
         <!-- Summary stats -->
         <section class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           <AppCard>
@@ -331,7 +327,7 @@ const goToTransactions = () => router.push({ name: 'transactions' })
             </table>
           </div>
         </AppCard>
-      </div>
+      </PageContainer>
     </main>
   </div>
 </template>
