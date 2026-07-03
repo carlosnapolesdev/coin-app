@@ -22,7 +22,7 @@ export interface UseCountUpOptions {
 
 export function useCountUp(target: Ref<number>, options: UseCountUpOptions = {}) {
   const durationMs = options.durationMs ?? 700
-  const displayValue = ref(target.value)
+  const displayValue = ref(0)
   const prefersReducedMotion =
     typeof window !== 'undefined' && typeof window.matchMedia === 'function'
       ? window.matchMedia('(prefers-reduced-motion: reduce)').matches

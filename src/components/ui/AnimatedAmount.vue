@@ -43,7 +43,7 @@ const showEmphasis = computed(() => props.size === 'lg' && tone.value !== 'neutr
 </script>
 
 <template>
-  <span class="relative inline-flex items-baseline" :class="size === 'lg' ? 'text-3xl' : 'text-sm'">
+  <span class="relative isolate inline-flex items-baseline" :class="size === 'lg' ? 'text-3xl' : 'text-sm'">
     <span
       v-if="showEmphasis"
       class="pointer-events-none absolute inset-0 -z-10 hidden rounded-full blur-2xl dark:block"
