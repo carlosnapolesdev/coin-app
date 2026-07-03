@@ -122,7 +122,7 @@ const parseTags = (tags: string | null) =>
 
       <!-- Content -->
       <PageContainer>
-        <div v-if="error" class="mb-4 rounded-xl border border-danger/30 bg-danger/10 p-4 text-sm font-medium text-danger">
+        <div v-if="error" class="rounded-xl border border-danger/30 bg-danger/10 p-4 text-sm font-medium text-danger">
           {{ error }}
         </div>
 

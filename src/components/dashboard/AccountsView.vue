@@ -672,14 +672,14 @@ onMounted(() => {
         </div>
         </div>
       </PageContainer>
-
-      <ConfirmDialog
-        :is-open="confirmDeleteId !== null"
-        title="Delete account?"
-        message="This account and its association will be removed. Existing transactions are not deleted."
-        @confirm="confirmDeleteAccount"
-        @cancel="confirmDeleteId = null"
-      />
     </main>
+
+    <ConfirmDialog
+      :is-open="confirmDeleteId !== null"
+      title="Delete account?"
+      message="This account and its association will be removed. Existing transactions are not deleted."
+      @confirm="confirmDeleteAccount"
+      @cancel="confirmDeleteId = null"
+    />
   </div>
 </template>
