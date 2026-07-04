@@ -40,9 +40,33 @@ export interface CreateTransactionPayload {
 
 export type UpdateTransactionPayload = Partial<CreateTransactionPayload>
 
+export interface Paginated<T> {
+  data: T[]
+  total: number
+  page: number
+  pageSize: number
+}
+
+export interface TransactionQuery {
+  accountId?: number
+  categoryId?: number
+  type?: TransactionType
+  status?: TransactionStatus
+  from?: string
+  to?: string
+  minAmount?: number
+  maxAmount?: number
+  q?: string
+  page?: number
+  pageSize?: number
+}
+
 export const transactionsApi = {
   list: (params?: { accountId?: number; from?: string; to?: string }) =>
     api.get<TransactionDetail[]>('/users/me/transactions', { params }),
+
+  search: (params: TransactionQuery) =>
+    api.get<Paginated<TransactionDetail>>('/users/me/transactions/search', { params }),
 
   get: (id: number) =>
     api.get<TransactionDetail>(`/users/me/transactions/${id}`),

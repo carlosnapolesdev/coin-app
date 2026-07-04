@@ -2,14 +2,23 @@
 import { computed, onMounted, ref } from 'vue'
 import Sidebar from './Sidebar.vue'
 import AddTransactionModal from './AddTransactionModal.vue'
-import { AppBadge, AppButton, AppIconButton, AppSpinner, ConfirmDialog, PageContainer, PageHeader } from '../ui'
+import { AppBadge, AppButton, AppIconButton, AppInput, AppSelect, AppSpinner, ConfirmDialog, PageContainer, PageHeader } from '../ui'
 import { type AccountDetail, accountsApi } from '../../services/accounts'
-import { type TransactionDetail, type TransactionStatus, transactionsApi } from '../../services/transactions'
+import { type TransactionDetail, type TransactionStatus, type TransactionType, transactionsApi } from '../../services/transactions'
+
+const PAGE_SIZE = 25
+const SEARCH_DEBOUNCE_MS = 300
 
 const transactions = ref<TransactionDetail[]>([])
 const accounts = ref<AccountDetail[]>([])
 const selectedAccountId = ref<number | null>(null)
 const searchQuery = ref('')
+const typeFilter = ref<TransactionType | ''>('')
+const statusFilter = ref<TransactionStatus | ''>('')
+const fromDate = ref('')
+const toDate = ref('')
+const page = ref(1)
+const total = ref(0)
 const isLoading = ref(false)
 const error = ref('')
 const modalOpen = ref(false)
@@ -18,23 +27,29 @@ const editingTransaction = ref<TransactionDetail | undefined>(undefined)
 const confirmDeleteId = ref<number | null>(null)
 const isDeleting = ref(false)
 
-const filteredTransactions = computed(() => {
-  const q = searchQuery.value.trim().toLowerCase()
-  if (!q) return transactions.value
-  return transactions.value.filter(t =>
-    t.payee?.toLowerCase().includes(q) ||
-    t.categoryName?.toLowerCase().includes(q) ||
-    t.memo?.toLowerCase().includes(q) ||
-    t.tags?.toLowerCase().includes(q)
-  )
-})
+let searchDebounceTimer: ReturnType<typeof setTimeout> | undefined
+
+const totalPages = computed(() => Math.max(1, Math.ceil(total.value / PAGE_SIZE)))
+const hasActiveFilters = computed(() =>
+  Boolean(searchQuery.value || typeFilter.value || statusFilter.value || fromDate.value || toDate.value || selectedAccountId.value),
+)
 
 const loadTransactions = async () => {
   isLoading.value = true
   error.value = ''
   try {
-    const res = await transactionsApi.list({ accountId: selectedAccountId.value ?? undefined })
-    transactions.value = res.data
+    const res = await transactionsApi.search({
+      accountId: selectedAccountId.value ?? undefined,
+      q: searchQuery.value || undefined,
+      type: typeFilter.value || undefined,
+      status: statusFilter.value || undefined,
+      from: fromDate.value || undefined,
+      to: toDate.value || undefined,
+      page: page.value,
+      pageSize: PAGE_SIZE,
+    })
+    transactions.value = res.data.data
+    total.value = res.data.total
   } catch {
     error.value = 'Failed to load transactions.'
   } finally {
@@ -56,7 +71,20 @@ onMounted(async () => {
   await loadTransactions()
 })
 
-const onAccountChange = () => {
+const applyFilters = () => {
+  page.value = 1
+  loadTransactions()
+}
+
+const onSearchInput = (value: string) => {
+  searchQuery.value = value
+  if (searchDebounceTimer) clearTimeout(searchDebounceTimer)
+  searchDebounceTimer = setTimeout(applyFilters, SEARCH_DEBOUNCE_MS)
+}
+
+const goToPage = (target: number) => {
+  if (target < 1 || target > totalPages.value || target === page.value) return
+  page.value = target
   loadTransactions()
 }
 
@@ -131,6 +159,68 @@ const transferLabel = (t: TransactionDetail) => {
           {{ error }}
         </div>
 
+        <!-- Filters -->
+        <div class="surface-card mb-6 flex flex-col gap-4 p-4">
+          <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <AppSelect
+              label="Account"
+              :model-value="selectedAccountId ?? ''"
+              @update:model-value="(v) => { selectedAccountId = v ? Number(v) : null; applyFilters() }"
+            >
+              <option value="">All accounts</option>
+              <option v-for="acc in accounts" :key="acc.id" :value="acc.id">{{ acc.name }}</option>
+            </AppSelect>
+
+            <AppSelect
+              label="Type"
+              :model-value="typeFilter"
+              @update:model-value="(v) => { typeFilter = v as TransactionType | ''; applyFilters() }"
+            >
+              <option value="">All types</option>
+              <option value="INCOME">Income</option>
+              <option value="EXPENSE">Expense</option>
+              <option value="TRANSFER">Transfer</option>
+            </AppSelect>
+
+            <AppSelect
+              label="Status"
+              :model-value="statusFilter"
+              @update:model-value="(v) => { statusFilter = v as TransactionStatus | ''; applyFilters() }"
+            >
+              <option value="">All statuses</option>
+              <option value="CLEARED">Cleared</option>
+              <option value="PENDING">Pending</option>
+              <option value="VOID">Void</option>
+            </AppSelect>
+
+            <AppInput
+              label="Search"
+              icon="search"
+              placeholder="Payee, memo, tags..."
+              :model-value="searchQuery"
+              @update:model-value="onSearchInput"
+            />
+          </div>
+
+          <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <AppInput
+              label="From date"
+              type="date"
+              :model-value="fromDate"
+              @update:model-value="(v) => { fromDate = v; applyFilters() }"
+            />
+            <AppInput
+              label="To date"
+              type="date"
+              :model-value="toDate"
+              @update:model-value="(v) => { toDate = v; applyFilters() }"
+            />
+            <div class="flex items-end lg:col-span-2 lg:justify-end">
+              <AppButton icon="add" @click="openCreate">Add Transaction</AppButton>
+            </div>
+          </div>
+        </div>
+
         <!-- Loading -->
         <div v-if="isLoading" class="flex items-center justify-center py-24 text-primary">
           <AppSpinner size="lg" />
@@ -138,48 +228,19 @@ const transferLabel = (t: TransactionDetail) => {
 
         <!-- Empty state -->
         <div
-          v-else-if="filteredTransactions.length === 0"
+          v-else-if="transactions.length === 0"
           class="flex flex-col items-center justify-center rounded-2xl border border-dashed border-line-strong bg-surface py-24 text-center"
         >
           <span class="material-symbols-outlined mb-4 text-5xl text-faint">receipt_long</span>
-          <p class="font-semibold text-content">No transactions yet</p>
-          <p class="mt-1 text-sm text-muted">Click "Add Transaction" to get started</p>
-          <AppButton class="mt-6" icon="add" @click="openCreate">Add Transaction</AppButton>
+          <p class="font-semibold text-content">{{ hasActiveFilters ? 'No transactions match your filters' : 'No transactions yet' }}</p>
+          <p class="mt-1 text-sm text-muted">
+            {{ hasActiveFilters ? 'Try adjusting the search or filters above.' : 'Click "Add Transaction" to get started' }}
+          </p>
+          <AppButton v-if="!hasActiveFilters" class="mt-6" icon="add" @click="openCreate">Add Transaction</AppButton>
         </div>
 
         <!-- Table -->
         <div v-else class="surface-card overflow-hidden">
-          <div class="flex flex-col gap-3 border-b border-line px-6 py-4 md:flex-row md:items-center md:justify-between">
-            <div class="flex flex-wrap items-center gap-3">
-              <span class="field-label !mb-0">Account</span>
-              <div class="relative">
-                <select
-                  v-model="selectedAccountId"
-                  class="field-input appearance-none py-2 pr-10"
-                  @change="onAccountChange"
-                >
-                  <option :value="null">All accounts</option>
-                  <option v-for="acc in accounts" :key="acc.id" :value="acc.id">{{ acc.name }}</option>
-                </select>
-                <span class="material-symbols-outlined pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[20px] text-faint">unfold_more</span>
-              </div>
-              <span v-if="selectedAccountId" class="text-xs text-muted">Running balance shown</span>
-            </div>
-
-            <div class="flex items-center gap-3">
-              <div class="relative flex-1 md:flex-none">
-                <span class="material-symbols-outlined pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[20px] text-faint">search</span>
-                <input
-                  v-model="searchQuery"
-                  type="text"
-                  placeholder="Search records..."
-                  class="field-input w-full pl-11 md:w-64"
-                />
-              </div>
-              <AppButton icon="add" @click="openCreate">Add Transaction</AppButton>
-            </div>
-          </div>
-
           <div class="overflow-x-auto">
             <table class="w-full min-w-[900px] text-sm">
               <thead>
@@ -192,14 +253,13 @@ const transferLabel = (t: TransactionDetail) => {
                   <th class="data-th">Status</th>
                   <th class="data-th text-right text-danger">Expense</th>
                   <th class="data-th text-right text-success">Income</th>
-                  <th v-if="selectedAccountId" class="data-th text-right">Balance</th>
                   <th class="data-th">Memo</th>
                   <th class="data-th"></th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-line">
                 <tr
-                  v-for="t in filteredTransactions"
+                  v-for="t in transactions"
                   :key="t.id"
                   class="group transition-colors hover:bg-surface-2"
                 >
@@ -246,16 +306,6 @@ const transferLabel = (t: TransactionDetail) => {
                     <span v-else-if="t.type === 'TRANSFER' && t.transferIn" class="text-muted">{{ formatAmount(t.amount) }}</span>
                   </td>
 
-                  <td v-if="selectedAccountId" class="px-4 py-3 text-right font-bold tabular-nums">
-                    <span
-                      v-if="t.balance !== null && t.balance !== undefined"
-                      :class="t.balance >= 0 ? 'text-content' : 'text-danger'"
-                    >
-                      {{ formatAmount(t.balance) }}
-                    </span>
-                    <span v-else class="text-faint">—</span>
-                  </td>
-
                   <td class="max-w-[180px] truncate px-4 py-3 text-faint" :title="t.memo ?? ''">
                     {{ t.memo || '' }}
                   </td>
@@ -269,6 +319,31 @@ const transferLabel = (t: TransactionDetail) => {
                 </tr>
               </tbody>
             </table>
+          </div>
+
+          <div class="flex items-center justify-between border-t border-line px-6 py-4">
+            <span class="text-sm text-muted">{{ total }} transaction{{ total === 1 ? '' : 's' }}</span>
+            <div class="flex items-center gap-3">
+              <AppButton
+                variant="ghost"
+                size="sm"
+                icon="chevron_left"
+                :disabled="page <= 1"
+                @click="goToPage(page - 1)"
+              >
+                Prev
+              </AppButton>
+              <span class="text-sm font-medium text-content">Page {{ page }} of {{ totalPages }}</span>
+              <AppButton
+                variant="ghost"
+                size="sm"
+                trailing-icon="chevron_right"
+                :disabled="page >= totalPages"
+                @click="goToPage(page + 1)"
+              >
+                Next
+              </AppButton>
+            </div>
           </div>
         </div>
       </PageContainer>
