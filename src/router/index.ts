@@ -5,6 +5,7 @@ import Dashboard from '../components/dashboard/Dashboard.vue'
 import CategoriesView from '../components/dashboard/CategoriesView.vue'
 import AccountsView from '../components/dashboard/AccountsView.vue'
 import TransactionsView from '../components/dashboard/TransactionsView.vue'
+import BudgetsView from '../components/dashboard/BudgetsView.vue'
 import { initializeAuth, isAuthenticated } from '../services/auth'
 
 const router = createRouter({
@@ -48,6 +49,12 @@ const router = createRouter({
       path: '/transactions',
       name: 'transactions',
       component: TransactionsView,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/budgets',
+      name: 'budgets',
+      component: BudgetsView,
       meta: { requiresAuth: true },
     },
   ],

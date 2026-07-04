@@ -5,6 +5,7 @@ import Sidebar from './Sidebar.vue'
 import { AnimatedAmount, AppCard, AppSpinner, AppTabs, PageContainer, PageHeader } from '../ui'
 import { accountsApi, type AccountDetail, type AccountType } from '../../services/accounts'
 import { transactionsApi, type TransactionDetail } from '../../services/transactions'
+import { budgetsApi, type BudgetDetail } from '../../services/budgets'
 
 const router = useRouter()
 
@@ -33,6 +34,21 @@ const formatBalance = (account: AccountDetail): string => {
   return account.currentBalance >= 0 ? `+${symbol}${abs}` : `-${symbol}${abs}`
 }
 
+const budgets = ref<BudgetDetail[]>([])
+const isLoadingBudgets = ref(false)
+
+const topBudgets = computed(() =>
+  [...budgets.value].sort((a, b) => b.percentUsed - a.percentUsed).slice(0, 4),
+)
+
+const budgetBarClass = (percentUsed: number): string => {
+  if (percentUsed > 100) return 'bg-danger'
+  if (percentUsed >= 80) return 'bg-warning'
+  return 'bg-success'
+}
+
+const goToBudgets = () => router.push({ name: 'budgets' })
+
 onMounted(async () => {
   const now = new Date()
   const from = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10)
@@ -40,17 +56,21 @@ onMounted(async () => {
 
   isLoadingAccounts.value = true
   isLoadingChart.value = true
+  isLoadingBudgets.value = true
 
-  const [accountsRes, txRes] = await Promise.allSettled([
+  const [accountsRes, txRes, budgetsRes] = await Promise.allSettled([
     accountsApi.list(),
     transactionsApi.list({ from, to }),
+    budgetsApi.list(),
   ])
 
   if (accountsRes.status === 'fulfilled') accounts.value = accountsRes.value.data
   if (txRes.status === 'fulfilled') currentMonthTransactions.value = txRes.value.data
+  if (budgetsRes.status === 'fulfilled') budgets.value = budgetsRes.value.data
 
   isLoadingAccounts.value = false
   isLoadingChart.value = false
+  isLoadingBudgets.value = false
 })
 
 const balancesByCurrency = computed(() => {
@@ -269,6 +289,40 @@ const goToTransactions = () => router.push({ name: 'transactions' })
             </div>
           </AppCard>
         </section>
+
+        <!-- Budgets -->
+        <AppCard padding="none">
+          <div class="flex items-center justify-between border-b border-line px-6 py-4">
+            <h2 class="font-display text-sm font-bold text-content">Budgets</h2>
+            <button class="text-sm font-semibold text-primary hover:underline" @click="goToBudgets">View all</button>
+          </div>
+
+          <div v-if="isLoadingBudgets" class="flex items-center justify-center py-16 text-faint">
+            <AppSpinner size="md" />
+          </div>
+
+          <div v-else-if="topBudgets.length === 0" class="px-6 py-16 text-center">
+            <span class="material-symbols-outlined mb-2 text-4xl text-faint">pie_chart</span>
+            <p class="text-sm text-muted">No budgets set up yet</p>
+          </div>
+
+          <div v-else class="grid grid-cols-1 gap-6 p-6 sm:grid-cols-2 lg:grid-cols-4">
+            <div v-for="budget in topBudgets" :key="budget.id" class="min-w-0">
+              <div class="flex items-baseline justify-between gap-2">
+                <span class="truncate text-sm font-semibold text-content">{{ budget.categoryName ?? 'Uncategorized' }}</span>
+                <span class="shrink-0 text-xs text-muted">{{ budget.percentUsed }}%</span>
+              </div>
+              <div class="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-surface-2">
+                <div
+                  class="h-1.5 rounded-full transition-all"
+                  :class="budgetBarClass(budget.percentUsed)"
+                  :style="{ width: Math.min(budget.percentUsed, 100) + '%' }"
+                />
+              </div>
+              <p class="mt-1 text-xs text-muted">{{ formatMoney(budget.spent) }} of {{ formatMoney(budget.amount) }}</p>
+            </div>
+          </div>
+        </AppCard>
 
         <!-- Recent transactions -->
         <AppCard padding="none">
