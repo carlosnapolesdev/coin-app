@@ -8,7 +8,7 @@ const navItems = [
   { icon: 'account_balance_wallet', label: 'Accounts', routeName: 'accounts' },
   { icon: 'receipt_long', label: 'Transactions', routeName: 'transactions' },
   { icon: 'pie_chart', label: 'Budgets', routeName: 'budgets' },
-  { icon: 'bar_chart', label: 'Reports' },
+  { icon: 'bar_chart', label: 'Reports', routeName: 'reports' },
   { icon: 'settings', label: 'Settings' },
 ]
 
