@@ -39,6 +39,7 @@ const selectedType = ref<TransactionType>('EXPENSE')
 const effectiveDate = ref('')
 const amount = ref('')
 const accountId = ref<number | null>(null)
+const destinationAccountId = ref<number | null>(null)
 const paymentMethod = ref('')
 const payee = ref('')
 const categoryId = ref<number | null>(null)
@@ -68,8 +69,12 @@ const filteredCategories = computed<FlatCategory[]>(() => {
   return result
 })
 
+const destinationAccounts = computed(() => accounts.value.filter((acc) => acc.id !== accountId.value))
+
 const isSaveDisabled = computed(() => {
-  return isSaving.value || !amount.value || !accountId.value || !effectiveDate.value
+  if (isSaving.value || !amount.value || !accountId.value || !effectiveDate.value) return true
+  if (selectedType.value === 'TRANSFER' && !destinationAccountId.value) return true
+  return false
 })
 
 const resetForm = () => {
@@ -77,6 +82,7 @@ const resetForm = () => {
   effectiveDate.value = today
   amount.value = ''
   accountId.value = accounts.value[0]?.id ?? null
+  destinationAccountId.value = null
   paymentMethod.value = ''
   payee.value = ''
   categoryId.value = null
@@ -91,6 +97,7 @@ const populateFromTransaction = (t: TransactionDetail) => {
   effectiveDate.value = t.effectiveDate
   amount.value = String(t.amount)
   accountId.value = t.accountId
+  destinationAccountId.value = t.type === 'TRANSFER' && t.transferIn === false ? t.transferAccountId : null
   paymentMethod.value = t.paymentMethod ?? ''
   payee.value = t.payee ?? ''
   categoryId.value = t.categoryId ?? null
@@ -127,8 +134,9 @@ watch(
   (open) => { if (open) loadData() }
 )
 
-watch(selectedType, () => {
+watch(selectedType, (type) => {
   categoryId.value = null
+  if (type !== 'TRANSFER') destinationAccountId.value = null
 })
 
 const handleClose = () => {
@@ -141,9 +149,11 @@ const handleSave = async (keepOpen = false) => {
   isSaving.value = true
   error.value = ''
 
+  const isTransfer = selectedType.value === 'TRANSFER'
   const payload: CreateTransactionPayload = {
     accountId: accountId.value!,
-    categoryId: categoryId.value ?? undefined,
+    categoryId: isTransfer ? undefined : (categoryId.value ?? undefined),
+    destinationAccountId: isTransfer ? destinationAccountId.value! : undefined,
     type: selectedType.value,
     amount: parseFloat(amount.value),
     effectiveDate: effectiveDate.value,
@@ -210,105 +220,106 @@ const handleSave = async (keepOpen = false) => {
         </button>
       </div>
 
-      <!-- Transfer placeholder -->
-      <div v-if="selectedType === 'TRANSFER'" class="rounded-xl border border-line bg-surface-2 py-12 text-center text-muted">
-        <span class="material-symbols-outlined mb-2 text-4xl">swap_horiz</span>
-        <p class="text-sm font-semibold">Transfer support coming soon</p>
+      <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+        <!-- Date -->
+        <div>
+          <label class="field-label">Effective Date</label>
+          <div class="relative">
+            <span class="material-symbols-outlined pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[20px] text-faint">calendar_today</span>
+            <input v-model="effectiveDate" type="date" class="field-input pl-11" :disabled="isSaving" />
+          </div>
+        </div>
+
+        <!-- Amount -->
+        <div>
+          <label class="field-label">Amount</label>
+          <div class="relative">
+            <span class="material-symbols-outlined pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[20px] text-faint">attach_money</span>
+            <input v-model="amount" type="number" step="0.01" min="0.01" placeholder="0.00" class="field-input pl-11 text-base font-bold" :disabled="isSaving" />
+          </div>
+        </div>
+
+        <!-- Account -->
+        <div>
+          <label class="field-label">{{ selectedType === 'TRANSFER' ? 'From Account' : 'Source Account' }}</label>
+          <select v-model="accountId" class="field-input" :disabled="isSaving">
+            <option v-for="acc in accounts" :key="acc.id" :value="acc.id">{{ acc.name }}</option>
+          </select>
+        </div>
+
+        <!-- To Account (transfer only) -->
+        <div v-if="selectedType === 'TRANSFER'">
+          <label class="field-label">To Account</label>
+          <select v-model="destinationAccountId" class="field-input" :disabled="isSaving">
+            <option :value="null" disabled>Select destination account...</option>
+            <option v-for="acc in destinationAccounts" :key="acc.id" :value="acc.id">{{ acc.name }}</option>
+          </select>
+        </div>
+
+        <!-- Payment Method -->
+        <div>
+          <label class="field-label">Payment Method</label>
+          <select v-model="paymentMethod" class="field-input" :disabled="isSaving">
+            <option value="">(none)</option>
+            <option value="Credit Card">Credit Card</option>
+            <option value="Bank Transfer">Bank Transfer</option>
+            <option value="Cash">Cash</option>
+            <option value="Check">Check</option>
+          </select>
+        </div>
+
+        <!-- Payee -->
+        <div>
+          <label class="field-label">Payee / Entity</label>
+          <input v-model="payee" type="text" placeholder="Enter name..." class="field-input" :disabled="isSaving" />
+        </div>
+
+        <!-- Category -->
+        <div v-if="selectedType !== 'TRANSFER'">
+          <label class="field-label">Category</label>
+          <select v-model="categoryId" class="field-input" :disabled="isSaving">
+            <option :value="null">(none)</option>
+            <option v-for="cat in filteredCategories" :key="cat.id" :value="cat.id">{{ cat.label }}</option>
+          </select>
+        </div>
       </div>
 
-      <template v-else>
-        <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
-          <!-- Date -->
-          <div>
-            <label class="field-label">Effective Date</label>
-            <div class="relative">
-              <span class="material-symbols-outlined pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[20px] text-faint">calendar_today</span>
-              <input v-model="effectiveDate" type="date" class="field-input pl-11" :disabled="isSaving" />
-            </div>
-          </div>
-
-          <!-- Amount -->
-          <div>
-            <label class="field-label">Amount</label>
-            <div class="relative">
-              <span class="material-symbols-outlined pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[20px] text-faint">attach_money</span>
-              <input v-model="amount" type="number" step="0.01" min="0.01" placeholder="0.00" class="field-input pl-11 text-base font-bold" :disabled="isSaving" />
-            </div>
-          </div>
-
-          <!-- Account -->
-          <div>
-            <label class="field-label">Source Account</label>
-            <select v-model="accountId" class="field-input" :disabled="isSaving">
-              <option v-for="acc in accounts" :key="acc.id" :value="acc.id">{{ acc.name }}</option>
-            </select>
-          </div>
-
-          <!-- Payment Method -->
-          <div>
-            <label class="field-label">Payment Method</label>
-            <select v-model="paymentMethod" class="field-input" :disabled="isSaving">
-              <option value="">(none)</option>
-              <option value="Credit Card">Credit Card</option>
-              <option value="Bank Transfer">Bank Transfer</option>
-              <option value="Cash">Cash</option>
-              <option value="Check">Check</option>
-            </select>
-          </div>
-
-          <!-- Payee -->
-          <div>
-            <label class="field-label">Payee / Entity</label>
-            <input v-model="payee" type="text" placeholder="Enter name..." class="field-input" :disabled="isSaving" />
-          </div>
-
-          <!-- Category -->
-          <div>
-            <label class="field-label">Category</label>
-            <select v-model="categoryId" class="field-input" :disabled="isSaving">
-              <option :value="null">(none)</option>
-              <option v-for="cat in filteredCategories" :key="cat.id" :value="cat.id">{{ cat.label }}</option>
-            </select>
-          </div>
+      <!-- Status -->
+      <div>
+        <label class="field-label">Ledger Status</label>
+        <div class="flex w-fit gap-1 rounded-lg border border-line bg-surface-2 p-1">
+          <button
+            v-for="s in (['PENDING', 'CLEARED', 'VOID'] as TransactionStatus[])"
+            :key="s"
+            type="button"
+            class="flex size-11 items-center justify-center rounded-md transition-all"
+            :class="status === s ? 'bg-surface text-primary shadow-sm' : 'text-faint hover:text-content'"
+            :title="s"
+            :disabled="isSaving"
+            @click="status = s"
+          >
+            <span class="material-symbols-outlined" :class="status === s ? 'is-filled' : ''">
+              {{ s === 'PENDING' ? 'pending' : s === 'CLEARED' ? 'check_circle' : 'block' }}
+            </span>
+          </button>
         </div>
+      </div>
 
-        <!-- Status -->
-        <div>
-          <label class="field-label">Ledger Status</label>
-          <div class="flex w-fit gap-1 rounded-lg border border-line bg-surface-2 p-1">
-            <button
-              v-for="s in (['PENDING', 'CLEARED', 'VOID'] as TransactionStatus[])"
-              :key="s"
-              type="button"
-              class="flex size-11 items-center justify-center rounded-md transition-all"
-              :class="status === s ? 'bg-surface text-primary shadow-sm' : 'text-faint hover:text-content'"
-              :title="s"
-              :disabled="isSaving"
-              @click="status = s"
-            >
-              <span class="material-symbols-outlined" :class="status === s ? 'is-filled' : ''">
-                {{ s === 'PENDING' ? 'pending' : s === 'CLEARED' ? 'check_circle' : 'block' }}
-              </span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Memo & Tags -->
-        <div>
-          <label class="field-label">Memo / Private Notes</label>
-          <textarea v-model="memo" placeholder="Describe this transaction..." rows="2" class="field-input resize-none" :disabled="isSaving"></textarea>
-        </div>
-        <div>
-          <label class="field-label">Tags</label>
-          <input v-model="tags" type="text" placeholder="Comma-separated tags..." class="field-input" :disabled="isSaving" />
-        </div>
-      </template>
+      <!-- Memo & Tags -->
+      <div>
+        <label class="field-label">Memo / Private Notes</label>
+        <textarea v-model="memo" placeholder="Describe this transaction..." rows="2" class="field-input resize-none" :disabled="isSaving"></textarea>
+      </div>
+      <div>
+        <label class="field-label">Tags</label>
+        <input v-model="tags" type="text" placeholder="Comma-separated tags..." class="field-input" :disabled="isSaving" />
+      </div>
     </form>
 
     <template #footer>
       <AppButton variant="ghost" :disabled="isSaving" @click="handleClose">Close</AppButton>
       <AppButton
-        v-if="mode === 'create' && selectedType !== 'TRANSFER'"
+        v-if="mode === 'create'"
         variant="secondary"
         :disabled="isSaveDisabled"
         @click="handleSave(true)"
@@ -316,7 +327,6 @@ const handleSave = async (keepOpen = false) => {
         Add &amp; Keep
       </AppButton>
       <AppButton
-        v-if="selectedType !== 'TRANSFER'"
         type="submit"
         form="transaction-form"
         :loading="isSaving"

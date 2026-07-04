@@ -111,6 +111,11 @@ const statusConfig: Record<TransactionStatus, { label: string; variant: 'success
 
 const parseTags = (tags: string | null) =>
   tags ? tags.split(',').map(t => t.trim()).filter(Boolean) : []
+
+const transferLabel = (t: TransactionDetail) => {
+  const counterpart = accounts.value.find(a => a.id === t.transferAccountId)?.name ?? 'account'
+  return t.transferIn ? `Transfer from ${counterpart}` : `Transfer to ${counterpart}`
+}
 </script>
 
 <template>
@@ -211,11 +216,12 @@ const parseTags = (tags: string | null) =>
                   </td>
 
                   <td class="px-4 py-3 font-semibold text-content">
-                    {{ t.payee || '—' }}
+                    {{ t.type === 'TRANSFER' ? transferLabel(t) : (t.payee || '—') }}
                   </td>
 
                   <td class="px-4 py-3 text-muted">
-                    {{ t.categoryName || '—' }}
+                    <AppBadge v-if="t.type === 'TRANSFER'" variant="muted" icon="swap_horiz">Transfer</AppBadge>
+                    <template v-else>{{ t.categoryName || '—' }}</template>
                   </td>
 
                   <td class="px-4 py-3">
@@ -232,10 +238,12 @@ const parseTags = (tags: string | null) =>
 
                   <td class="px-4 py-3 text-right font-bold tabular-nums">
                     <span v-if="t.type === 'EXPENSE'" class="text-danger">{{ formatAmount(t.amount) }}</span>
+                    <span v-else-if="t.type === 'TRANSFER' && !t.transferIn" class="text-muted">{{ formatAmount(t.amount) }}</span>
                   </td>
 
                   <td class="px-4 py-3 text-right font-bold tabular-nums">
                     <span v-if="t.type === 'INCOME'" class="text-success">{{ formatAmount(t.amount) }}</span>
+                    <span v-else-if="t.type === 'TRANSFER' && t.transferIn" class="text-muted">{{ formatAmount(t.amount) }}</span>
                   </td>
 
                   <td v-if="selectedAccountId" class="px-4 py-3 text-right font-bold tabular-nums">

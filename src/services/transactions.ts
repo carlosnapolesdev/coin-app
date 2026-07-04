@@ -17,6 +17,8 @@ export interface TransactionDetail {
   memo: string | null
   status: TransactionStatus
   tags: string | null
+  transferAccountId: number | null
+  transferIn: boolean | null
   balance: number | null
   createdAt: string
   updatedAt: string | null
@@ -25,6 +27,7 @@ export interface TransactionDetail {
 export interface CreateTransactionPayload {
   accountId: number
   categoryId?: number
+  destinationAccountId?: number
   type: TransactionType
   amount: number
   effectiveDate: string
