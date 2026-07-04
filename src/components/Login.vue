@@ -101,6 +101,10 @@ onMounted(() => {
   if (route.query.registered === '1') {
     successMessage.value = 'Account created successfully. Sign in to continue.'
   }
+
+  if (route.query.reset === '1') {
+    successMessage.value = 'Password reset successfully. Sign in with your new password.'
+  }
 })
 </script>
 
@@ -174,7 +178,7 @@ onMounted(() => {
             <div>
               <div class="mb-2 flex items-center justify-between">
                 <label class="text-sm font-semibold text-content">Password</label>
-                <a class="text-xs font-semibold text-primary hover:underline" href="#">Forgot Password?</a>
+                <RouterLink class="text-xs font-semibold text-primary hover:underline" to="/forgot-password">Forgot Password?</RouterLink>
               </div>
               <div class="relative">
                 <span class="material-symbols-outlined pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[20px] text-faint">lock</span>

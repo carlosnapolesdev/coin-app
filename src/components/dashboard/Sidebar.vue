@@ -9,7 +9,7 @@ const navItems = [
   { icon: 'receipt_long', label: 'Transactions', routeName: 'transactions' },
   { icon: 'pie_chart', label: 'Budgets', routeName: 'budgets' },
   { icon: 'bar_chart', label: 'Reports', routeName: 'reports' },
-  { icon: 'settings', label: 'Settings' },
+  { icon: 'settings', label: 'Settings', routeName: 'settings' },
 ]
 
 const route = useRoute()

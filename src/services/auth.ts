@@ -85,6 +85,11 @@ export const fetchCurrentUser = async () => {
   return data
 }
 
+export const setCurrentUser = (user: AuthUser) => {
+  authState.user = user
+  updateStoredUser(user)
+}
+
 export const clearSession = () => {
   clearAuthSession()
   authState.token = null
@@ -94,6 +99,14 @@ export const clearSession = () => {
 
 export const logout = () => {
   clearSession()
+}
+
+export const forgotPassword = async (email: string) => {
+  await api.post('/auth/forgot-password', { email })
+}
+
+export const resetPassword = async (token: string, newPassword: string) => {
+  await api.post('/auth/reset-password', { token, newPassword })
 }
 
 export const isAuthenticated = () => {

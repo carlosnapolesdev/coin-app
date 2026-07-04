@@ -4,7 +4,7 @@ import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { logout, useAuthState } from '../../services/auth'
 import { getInitials } from '../../utils/initials'
-import { AppBadge, ThemeToggle } from '../ui'
+import { ThemeToggle } from '../ui'
 
 const router = useRouter()
 const authState = useAuthState()
@@ -78,15 +78,15 @@ const handleSignOut = async () => {
         </div>
 
         <div class="p-1.5">
-          <button
-            type="button"
-            disabled
-            class="flex w-full cursor-default items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-faint"
+          <RouterLink
+            to="/settings"
+            role="menuitem"
+            class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-content transition-colors hover:bg-surface-2"
+            @click="close"
           >
             <span class="material-symbols-outlined text-[20px]">settings</span>
             <span class="flex-1 text-left">Settings</span>
-            <AppBadge variant="muted">Soon</AppBadge>
-          </button>
+          </RouterLink>
 
           <div class="flex items-center justify-between rounded-lg px-3 py-2">
             <span class="flex items-center gap-3 text-sm font-medium text-content">

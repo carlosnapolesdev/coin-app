@@ -7,6 +7,9 @@ import AccountsView from '../components/dashboard/AccountsView.vue'
 import TransactionsView from '../components/dashboard/TransactionsView.vue'
 import BudgetsView from '../components/dashboard/BudgetsView.vue'
 import ReportsView from '../components/dashboard/ReportsView.vue'
+import SettingsView from '../components/dashboard/SettingsView.vue'
+import ForgotPassword from '../components/ForgotPassword.vue'
+import ResetPassword from '../components/ResetPassword.vue'
 import { initializeAuth, isAuthenticated } from '../services/auth'
 
 const router = createRouter({
@@ -26,6 +29,18 @@ const router = createRouter({
       path: '/register',
       name: 'register',
       component: Register,
+      meta: { publicOnly: true },
+    },
+    {
+      path: '/forgot-password',
+      name: 'forgot-password',
+      component: ForgotPassword,
+      meta: { publicOnly: true },
+    },
+    {
+      path: '/reset-password',
+      name: 'reset-password',
+      component: ResetPassword,
       meta: { publicOnly: true },
     },
     {
@@ -62,6 +77,12 @@ const router = createRouter({
       path: '/reports',
       name: 'reports',
       component: ReportsView,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/settings',
+      name: 'settings',
+      component: SettingsView,
       meta: { requiresAuth: true },
     },
   ],
