@@ -28,7 +28,7 @@ interface BackendCategory {
   type: 'EXPENSE' | 'INCOME'
   icon: string | null
   parentId: number | null
-  isActive: boolean
+  active: boolean
   children: BackendCategory[]
 }
 
@@ -221,7 +221,7 @@ const saveTemplate = async () => {
 
 const toggleActive = async (t: RecurringDetail) => {
   try {
-    const { data } = await recurringApi.update(t.id, { isActive: !t.isActive })
+    const { data } = await recurringApi.update(t.id, { active: !t.active })
     const idx = templates.value.findIndex((r) => r.id === data.id)
     if (idx !== -1) templates.value[idx] = data
   } catch (e) {
@@ -311,7 +311,7 @@ onMounted(() => {
 
             <div class="mt-4 flex items-baseline justify-between gap-2">
               <span class="text-lg font-bold text-content">{{ formatMoney(t.amount) }}</span>
-              <AppBadge :variant="t.isActive ? 'success' : 'muted'">{{ t.isActive ? 'Active' : 'Paused' }}</AppBadge>
+              <AppBadge :variant="t.active ? 'success' : 'muted'">{{ t.active ? 'Active' : 'Paused' }}</AppBadge>
             </div>
 
             <div class="mt-2 flex items-center justify-between text-xs text-muted">
@@ -321,7 +321,7 @@ onMounted(() => {
 
             <div class="mt-4 flex items-center gap-2">
               <AppButton variant="secondary" size="sm" class="flex-1" :loading="runningId === t.id" @click="runNow(t)">Pay now</AppButton>
-              <AppButton variant="ghost" size="sm" class="flex-1" @click="toggleActive(t)">{{ t.isActive ? 'Pause' : 'Resume' }}</AppButton>
+              <AppButton variant="ghost" size="sm" class="flex-1" @click="toggleActive(t)">{{ t.active ? 'Pause' : 'Resume' }}</AppButton>
             </div>
           </AppCard>
         </div>

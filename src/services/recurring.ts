@@ -21,7 +21,7 @@ export interface RecurringDetail {
   payee: string | null
   memo: string | null
   tags: string | null
-  isActive: boolean
+  active: boolean
 }
 
 export interface CreateRecurringPayload {
@@ -39,7 +39,7 @@ export interface CreateRecurringPayload {
   tags?: string
 }
 
-export type UpdateRecurringPayload = Partial<CreateRecurringPayload> & { isActive?: boolean }
+export type UpdateRecurringPayload = Partial<CreateRecurringPayload> & { active?: boolean }
 
 export const recurringApi = {
   list: () => api.get<RecurringDetail[]>('/users/me/recurring'),

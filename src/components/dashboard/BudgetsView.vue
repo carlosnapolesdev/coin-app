@@ -26,7 +26,7 @@ interface BackendCategory {
   type: 'EXPENSE' | 'INCOME'
   icon: string | null
   parentId: number | null
-  isActive: boolean
+  active: boolean
   children: BackendCategory[]
 }
 

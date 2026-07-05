@@ -10,7 +10,7 @@ export interface BudgetDetail {
   spent: number
   remaining: number
   percentUsed: number
-  isActive: boolean
+  active: boolean
 }
 
 export interface CreateBudgetPayload {
@@ -20,7 +20,7 @@ export interface CreateBudgetPayload {
   startDate?: string
 }
 
-export type UpdateBudgetPayload = Partial<CreateBudgetPayload> & { isActive?: boolean }
+export type UpdateBudgetPayload = Partial<CreateBudgetPayload> & { active?: boolean }
 
 export const budgetsApi = {
   list: () => api.get<BudgetDetail[]>('/users/me/budgets'),
