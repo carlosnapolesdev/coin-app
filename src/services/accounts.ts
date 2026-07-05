@@ -56,6 +56,20 @@ export interface CreateAccountPayload {
 
 export type UpdateAccountPayload = Partial<CreateAccountPayload & { active: boolean }>
 
+export interface CurrencyNetWorth {
+  code: string
+  symbol: string
+  net: number
+  netInBase: number | null
+}
+
+export interface NetWorthSummary {
+  baseCurrencyCode: string | null
+  totalInBase: number
+  byCurrency: CurrencyNetWorth[]
+  unconvertibleCurrencies: string[]
+}
+
 export const accountsApi = {
   list: (includeInactive = false) =>
     api.get<AccountDetail[]>('/users/me/accounts', { params: { includeInactive } }),
@@ -71,4 +85,7 @@ export const accountsApi = {
 
   remove: (id: number) =>
     api.delete(`/users/me/accounts/${id}`),
+
+  summary: () =>
+    api.get<NetWorthSummary>('/users/me/accounts/summary'),
 }

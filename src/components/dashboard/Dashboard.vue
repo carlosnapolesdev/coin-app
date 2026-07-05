@@ -3,7 +3,7 @@ import { computed, ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import Sidebar from './Sidebar.vue'
 import { AnimatedAmount, AppCard, AppSpinner, AppTabs, PageContainer, PageHeader } from '../ui'
-import { accountsApi, type AccountDetail, type AccountType } from '../../services/accounts'
+import { accountsApi, type AccountDetail, type AccountType, type NetWorthSummary } from '../../services/accounts'
 import { transactionsApi, type TransactionDetail } from '../../services/transactions'
 import { budgetsApi, type BudgetDetail } from '../../services/budgets'
 
@@ -13,6 +13,7 @@ const activeTopTab = ref<'accounts' | 'balances'>('accounts')
 
 const accounts = ref<AccountDetail[]>([])
 const isLoadingAccounts = ref(false)
+const netWorth = ref<NetWorthSummary | null>(null)
 
 const typeIconMap: Record<AccountType, string> = {
   BANK: 'account_balance',
@@ -58,15 +59,17 @@ onMounted(async () => {
   isLoadingChart.value = true
   isLoadingBudgets.value = true
 
-  const [accountsRes, txRes, budgetsRes] = await Promise.allSettled([
+  const [accountsRes, txRes, budgetsRes, netWorthRes] = await Promise.allSettled([
     accountsApi.list(),
     transactionsApi.list({ from, to }),
     budgetsApi.list(),
+    accountsApi.summary(),
   ])
 
   if (accountsRes.status === 'fulfilled') accounts.value = accountsRes.value.data
   if (txRes.status === 'fulfilled') currentMonthTransactions.value = txRes.value.data
   if (budgetsRes.status === 'fulfilled') budgets.value = budgetsRes.value.data
+  if (netWorthRes.status === 'fulfilled') netWorth.value = netWorthRes.value.data
 
   isLoadingAccounts.value = false
   isLoadingChart.value = false
@@ -208,6 +211,15 @@ const goToTransactions = () => router.push({ name: 'transactions' })
 
               <!-- Balances -->
               <template v-else>
+                <div v-if="netWorth" class="mb-3 rounded-xl border border-line bg-surface-2 px-3 py-2.5">
+                  <p class="text-xs font-semibold uppercase tracking-wide text-faint">Net worth</p>
+                  <p class="mt-1 text-lg font-bold text-content">
+                    {{ netWorth.baseCurrencyCode ?? '' }} {{ formatMoney(netWorth.totalInBase) }}
+                  </p>
+                  <p v-if="netWorth.unconvertibleCurrencies.length" class="mt-1 text-xs text-muted">
+                    Set an exchange rate for {{ netWorth.unconvertibleCurrencies.join(', ') }} to include it.
+                  </p>
+                </div>
                 <p v-if="balancesByCurrency.length === 0" class="py-10 text-center text-sm text-muted">No data</p>
                 <div
                   v-for="row in balancesByCurrency"

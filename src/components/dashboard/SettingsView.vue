@@ -1,14 +1,16 @@
 <script setup lang="ts">
 import axios from 'axios'
-import { reactive, ref } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 import Sidebar from './Sidebar.vue'
 import { setCurrentUser, useAuthState } from '../../services/auth'
 import { usersApi } from '../../services/users'
+import { currenciesApi, type UserCurrencyDetail } from '../../services/currencies'
 import {
   AppButton,
   AppCard,
   AppInput,
   AppSelect,
+  AppSpinner,
   PageContainer,
   PageHeader,
 } from '../ui'
@@ -92,6 +94,54 @@ const changePassword = async () => {
     passwordError.value = getErrorMessage(e, 'Unable to change your password right now.')
   } finally {
     isSavingPassword.value = false
+  }
+}
+
+const userCurrencies = ref<UserCurrencyDetail[]>([])
+const isLoadingCurrencies = ref(false)
+const currenciesError = ref('')
+const exchangeRateInputs = reactive<Record<number, string>>({})
+const savingCurrencyId = ref<number | null>(null)
+const currencySavedId = ref<number | null>(null)
+
+const loadCurrencies = async () => {
+  isLoadingCurrencies.value = true
+  currenciesError.value = ''
+  try {
+    const { data } = await currenciesApi.listUserCurrencies()
+    userCurrencies.value = data
+    for (const uc of data) {
+      exchangeRateInputs[uc.currencyId] = String(uc.exchangeRate)
+    }
+  } catch (e) {
+    currenciesError.value = getErrorMessage(e, 'Unable to load your currencies right now.')
+  } finally {
+    isLoadingCurrencies.value = false
+  }
+}
+
+onMounted(loadCurrencies)
+
+const saveExchangeRate = async (currencyId: number) => {
+  const rawValue = exchangeRateInputs[currencyId]
+  const exchangeRate = Number(rawValue)
+  if (!Number.isFinite(exchangeRate) || exchangeRate <= 0) {
+    currenciesError.value = 'Exchange rate must be greater than 0.'
+    return
+  }
+
+  currenciesError.value = ''
+  currencySavedId.value = null
+  savingCurrencyId.value = currencyId
+  try {
+    const { data } = await currenciesApi.updateUserCurrency(currencyId, { exchangeRate })
+    const index = userCurrencies.value.findIndex((uc) => uc.currencyId === currencyId)
+    if (index !== -1) userCurrencies.value[index] = data
+    currencySavedId.value = currencyId
+  } catch (e) {
+    currenciesError.value = getErrorMessage(e, 'Unable to update the exchange rate right now.')
+  } finally {
+    savingCurrencyId.value = null
   }
 }
 </script>
@@ -183,6 +233,53 @@ const changePassword = async () => {
                 Change password
               </AppButton>
             </form>
+          </AppCard>
+
+          <AppCard class="lg:col-span-2">
+            <h2 class="text-lg font-bold text-content">Currencies</h2>
+            <p class="mt-1 text-sm text-muted">
+              Set the exchange rate for each currency (units of that currency per 1 unit of your base currency).
+            </p>
+
+            <div v-if="currenciesError" class="mt-6 rounded-xl border border-danger/30 bg-danger/10 p-4 text-sm font-medium text-danger">
+              {{ currenciesError }}
+            </div>
+
+            <div v-if="isLoadingCurrencies" class="flex items-center justify-center py-10 text-faint">
+              <AppSpinner size="md" />
+            </div>
+
+            <div v-else class="mt-6 space-y-3">
+              <div
+                v-for="uc in userCurrencies"
+                :key="uc.currencyId"
+                class="flex flex-wrap items-center gap-3 rounded-xl border border-line p-3"
+              >
+                <div class="min-w-[120px] flex-1">
+                  <p class="text-sm font-semibold text-content">{{ uc.code }} — {{ uc.name }}</p>
+                  <p class="text-xs text-muted">{{ uc.base ? 'Base currency' : 'Rate vs. base' }}</p>
+                </div>
+
+                <div v-if="uc.base" class="text-sm font-medium text-faint">1.000000</div>
+                <template v-else>
+                  <AppInput
+                    class="w-32"
+                    type="number"
+                    :model-value="exchangeRateInputs[uc.currencyId]"
+                    :disabled="savingCurrencyId === uc.currencyId"
+                    @update:model-value="(v) => (exchangeRateInputs[uc.currencyId] = v)"
+                  />
+                  <AppButton
+                    size="sm"
+                    variant="secondary"
+                    :loading="savingCurrencyId === uc.currencyId"
+                    @click="saveExchangeRate(uc.currencyId)"
+                  >
+                    {{ currencySavedId === uc.currencyId ? 'Saved' : 'Save' }}
+                  </AppButton>
+                </template>
+              </div>
+            </div>
           </AppCard>
         </div>
       </PageContainer>
