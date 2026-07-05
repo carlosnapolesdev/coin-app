@@ -61,6 +61,39 @@ export interface TransactionQuery {
   pageSize?: number
 }
 
+export interface ImportRow {
+  line: number
+  valid: boolean
+  errors: string[]
+  accountId?: number
+  accountName?: string
+  categoryId?: number
+  categoryName?: string
+  type?: TransactionType
+  amount?: number
+  effectiveDate?: string
+  payee?: string
+  paymentMethod?: string
+  status?: TransactionStatus
+  tags?: string
+  memo?: string
+}
+
+export interface ImportError {
+  line: number
+  message: string
+}
+
+export interface ImportPreviewResult {
+  rows: ImportRow[]
+  errors: ImportError[]
+}
+
+export type ColumnMapping = Partial<Record<
+  'date' | 'account' | 'category' | 'type' | 'amount' | 'payee' | 'paymentMethod' | 'status' | 'tags' | 'memo',
+  string
+>>
+
 export const transactionsApi = {
   list: (params?: { accountId?: number; from?: string; to?: string }) =>
     api.get<TransactionDetail[]>('/users/me/transactions', { params }),
@@ -79,4 +112,19 @@ export const transactionsApi = {
 
   remove: (id: number) =>
     api.delete(`/users/me/transactions/${id}`),
+
+  exportCsv: (params: Omit<TransactionQuery, 'page' | 'pageSize'>) =>
+    api.get<Blob>('/users/me/transactions/export', { params, responseType: 'blob' }),
+
+  importPreview: (file: File, mapping?: ColumnMapping) => {
+    const formData = new FormData()
+    formData.append('file', file)
+    if (mapping) formData.append('mapping', JSON.stringify(mapping))
+    return api.post<ImportPreviewResult>('/users/me/transactions/import/preview', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+  },
+
+  importCommit: (rows: ImportRow[]) =>
+    api.post<{ created: number }>('/users/me/transactions/import/commit', { rows }),
 }

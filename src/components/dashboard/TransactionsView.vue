@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import Sidebar from './Sidebar.vue'
 import AddTransactionModal from './AddTransactionModal.vue'
+import ImportModal from './ImportModal.vue'
 import { AppBadge, AppButton, AppIconButton, AppInput, AppSelect, AppSpinner, ConfirmDialog, PageContainer, PageHeader } from '../ui'
 import { type AccountDetail, accountsApi } from '../../services/accounts'
 import { type TransactionDetail, type TransactionStatus, type TransactionType, transactionsApi } from '../../services/transactions'
@@ -26,6 +27,8 @@ const modalMode = ref<'create' | 'edit'>('create')
 const editingTransaction = ref<TransactionDetail | undefined>(undefined)
 const confirmDeleteId = ref<number | null>(null)
 const isDeleting = ref(false)
+const importModalOpen = ref(false)
+const isExporting = ref(false)
 
 let searchDebounceTimer: ReturnType<typeof setTimeout> | undefined
 
@@ -102,6 +105,35 @@ const openEdit = (t: TransactionDetail) => {
 
 const onSaved = async () => {
   await Promise.all([loadAccounts(), loadTransactions()])
+}
+
+const onImported = async () => {
+  await Promise.all([loadAccounts(), loadTransactions()])
+}
+
+const exportTransactions = async () => {
+  isExporting.value = true
+  error.value = ''
+  try {
+    const res = await transactionsApi.exportCsv({
+      accountId: selectedAccountId.value ?? undefined,
+      q: searchQuery.value || undefined,
+      type: typeFilter.value || undefined,
+      status: statusFilter.value || undefined,
+      from: fromDate.value || undefined,
+      to: toDate.value || undefined,
+    })
+    const url = URL.createObjectURL(res.data)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = 'transactions.csv'
+    link.click()
+    URL.revokeObjectURL(url)
+  } catch {
+    error.value = 'Failed to export transactions.'
+  } finally {
+    isExporting.value = false
+  }
 }
 
 const requestDeleteTransaction = (id: number) => {
@@ -215,7 +247,9 @@ const transferLabel = (t: TransactionDetail) => {
               :model-value="toDate"
               @update:model-value="(v) => { toDate = v; applyFilters() }"
             />
-            <div class="flex items-end lg:col-span-2 lg:justify-end">
+            <div class="flex items-end gap-2 lg:col-span-2 lg:justify-end">
+              <AppButton variant="secondary" icon="upload_file" @click="importModalOpen = true">Import</AppButton>
+              <AppButton variant="secondary" icon="download" :loading="isExporting" @click="exportTransactions">Export</AppButton>
               <AppButton icon="add" @click="openCreate">Add Transaction</AppButton>
             </div>
           </div>
@@ -364,6 +398,12 @@ const transferLabel = (t: TransactionDetail) => {
       :transaction="editingTransaction"
       @close="modalOpen = false"
       @saved="onSaved"
+    />
+
+    <ImportModal
+      :is-open="importModalOpen"
+      @close="importModalOpen = false"
+      @imported="onImported"
     />
   </div>
 </template>
