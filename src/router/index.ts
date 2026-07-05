@@ -6,6 +6,7 @@ import CategoriesView from '../components/dashboard/CategoriesView.vue'
 import AccountsView from '../components/dashboard/AccountsView.vue'
 import TransactionsView from '../components/dashboard/TransactionsView.vue'
 import BudgetsView from '../components/dashboard/BudgetsView.vue'
+import GoalsView from '../components/dashboard/GoalsView.vue'
 import RecurringView from '../components/dashboard/RecurringView.vue'
 import ReportsView from '../components/dashboard/ReportsView.vue'
 import SettingsView from '../components/dashboard/SettingsView.vue'
@@ -72,6 +73,12 @@ const router = createRouter({
       path: '/budgets',
       name: 'budgets',
       component: BudgetsView,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/goals',
+      name: 'goals',
+      component: GoalsView,
       meta: { requiresAuth: true },
     },
     {
