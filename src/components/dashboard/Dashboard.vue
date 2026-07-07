@@ -8,6 +8,7 @@ import { accountsApi, type AccountDetail, type AccountType, type NetWorthSummary
 import { transactionsApi, type TransactionDetail } from '../../services/transactions'
 import { budgetsApi, type BudgetDetail } from '../../services/budgets'
 import { formatCurrency, formatDate as formatDateLocale, formatMonthYear } from '../../utils/format'
+import { groupByCurrency } from '../../utils/currency'
 
 const router = useRouter()
 const { t } = useI18n()
@@ -122,9 +123,14 @@ const chartSegments = computed(() => {
   })
 })
 
-const monthlyIncome = computed(() =>
-  currentMonthTransactions.value.filter(t => t.type === 'INCOME').reduce((s, t) => s + t.amount, 0),
+const incomeByCurrency = computed(() =>
+  groupByCurrency(currentMonthTransactions.value, accounts.value, 'INCOME'),
 )
+const spendingByCurrency = computed(() =>
+  groupByCurrency(currentMonthTransactions.value, accounts.value, 'EXPENSE'),
+)
+const dominantIncome = computed(() => incomeByCurrency.value[0] ?? null)
+const dominantSpending = computed(() => spendingByCurrency.value[0] ?? null)
 
 const formatMoney = formatCurrency
 
@@ -157,12 +163,56 @@ const goToTransactions = () => router.push({ name: 'transactions' })
           </AppCard>
           <AppCard>
             <p class="field-label">{{ t('dashboard.stats.incomeLabel', { month: currentMonthLabel }) }}</p>
-            <AnimatedAmount class="mt-2 block" :value="monthlyIncome" />
+            <AnimatedAmount
+              class="mt-2 block"
+              :value="dominantIncome?.amount ?? 0"
+              :currency-symbol="dominantIncome?.symbol ?? '$'"
+            />
+            <template v-if="dominantIncome && incomeByCurrency.length > 1">
+              <p class="mt-1 text-xs font-semibold uppercase tracking-wide text-muted">
+                {{ dominantIncome.code }} · {{ t('dashboard.stats.dominant') }}
+              </p>
+              <div class="mt-2 flex flex-wrap gap-1.5 border-t border-line pt-2">
+                <span
+                  v-for="bucket in incomeByCurrency"
+                  :key="bucket.code"
+                  class="rounded-full px-2.5 py-0.5 text-xs font-semibold tabular-nums"
+                  :class="bucket === dominantIncome ? 'bg-primary/10 text-primary' : 'bg-surface-2 text-muted'"
+                >
+                  {{ bucket.code }} · {{ bucket.symbol }} {{ formatMoney(bucket.amount) }}
+                </span>
+              </div>
+            </template>
+            <p v-else-if="dominantIncome" class="mt-1 text-xs font-semibold uppercase tracking-wide text-muted">
+              {{ dominantIncome.code }}
+            </p>
             <p class="mt-1 text-sm text-muted">{{ t('dashboard.stats.incomeDesc') }}</p>
           </AppCard>
           <AppCard>
             <p class="field-label">{{ t('dashboard.stats.spendingLabel', { month: currentMonthLabel }) }}</p>
-            <AnimatedAmount class="mt-2 block" :value="-totalMonthly" />
+            <AnimatedAmount
+              class="mt-2 block"
+              :value="dominantSpending ? -dominantSpending.amount : 0"
+              :currency-symbol="dominantSpending?.symbol ?? '$'"
+            />
+            <template v-if="dominantSpending && spendingByCurrency.length > 1">
+              <p class="mt-1 text-xs font-semibold uppercase tracking-wide text-muted">
+                {{ dominantSpending.code }} · {{ t('dashboard.stats.dominant') }}
+              </p>
+              <div class="mt-2 flex flex-wrap gap-1.5 border-t border-line pt-2">
+                <span
+                  v-for="bucket in spendingByCurrency"
+                  :key="bucket.code"
+                  class="rounded-full px-2.5 py-0.5 text-xs font-semibold tabular-nums"
+                  :class="bucket === dominantSpending ? 'bg-danger/10 text-danger' : 'bg-surface-2 text-muted'"
+                >
+                  {{ bucket.code }} · {{ bucket.symbol }} {{ formatMoney(bucket.amount) }}
+                </span>
+              </div>
+            </template>
+            <p v-else-if="dominantSpending" class="mt-1 text-xs font-semibold uppercase tracking-wide text-muted">
+              {{ dominantSpending.code }}
+            </p>
             <p class="mt-1 text-sm text-muted">{{ t('dashboard.stats.spendingDesc', { count: monthlyCategories.length }) }}</p>
           </AppCard>
         </section>

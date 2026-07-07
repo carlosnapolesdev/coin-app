@@ -115,6 +115,15 @@ describe('groupByCurrency', () => {
     expect(result).toEqual([{ code: 'N/A', symbol: '', amount: 50 }])
   })
 
+  it('falls back to currencyCode as symbol when currencySymbol is null', () => {
+    const result = groupByCurrency(
+      [tx({ amount: 50 })],
+      [acc({ currencyCode: 'USD', currencySymbol: null })],
+      'INCOME',
+    )
+    expect(result).toEqual([{ code: 'USD', symbol: 'USD', amount: 50 }])
+  })
+
   it('excludes transactions of other types (EXPENSE / TRANSFER)', () => {
     const result = groupByCurrency(
       [

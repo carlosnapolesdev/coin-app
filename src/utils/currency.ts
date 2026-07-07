@@ -16,7 +16,7 @@ export function groupByCurrency(
   for (const a of accounts) {
     accountCurrency.set(a.id, {
       code: a.currencyCode ?? 'N/A',
-      symbol: a.currencySymbol ?? '',
+      symbol: a.currencySymbol ?? a.currencyCode ?? '',
     })
   }
 
