@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import api from '../../services/api'
 import { type CreateTransactionPayload, type TransactionDetail, type TransactionStatus, type TransactionType, transactionsApi } from '../../services/transactions'
 import { type AccountDetail, accountsApi } from '../../services/accounts'
+import { currenciesApi } from '../../services/currencies'
 import { AppButton, AppModal, AppSpinner } from '../ui'
 
 type FormMode = 'create' | 'edit'
@@ -46,6 +47,7 @@ const categoryId = ref<number | null>(null)
 const status = ref<TransactionStatus>('CLEARED')
 const memo = ref('')
 const tags = ref('')
+const exchangeRate = ref('')
 
 const accounts = ref<AccountDetail[]>([])
 const allCategories = ref<BackendCategory[]>([])
@@ -71,9 +73,21 @@ const filteredCategories = computed<FlatCategory[]>(() => {
 
 const destinationAccounts = computed(() => accounts.value.filter((acc) => acc.id !== accountId.value))
 
+const sourceCurrencyId = computed(() => accounts.value.find((a) => a.id === accountId.value)?.currencyId ?? null)
+const destinationCurrencyId = computed(() => accounts.value.find((a) => a.id === destinationAccountId.value)?.currencyId ?? null)
+const sourceCurrencyCode = computed(() => accounts.value.find((a) => a.id === accountId.value)?.currencyCode ?? '')
+const destinationCurrencyCode = computed(() => accounts.value.find((a) => a.id === destinationAccountId.value)?.currencyCode ?? '')
+const needsExchangeRate = computed(() =>
+  selectedType.value === 'TRANSFER' &&
+  sourceCurrencyId.value !== null &&
+  destinationCurrencyId.value !== null &&
+  sourceCurrencyId.value !== destinationCurrencyId.value
+)
+
 const isSaveDisabled = computed(() => {
   if (isSaving.value || !amount.value || !accountId.value || !effectiveDate.value) return true
   if (selectedType.value === 'TRANSFER' && !destinationAccountId.value) return true
+  if (needsExchangeRate.value && !exchangeRate.value) return true
   return false
 })
 
@@ -89,6 +103,7 @@ const resetForm = () => {
   status.value = 'CLEARED'
   memo.value = ''
   tags.value = ''
+  exchangeRate.value = ''
   error.value = ''
 }
 
@@ -104,7 +119,10 @@ const populateFromTransaction = (t: TransactionDetail) => {
   status.value = t.status
   memo.value = t.memo ?? ''
   tags.value = t.tags ?? ''
+  exchangeRate.value = t.exchangeRate !== null ? String(t.exchangeRate) : ''
 }
+
+let suppressAutoRate = false
 
 const loadData = async () => {
   isLoading.value = true
@@ -116,12 +134,15 @@ const loadData = async () => {
     accounts.value = accountsRes.data
     allCategories.value = categoriesRes.data
 
+    suppressAutoRate = true
     if (props.mode === 'edit' && props.transaction) {
       populateFromTransaction(props.transaction)
     } else {
       resetForm()
       accountId.value = accounts.value[0]?.id ?? null
     }
+    await nextTick()
+    suppressAutoRate = false
   } catch {
     error.value = 'Failed to load data. Please try again.'
   } finally {
@@ -137,6 +158,20 @@ watch(
 watch(selectedType, (type) => {
   categoryId.value = null
   if (type !== 'TRANSFER') destinationAccountId.value = null
+})
+
+watch([accountId, destinationAccountId, selectedType], async () => {
+  if (suppressAutoRate) return
+  if (!needsExchangeRate.value) {
+    exchangeRate.value = ''
+    return
+  }
+  try {
+    const res = await currenciesApi.suggestRate(sourceCurrencyId.value!, destinationCurrencyId.value!)
+    exchangeRate.value = res.data.rate !== null ? String(res.data.rate) : ''
+  } catch {
+    exchangeRate.value = ''
+  }
 })
 
 const handleClose = () => {
@@ -156,6 +191,7 @@ const handleSave = async (keepOpen = false) => {
     destinationAccountId: isTransfer ? destinationAccountId.value! : undefined,
     type: selectedType.value,
     amount: parseFloat(amount.value),
+    exchangeRate: isTransfer && needsExchangeRate.value ? parseFloat(exchangeRate.value) : undefined,
     effectiveDate: effectiveDate.value,
     payee: payee.value || undefined,
     paymentMethod: paymentMethod.value || undefined,
@@ -254,6 +290,13 @@ const handleSave = async (keepOpen = false) => {
             <option :value="null" disabled>Select destination account...</option>
             <option v-for="acc in destinationAccounts" :key="acc.id" :value="acc.id">{{ acc.name }}</option>
           </select>
+        </div>
+
+        <!-- Exchange Rate (cross-currency transfer only) -->
+        <div v-if="needsExchangeRate">
+          <label class="field-label">Exchange Rate</label>
+          <input v-model="exchangeRate" type="number" step="0.000001" min="0.000001" placeholder="0.00" class="field-input" :disabled="isSaving" />
+          <p class="mt-1 text-xs text-faint">1 {{ sourceCurrencyCode }} = ___ {{ destinationCurrencyCode }}</p>
         </div>
 
         <!-- Payment Method -->
