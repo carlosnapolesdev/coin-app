@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import api from '../../services/api'
 import { type CreateTransactionPayload, type TransactionDetail, type TransactionStatus, type TransactionType, transactionsApi } from '../../services/transactions'
 import { type AccountDetail, accountsApi } from '../../services/accounts'
 import { currenciesApi } from '../../services/currencies'
 import { AppButton, AppModal, AppSpinner } from '../ui'
+
+const { t } = useI18n()
 
 type FormMode = 'create' | 'edit'
 
@@ -144,7 +147,7 @@ const loadData = async () => {
     await nextTick()
     suppressAutoRate = false
   } catch {
-    error.value = 'Failed to load data. Please try again.'
+    error.value = t('transactionModal.loadError')
   } finally {
     isLoading.value = false
   }
@@ -217,7 +220,7 @@ const handleSave = async (keepOpen = false) => {
       handleClose()
     }
   } catch {
-    error.value = 'Failed to save transaction. Please try again.'
+    error.value = t('transactionModal.saveError')
   } finally {
     isSaving.value = false
   }
@@ -227,7 +230,7 @@ const handleSave = async (keepOpen = false) => {
 <template>
   <AppModal
     :is-open="isOpen"
-    :title="mode === 'create' ? 'Add Transaction' : 'Edit Transaction'"
+    :title="mode === 'create' ? t('transactionModal.titleCreate') : t('transactionModal.titleEdit')"
     icon="receipt_long"
     size="md"
     @close="handleClose"
@@ -245,21 +248,21 @@ const handleSave = async (keepOpen = false) => {
       <!-- Type selector -->
       <div class="flex gap-1 rounded-lg border border-line bg-surface-2 p-1">
         <button
-          v-for="t in (['EXPENSE', 'INCOME', 'TRANSFER'] as TransactionType[])"
-          :key="t"
+          v-for="txType in (['EXPENSE', 'INCOME', 'TRANSFER'] as TransactionType[])"
+          :key="txType"
           type="button"
           class="flex-1 rounded-md px-4 py-2.5 text-sm font-semibold transition-all"
-          :class="selectedType === t ? 'bg-surface text-primary shadow-sm' : 'text-muted hover:text-content'"
-          @click="selectedType = t"
+          :class="selectedType === txType ? 'bg-surface text-primary shadow-sm' : 'text-muted hover:text-content'"
+          @click="selectedType = txType"
         >
-          {{ t.charAt(0) + t.slice(1).toLowerCase() }}
+          {{ txType === 'EXPENSE' ? t('transactions.types.expense') : txType === 'INCOME' ? t('transactions.types.income') : t('transactions.types.transfer') }}
         </button>
       </div>
 
       <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
         <!-- Date -->
         <div>
-          <label class="field-label">Effective Date</label>
+          <label class="field-label">{{ t('transactionModal.dateLabel') }}</label>
           <div class="relative">
             <span class="material-symbols-outlined pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[20px] text-faint">calendar_today</span>
             <input v-model="effectiveDate" type="date" class="field-input pl-11" :disabled="isSaving" />
@@ -268,7 +271,7 @@ const handleSave = async (keepOpen = false) => {
 
         <!-- Amount -->
         <div>
-          <label class="field-label">Amount</label>
+          <label class="field-label">{{ t('transactionModal.amountLabel') }}</label>
           <div class="relative">
             <span class="material-symbols-outlined pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[20px] text-faint">attach_money</span>
             <input v-model="amount" type="number" step="0.01" min="0.01" placeholder="0.00" class="field-input pl-11 text-base font-bold" :disabled="isSaving" />
@@ -277,7 +280,7 @@ const handleSave = async (keepOpen = false) => {
 
         <!-- Account -->
         <div>
-          <label class="field-label">{{ selectedType === 'TRANSFER' ? 'From Account' : 'Source Account' }}</label>
+          <label class="field-label">{{ selectedType === 'TRANSFER' ? t('transactionModal.fromAccountLabel') : t('transactionModal.sourceAccountLabel') }}</label>
           <select v-model="accountId" class="field-input" :disabled="isSaving">
             <option v-for="acc in accounts" :key="acc.id" :value="acc.id">{{ acc.name }}</option>
           </select>
@@ -285,9 +288,9 @@ const handleSave = async (keepOpen = false) => {
 
         <!-- To Account (transfer only) -->
         <div v-if="selectedType === 'TRANSFER'">
-          <label class="field-label">To Account</label>
+          <label class="field-label">{{ t('transactionModal.toAccountLabel') }}</label>
           <select v-model="destinationAccountId" class="field-input" :disabled="isSaving">
-            <option :value="null" disabled>Select destination account...</option>
+            <option :value="null" disabled>{{ t('transactionModal.selectDestination') }}</option>
             <option v-for="acc in destinationAccounts" :key="acc.id" :value="acc.id">{{ acc.name }}</option>
           </select>
         </div>
@@ -301,27 +304,27 @@ const handleSave = async (keepOpen = false) => {
 
         <!-- Payment Method -->
         <div>
-          <label class="field-label">Payment Method</label>
+          <label class="field-label">{{ t('transactionModal.paymentMethodLabel') }}</label>
           <select v-model="paymentMethod" class="field-input" :disabled="isSaving">
-            <option value="">(none)</option>
-            <option value="Credit Card">Credit Card</option>
-            <option value="Bank Transfer">Bank Transfer</option>
-            <option value="Cash">Cash</option>
-            <option value="Check">Check</option>
+            <option value="">{{ t('transactionModal.paymentMethods.none') }}</option>
+            <option value="Credit Card">{{ t('transactionModal.paymentMethods.creditCard') }}</option>
+            <option value="Bank Transfer">{{ t('transactionModal.paymentMethods.bankTransfer') }}</option>
+            <option value="Cash">{{ t('transactionModal.paymentMethods.cash') }}</option>
+            <option value="Check">{{ t('transactionModal.paymentMethods.check') }}</option>
           </select>
         </div>
 
         <!-- Payee -->
         <div>
-          <label class="field-label">Payee / Entity</label>
-          <input v-model="payee" type="text" placeholder="Enter name..." class="field-input" :disabled="isSaving" />
+          <label class="field-label">{{ t('transactionModal.payeeLabel') }}</label>
+          <input v-model="payee" type="text" :placeholder="t('transactionModal.payeePlaceholder')" class="field-input" :disabled="isSaving" />
         </div>
 
         <!-- Category -->
         <div v-if="selectedType !== 'TRANSFER'">
-          <label class="field-label">Category</label>
+          <label class="field-label">{{ t('transactionModal.categoryLabel') }}</label>
           <select v-model="categoryId" class="field-input" :disabled="isSaving">
-            <option :value="null">(none)</option>
+            <option :value="null">{{ t('transactionModal.noneOption') }}</option>
             <option v-for="cat in filteredCategories" :key="cat.id" :value="cat.id">{{ cat.label }}</option>
           </select>
         </div>
@@ -329,7 +332,7 @@ const handleSave = async (keepOpen = false) => {
 
       <!-- Status -->
       <div>
-        <label class="field-label">Ledger Status</label>
+        <label class="field-label">{{ t('transactionModal.statusLabel') }}</label>
         <div class="flex w-fit gap-1 rounded-lg border border-line bg-surface-2 p-1">
           <button
             v-for="s in (['PENDING', 'CLEARED', 'VOID'] as TransactionStatus[])"
@@ -350,24 +353,24 @@ const handleSave = async (keepOpen = false) => {
 
       <!-- Memo & Tags -->
       <div>
-        <label class="field-label">Memo / Private Notes</label>
-        <textarea v-model="memo" placeholder="Describe this transaction..." rows="2" class="field-input resize-none" :disabled="isSaving"></textarea>
+        <label class="field-label">{{ t('transactionModal.memoLabel') }}</label>
+        <textarea v-model="memo" :placeholder="t('transactionModal.memoPlaceholder')" rows="2" class="field-input resize-none" :disabled="isSaving"></textarea>
       </div>
       <div>
-        <label class="field-label">Tags</label>
-        <input v-model="tags" type="text" placeholder="Comma-separated tags..." class="field-input" :disabled="isSaving" />
+        <label class="field-label">{{ t('transactionModal.tagsLabel') }}</label>
+        <input v-model="tags" type="text" :placeholder="t('transactionModal.tagsPlaceholder')" class="field-input" :disabled="isSaving" />
       </div>
     </form>
 
     <template #footer>
-      <AppButton variant="ghost" :disabled="isSaving" @click="handleClose">Close</AppButton>
+      <AppButton variant="ghost" :disabled="isSaving" @click="handleClose">{{ t('common.close') }}</AppButton>
       <AppButton
         v-if="mode === 'create'"
         variant="secondary"
         :disabled="isSaveDisabled"
         @click="handleSave(true)"
       >
-        Add &amp; Keep
+        {{ t('transactionModal.addAndKeep') }}
       </AppButton>
       <AppButton
         type="submit"
@@ -375,7 +378,7 @@ const handleSave = async (keepOpen = false) => {
         :loading="isSaving"
         :disabled="isSaveDisabled"
       >
-        {{ mode === 'create' ? 'Add Transaction' : 'Save Changes' }}
+        {{ mode === 'create' ? t('transactions.actions.add') : t('accounts.saveButton.update') }}
       </AppButton>
     </template>
   </AppModal>
