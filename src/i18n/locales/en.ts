@@ -30,6 +30,21 @@ const en = {
     signOut: 'Sign out',
     account: 'Account',
   },
+  sidebar: {
+    subtitle: 'Personal Finance',
+    soon: 'Soon',
+    nav: {
+      dashboard: 'Dashboard',
+      categories: 'Categories',
+      accounts: 'Accounts',
+      transactions: 'Transactions',
+      budgets: 'Budgets',
+      goals: 'Goals',
+      recurring: 'Recurring',
+      reports: 'Reports',
+      settings: 'Settings',
+    },
+  },
 }
 
 export default en

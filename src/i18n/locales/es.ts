@@ -32,6 +32,21 @@ const es: MessageSchema = {
     signOut: 'Cerrar sesión',
     account: 'Cuenta',
   },
+  sidebar: {
+    subtitle: 'Finanzas Personales',
+    soon: 'Próximamente',
+    nav: {
+      dashboard: 'Panel',
+      categories: 'Categorías',
+      accounts: 'Cuentas',
+      transactions: 'Transacciones',
+      budgets: 'Presupuestos',
+      goals: 'Metas',
+      recurring: 'Recurrentes',
+      reports: 'Informes',
+      settings: 'Configuración',
+    },
+  },
 }
 
 export default es

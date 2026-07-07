@@ -1,18 +1,22 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { BrandMark, AppBadge } from '../ui'
 
-const navItems = [
-  { icon: 'grid_view', label: 'Dashboard', routeName: 'dashboard' },
-  { icon: 'category', label: 'Categories', routeName: 'categories' },
-  { icon: 'account_balance_wallet', label: 'Accounts', routeName: 'accounts' },
-  { icon: 'receipt_long', label: 'Transactions', routeName: 'transactions' },
-  { icon: 'pie_chart', label: 'Budgets', routeName: 'budgets' },
-  { icon: 'flag', label: 'Goals', routeName: 'goals' },
-  { icon: 'event_repeat', label: 'Recurring', routeName: 'recurring' },
-  { icon: 'bar_chart', label: 'Reports', routeName: 'reports' },
-  { icon: 'settings', label: 'Settings', routeName: 'settings' },
-]
+const { t } = useI18n()
+
+const navItems = computed(() => [
+  { icon: 'grid_view', label: t('sidebar.nav.dashboard'), routeName: 'dashboard' },
+  { icon: 'category', label: t('sidebar.nav.categories'), routeName: 'categories' },
+  { icon: 'account_balance_wallet', label: t('sidebar.nav.accounts'), routeName: 'accounts' },
+  { icon: 'receipt_long', label: t('sidebar.nav.transactions'), routeName: 'transactions' },
+  { icon: 'pie_chart', label: t('sidebar.nav.budgets'), routeName: 'budgets' },
+  { icon: 'flag', label: t('sidebar.nav.goals'), routeName: 'goals' },
+  { icon: 'event_repeat', label: t('sidebar.nav.recurring'), routeName: 'recurring' },
+  { icon: 'bar_chart', label: t('sidebar.nav.reports'), routeName: 'reports' },
+  { icon: 'settings', label: t('sidebar.nav.settings'), routeName: 'settings' },
+])
 
 const route = useRoute()
 </script>
@@ -20,7 +24,7 @@ const route = useRoute()
 <template>
   <aside class="hidden h-screen w-64 flex-shrink-0 flex-col border-r border-line bg-bg md:flex">
     <div class="px-6 py-6">
-      <BrandMark subtitle="Personal Finance" />
+      <BrandMark :subtitle="t('sidebar.subtitle')" />
     </div>
 
     <nav class="flex-1 space-y-1 px-4 py-2">
@@ -41,7 +45,7 @@ const route = useRoute()
         >
           <span class="material-symbols-outlined text-[22px]">{{ item.icon }}</span>
           <span class="flex-1">{{ item.label }}</span>
-          <AppBadge variant="muted">Soon</AppBadge>
+          <AppBadge variant="muted">{{ t('sidebar.soon') }}</AppBadge>
         </div>
       </template>
     </nav>

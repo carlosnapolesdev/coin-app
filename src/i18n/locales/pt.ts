@@ -32,6 +32,21 @@ const pt: MessageSchema = {
     signOut: 'Sair',
     account: 'Conta',
   },
+  sidebar: {
+    subtitle: 'Finanças Pessoais',
+    soon: 'Em breve',
+    nav: {
+      dashboard: 'Painel',
+      categories: 'Categorias',
+      accounts: 'Contas',
+      transactions: 'Transações',
+      budgets: 'Orçamentos',
+      goals: 'Metas',
+      recurring: 'Recorrentes',
+      reports: 'Relatórios',
+      settings: 'Configurações',
+    },
+  },
 }
 
 export default pt
