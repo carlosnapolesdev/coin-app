@@ -22,4 +22,9 @@ export const currenciesApi = {
 
   updateUserCurrency: (currencyId: number, data: UpdateUserCurrencyPayload) =>
     api.patch<UserCurrencyDetail>(`/users/me/currencies/${currencyId}`, data),
+
+  suggestRate: (from: number, to: number) =>
+    api.get<{ rate: number | null }>('/users/me/currencies/exchange-rate', {
+      params: { from, to },
+    }),
 }

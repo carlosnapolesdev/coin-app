@@ -19,6 +19,7 @@ export interface TransactionDetail {
   tags: string | null
   transferAccountId: number | null
   transferIn: boolean | null
+  exchangeRate: number | null
   balance: number | null
   createdAt: string
   updatedAt: string | null
@@ -30,6 +31,7 @@ export interface CreateTransactionPayload {
   destinationAccountId?: number
   type: TransactionType
   amount: number
+  exchangeRate?: number
   effectiveDate: string
   payee?: string
   paymentMethod?: string
