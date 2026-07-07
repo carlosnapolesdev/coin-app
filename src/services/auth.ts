@@ -13,6 +13,8 @@ import {
   type AuthResponse,
   type AuthUser,
 } from './auth-session'
+import { setLocale, type LocaleCode } from '../composables/useLocale'
+import { usersApi } from './users'
 
 type LoginPayload = {
   identifier: string
@@ -36,6 +38,13 @@ const syncStateFromStorage = () => {
 const setAuthenticatedState = (session: AuthResponse) => {
   authState.token = session.token
   authState.user = session.user
+  syncLocaleFromLanguage(session.user.language)
+}
+
+const syncLocaleFromLanguage = (language: string | null | undefined) => {
+  if (language === 'en' || language === 'es' || language === 'pt') {
+    setLocale(language)
+  }
 }
 
 export const initializeAuth = async () => {
@@ -82,12 +91,14 @@ export const fetchCurrentUser = async () => {
   const { data } = await api.get<AuthUser>('/auth/me')
   authState.user = data
   updateStoredUser(data)
+  syncLocaleFromLanguage(data.language)
   return data
 }
 
 export const setCurrentUser = (user: AuthUser) => {
   authState.user = user
   updateStoredUser(user)
+  syncLocaleFromLanguage(user.language)
 }
 
 export const clearSession = () => {
@@ -123,4 +134,16 @@ export const getApiErrorMessage = (error: unknown, fallback: string) => {
   }
 
   return fallback
+}
+
+export const changeLanguage = async (language: LocaleCode) => {
+  setLocale(language)
+  if (!authState.token) return
+
+  try {
+    const { data } = await usersApi.updateProfile({ language })
+    setCurrentUser(data)
+  } catch (e) {
+    console.error('Failed to sync language preference', e)
+  }
 }
