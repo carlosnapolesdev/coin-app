@@ -3,6 +3,7 @@ import axios from 'axios'
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import TopHeader from './common/TopHeader.vue'
 import { AppButton } from './ui'
 import { getApiErrorMessage, login } from '../services/auth'
@@ -10,6 +11,7 @@ import { getSavedIdentifier } from '../services/auth-session'
 
 const router = useRouter()
 const route = useRoute()
+const { t } = useI18n()
 
 const isSubmitting = ref(false)
 const isPasswordVisible = ref(false)
@@ -23,7 +25,7 @@ const form = reactive({
 })
 
 const identifierLabel = computed(() => {
-  return form.identifier.includes('@') ? 'Email Address' : 'Email or Username'
+  return form.identifier.includes('@') ? t('auth.login.emailAddressLabel') : t('auth.login.emailOrUsernameLabel')
 })
 
 const clearFieldErrors = () => {
@@ -68,7 +70,7 @@ const handleLogin = async () => {
       }
     }
 
-    errorMessage.value = getApiErrorMessage(error, 'Unable to sign in right now.')
+    errorMessage.value = getApiErrorMessage(error, t('auth.login.genericError'))
   } finally {
     isSubmitting.value = false
   }
@@ -82,11 +84,11 @@ const togglePasswordVisibility = () => {
   isPasswordVisible.value = !isPasswordVisible.value
 }
 
-const highlights = [
-  { icon: 'account_balance_wallet', title: 'All your accounts', text: 'Bank, cash, cards and assets in one ledger.' },
-  { icon: 'category', title: 'Smart categories', text: 'Organize spending and income your way.' },
-  { icon: 'currency_exchange', title: 'Multi-currency', text: 'Track balances across currencies.' },
-]
+const highlights = computed(() => [
+  { icon: 'account_balance_wallet', title: t('auth.login.highlights.accounts.title'), text: t('auth.login.highlights.accounts.text') },
+  { icon: 'category', title: t('auth.login.highlights.categories.title'), text: t('auth.login.highlights.categories.text') },
+  { icon: 'currency_exchange', title: t('auth.login.highlights.currency.title'), text: t('auth.login.highlights.currency.text') },
+])
 
 onMounted(() => {
   const savedIdentifier = getSavedIdentifier()
@@ -99,11 +101,11 @@ onMounted(() => {
   }
 
   if (route.query.registered === '1') {
-    successMessage.value = 'Account created successfully. Sign in to continue.'
+    successMessage.value = t('auth.login.accountCreatedMessage')
   }
 
   if (route.query.reset === '1') {
-    successMessage.value = 'Password reset successfully. Sign in with your new password.'
+    successMessage.value = t('auth.login.passwordResetMessage')
   }
 })
 </script>
@@ -118,10 +120,10 @@ onMounted(() => {
         <div class="hidden flex-col gap-8 lg:flex">
           <div class="space-y-4">
             <h1 class="text-5xl font-black leading-[1.1] text-content">
-              Master your money, <span class="text-primary">seamlessly.</span>
+              {{ t('auth.login.heroTitlePrefix') }} <span class="text-primary">{{ t('auth.login.heroTitleHighlight') }}</span>
             </h1>
             <p class="max-w-md text-lg text-muted">
-              Track accounts, categorize spending, and see exactly where your money goes — all in one clean dashboard.
+              {{ t('auth.login.heroSubtitle') }}
             </p>
           </div>
 
@@ -141,8 +143,8 @@ onMounted(() => {
         <!-- Right: login card -->
         <div class="surface-card mx-auto w-full max-w-md p-8 lg:p-10">
           <div class="mb-8">
-            <h2 class="text-3xl font-bold text-content">Welcome back</h2>
-            <p class="mt-2 text-muted">Please enter your details to sign in</p>
+            <h2 class="text-3xl font-bold text-content">{{ t('auth.login.title') }}</h2>
+            <p class="mt-2 text-muted">{{ t('auth.login.subtitle') }}</p>
           </div>
 
           <p
@@ -167,7 +169,7 @@ onMounted(() => {
                 <input
                   v-model.trim="form.identifier"
                   class="field-input pl-11"
-                  placeholder="name@company.com or username"
+                  :placeholder="t('auth.login.identifierPlaceholder')"
                   type="text"
                   @input="clearError('identifier')"
                 />
@@ -177,8 +179,8 @@ onMounted(() => {
 
             <div>
               <div class="mb-2 flex items-center justify-between">
-                <label class="text-sm font-semibold text-content">Password</label>
-                <RouterLink class="text-xs font-semibold text-primary hover:underline" to="/forgot-password">Forgot Password?</RouterLink>
+                <label class="text-sm font-semibold text-content">{{ t('auth.login.passwordLabel') }}</label>
+                <RouterLink class="text-xs font-semibold text-primary hover:underline" to="/forgot-password">{{ t('auth.login.forgotPasswordLink') }}</RouterLink>
               </div>
               <div class="relative">
                 <span class="material-symbols-outlined pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[20px] text-faint">lock</span>
@@ -202,18 +204,18 @@ onMounted(() => {
 
             <label class="flex cursor-pointer items-center gap-3 py-1" for="remember">
               <input id="remember" v-model="form.remember" class="size-5 rounded border-line" type="checkbox" />
-              <span class="text-sm font-medium text-muted">Remember me for 7 days</span>
+              <span class="text-sm font-medium text-muted">{{ t('auth.login.rememberMe') }}</span>
             </label>
 
             <AppButton type="submit" block size="lg" :loading="isSubmitting" trailing-icon="arrow_forward">
-              {{ isSubmitting ? 'Signing In...' : 'Sign In' }}
+              {{ isSubmitting ? t('auth.login.signingIn') : t('auth.login.signIn') }}
             </AppButton>
           </form>
 
           <div class="mt-8 text-center">
             <p class="text-sm text-muted">
-              Don't have an account?
-              <button class="ml-1 font-semibold text-primary hover:underline" @click="handleCreateAccount">Create an Account</button>
+              {{ t('auth.login.noAccount') }}
+              <button class="ml-1 font-semibold text-primary hover:underline" @click="handleCreateAccount">{{ t('auth.login.createAccount') }}</button>
             </p>
           </div>
         </div>
@@ -222,7 +224,7 @@ onMounted(() => {
 
     <footer class="px-6 py-8 text-center">
       <p class="text-xs font-medium uppercase tracking-widest text-faint">
-        © 2026 CoinFlow • Secure &amp; Encrypted
+        {{ t('auth.login.footer') }}
       </p>
     </footer>
   </div>

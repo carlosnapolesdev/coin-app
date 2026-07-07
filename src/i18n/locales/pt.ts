@@ -47,6 +47,39 @@ const pt: MessageSchema = {
       settings: 'Configurações',
     },
   },
+  auth: {
+    common: {
+      emailAddressLabel: 'E-mail',
+      emailPlaceholder: 'nome@empresa.com',
+      backToSignIn: 'Voltar para o login',
+    },
+    login: {
+      title: 'Bem-vindo de volta',
+      subtitle: 'Digite seus dados para entrar',
+      emailAddressLabel: 'E-mail',
+      emailOrUsernameLabel: 'E-mail ou usuário',
+      identifierPlaceholder: 'nome@empresa.com ou usuário',
+      passwordLabel: 'Senha',
+      forgotPasswordLink: 'Esqueceu a senha?',
+      rememberMe: 'Lembrar de mim por 7 dias',
+      signingIn: 'Entrando...',
+      signIn: 'Entrar',
+      noAccount: 'Ainda não tem uma conta?',
+      createAccount: 'Criar uma conta',
+      heroTitlePrefix: 'Controle seu dinheiro,',
+      heroTitleHighlight: 'sem esforço.',
+      heroSubtitle: 'Acompanhe contas, categorize gastos e veja exatamente para onde vai seu dinheiro — tudo em um painel único.',
+      accountCreatedMessage: 'Conta criada com sucesso. Faça login para continuar.',
+      passwordResetMessage: 'Senha redefinida com sucesso. Faça login com sua nova senha.',
+      genericError: 'Não foi possível entrar agora.',
+      footer: '© 2026 CoinFlow • Seguro e Criptografado',
+      highlights: {
+        accounts: { title: 'Todas as suas contas', text: 'Banco, dinheiro, cartões e ativos em um só lugar.' },
+        categories: { title: 'Categorias inteligentes', text: 'Organize gastos e receitas do seu jeito.' },
+        currency: { title: 'Multi-moeda', text: 'Acompanhe saldos em diferentes moedas.' },
+      },
+    },
+  },
 }
 
 export default pt

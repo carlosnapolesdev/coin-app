@@ -47,6 +47,39 @@ const es: MessageSchema = {
       settings: 'Configuración',
     },
   },
+  auth: {
+    common: {
+      emailAddressLabel: 'Correo electrónico',
+      emailPlaceholder: 'nombre@empresa.com',
+      backToSignIn: 'Volver a iniciar sesión',
+    },
+    login: {
+      title: 'Bienvenido de nuevo',
+      subtitle: 'Ingresa tus datos para iniciar sesión',
+      emailAddressLabel: 'Correo electrónico',
+      emailOrUsernameLabel: 'Correo o nombre de usuario',
+      identifierPlaceholder: 'nombre@empresa.com o usuario',
+      passwordLabel: 'Contraseña',
+      forgotPasswordLink: '¿Olvidaste tu contraseña?',
+      rememberMe: 'Recordarme durante 7 días',
+      signingIn: 'Iniciando sesión...',
+      signIn: 'Iniciar sesión',
+      noAccount: '¿No tienes una cuenta?',
+      createAccount: 'Crear una cuenta',
+      heroTitlePrefix: 'Controla tu dinero,',
+      heroTitleHighlight: 'sin esfuerzo.',
+      heroSubtitle: 'Registra cuentas, categoriza gastos y observa exactamente a dónde va tu dinero — todo en un panel único.',
+      accountCreatedMessage: 'Cuenta creada correctamente. Inicia sesión para continuar.',
+      passwordResetMessage: 'Contraseña restablecida correctamente. Inicia sesión con tu nueva contraseña.',
+      genericError: 'No se pudo iniciar sesión en este momento.',
+      footer: '© 2026 CoinFlow • Seguro y Cifrado',
+      highlights: {
+        accounts: { title: 'Todas tus cuentas', text: 'Bancos, efectivo, tarjetas y activos en un solo registro.' },
+        categories: { title: 'Categorías inteligentes', text: 'Organiza tus gastos e ingresos a tu manera.' },
+        currency: { title: 'Multi-moneda', text: 'Controla saldos en distintas monedas.' },
+      },
+    },
+  },
 }
 
 export default es

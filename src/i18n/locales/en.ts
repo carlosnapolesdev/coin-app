@@ -45,6 +45,39 @@ const en = {
       settings: 'Settings',
     },
   },
+  auth: {
+    common: {
+      emailAddressLabel: 'Email Address',
+      emailPlaceholder: 'name@company.com',
+      backToSignIn: 'Back to sign in',
+    },
+    login: {
+      title: 'Welcome back',
+      subtitle: 'Please enter your details to sign in',
+      emailAddressLabel: 'Email Address',
+      emailOrUsernameLabel: 'Email or Username',
+      identifierPlaceholder: 'name@company.com or username',
+      passwordLabel: 'Password',
+      forgotPasswordLink: 'Forgot Password?',
+      rememberMe: 'Remember me for 7 days',
+      signingIn: 'Signing In...',
+      signIn: 'Sign In',
+      noAccount: "Don't have an account?",
+      createAccount: 'Create an Account',
+      heroTitlePrefix: 'Master your money,',
+      heroTitleHighlight: 'seamlessly.',
+      heroSubtitle: 'Track accounts, categorize spending, and see exactly where your money goes — all in one clean dashboard.',
+      accountCreatedMessage: 'Account created successfully. Sign in to continue.',
+      passwordResetMessage: 'Password reset successfully. Sign in with your new password.',
+      genericError: 'Unable to sign in right now.',
+      footer: '© 2026 CoinFlow • Secure & Encrypted',
+      highlights: {
+        accounts: { title: 'All your accounts', text: 'Bank, cash, cards and assets in one ledger.' },
+        categories: { title: 'Smart categories', text: 'Organize spending and income your way.' },
+        currency: { title: 'Multi-currency', text: 'Track balances across currencies.' },
+      },
+    },
+  },
 }
 
 export default en
