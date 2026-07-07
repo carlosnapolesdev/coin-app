@@ -174,7 +174,14 @@ const parseTags = (tags: string | null) =>
 
 const transferLabel = (t: TransactionDetail) => {
   const counterpart = accounts.value.find(a => a.id === t.transferAccountId)?.name ?? 'account'
-  return t.transferIn ? `Transfer from ${counterpart}` : `Transfer to ${counterpart}`
+  const direction = t.transferIn ? `Transfer from ${counterpart}` : `Transfer to ${counterpart}`
+  if (t.exchangeRate === null) return direction
+
+  const sourceAccountId = t.transferIn ? t.transferAccountId : t.accountId
+  const destAccountId = t.transferIn ? t.accountId : t.transferAccountId
+  const sourceCode = accounts.value.find(a => a.id === sourceAccountId)?.currencyCode ?? ''
+  const destCode = accounts.value.find(a => a.id === destAccountId)?.currencyCode ?? ''
+  return `${direction} · 1 ${sourceCode} = ${t.exchangeRate} ${destCode}`
 }
 </script>
 
