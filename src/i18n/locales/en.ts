@@ -343,6 +343,47 @@ const en = {
       message: 'This account and its association will be removed. Existing transactions are not deleted.',
     },
   },
+  transactions: {
+    pageTitle: 'Transactions',
+    pageSubtitle: 'Your financial ledger',
+    loadError: 'Failed to load transactions.',
+    exportError: 'Failed to export transactions.',
+    deleteError: 'Failed to delete transaction.',
+    unknownAccount: 'account',
+    transferBadge: 'Transfer',
+    transferFrom: 'Transfer from {account}',
+    transferTo: 'Transfer to {account}',
+    totalCount: '{count} transaction | {count} transactions',
+    filters: {
+      accountLabel: 'Account',
+      allAccounts: 'All accounts',
+      typeLabel: 'Type',
+      allTypes: 'All types',
+      statusLabel: 'Status',
+      allStatuses: 'All statuses',
+      searchLabel: 'Search',
+      searchPlaceholder: 'Payee, memo, tags...',
+      fromDate: 'From date',
+      toDate: 'To date',
+    },
+    types: { income: 'Income', expense: 'Expense', transfer: 'Transfer' },
+    status: { cleared: 'Cleared', pending: 'Pending', void: 'Void' },
+    actions: { import: 'Import', export: 'Export', add: 'Add Transaction' },
+    empty: {
+      filteredTitle: 'No transactions match your filters',
+      title: 'No transactions yet',
+      filteredHint: 'Try adjusting the search or filters above.',
+      hint: 'Click "Add Transaction" to get started',
+    },
+    columns: {
+      date: 'Date', account: 'Account', payee: 'Payee', category: 'Category',
+      tags: 'Tags', status: 'Status', expense: 'Expense', income: 'Income', memo: 'Memo',
+    },
+    deleteDialog: {
+      title: 'Delete transaction?',
+      message: "This transaction will be permanently removed. This can't be undone.",
+    },
+  },
 }
 
 export default en

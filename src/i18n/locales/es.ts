@@ -345,6 +345,47 @@ const es: MessageSchema = {
       message: 'Esta cuenta y su asociación se eliminarán. Las transacciones existentes no se eliminan.',
     },
   },
+  transactions: {
+    pageTitle: 'Transacciones',
+    pageSubtitle: 'Tu registro financiero',
+    loadError: 'No se pudieron cargar las transacciones.',
+    exportError: 'No se pudieron exportar las transacciones.',
+    deleteError: 'No se pudo eliminar la transacción.',
+    unknownAccount: 'cuenta',
+    transferBadge: 'Transferencia',
+    transferFrom: 'Transferencia desde {account}',
+    transferTo: 'Transferencia a {account}',
+    totalCount: '{count} transacción | {count} transacciones',
+    filters: {
+      accountLabel: 'Cuenta',
+      allAccounts: 'Todas las cuentas',
+      typeLabel: 'Tipo',
+      allTypes: 'Todos los tipos',
+      statusLabel: 'Estado',
+      allStatuses: 'Todos los estados',
+      searchLabel: 'Buscar',
+      searchPlaceholder: 'Beneficiario, memo, etiquetas...',
+      fromDate: 'Desde',
+      toDate: 'Hasta',
+    },
+    types: { income: 'Ingreso', expense: 'Gasto', transfer: 'Transferencia' },
+    status: { cleared: 'Conciliado', pending: 'Pendiente', void: 'Anulado' },
+    actions: { import: 'Importar', export: 'Exportar', add: 'Agregar transacción' },
+    empty: {
+      filteredTitle: 'Ninguna transacción coincide con tus filtros',
+      title: 'Aún no hay transacciones',
+      filteredHint: 'Intenta ajustar la búsqueda o los filtros de arriba.',
+      hint: 'Haz clic en "Agregar transacción" para comenzar',
+    },
+    columns: {
+      date: 'Fecha', account: 'Cuenta', payee: 'Beneficiario', category: 'Categoría',
+      tags: 'Etiquetas', status: 'Estado', expense: 'Gasto', income: 'Ingreso', memo: 'Memo',
+    },
+    deleteDialog: {
+      title: '¿Eliminar transacción?',
+      message: 'Esta transacción se eliminará de forma permanente. Esta acción no se puede deshacer.',
+    },
+  },
 }
 
 export default es

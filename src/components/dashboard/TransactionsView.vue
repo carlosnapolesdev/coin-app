@@ -1,11 +1,15 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import Sidebar from './Sidebar.vue'
 import AddTransactionModal from './AddTransactionModal.vue'
 import ImportModal from './ImportModal.vue'
 import { AppBadge, AppButton, AppIconButton, AppInput, AppSelect, AppSpinner, ConfirmDialog, PageContainer, PageHeader } from '../ui'
 import { type AccountDetail, accountsApi } from '../../services/accounts'
 import { type TransactionDetail, type TransactionStatus, type TransactionType, transactionsApi } from '../../services/transactions'
+import { formatCurrency, formatDate as formatDateLocale } from '../../utils/format'
+
+const { t } = useI18n()
 
 const PAGE_SIZE = 25
 const SEARCH_DEBOUNCE_MS = 300
@@ -54,7 +58,7 @@ const loadTransactions = async () => {
     transactions.value = res.data.data
     total.value = res.data.total
   } catch {
-    error.value = 'Failed to load transactions.'
+    error.value = t('transactions.loadError')
   } finally {
     isLoading.value = false
   }
@@ -130,7 +134,7 @@ const exportTransactions = async () => {
     link.click()
     URL.revokeObjectURL(url)
   } catch {
-    error.value = 'Failed to export transactions.'
+    error.value = t('transactions.exportError')
   } finally {
     isExporting.value = false
   }
@@ -148,40 +152,35 @@ const confirmDelete = async () => {
     await Promise.all([loadAccounts(), loadTransactions()])
     confirmDeleteId.value = null
   } catch {
-    error.value = 'Failed to delete transaction.'
+    error.value = t('transactions.deleteError')
   } finally {
     isDeleting.value = false
   }
 }
 
-const formatDate = (dateStr: string) => {
-  const [year, month, day] = dateStr.split('-')
-  return new Date(Number(year), Number(month) - 1, Number(day))
-    .toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-}
+const formatDate = (dateStr: string) => formatDateLocale(dateStr, { month: 'short', day: 'numeric', year: 'numeric' })
 
-const formatAmount = (amount: number) =>
-  new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount)
+const formatAmount = formatCurrency
 
-const statusConfig: Record<TransactionStatus, { label: string; variant: 'success' | 'warning' | 'muted'; icon: string }> = {
-  CLEARED: { label: 'Cleared', variant: 'success', icon: 'check_circle' },
-  PENDING: { label: 'Pending', variant: 'warning', icon: 'pending' },
-  VOID: { label: 'Void', variant: 'muted', icon: 'block' },
-}
+const statusConfig = computed<Record<TransactionStatus, { label: string; variant: 'success' | 'warning' | 'muted'; icon: string }>>(() => ({
+  CLEARED: { label: t('transactions.status.cleared'), variant: 'success', icon: 'check_circle' },
+  PENDING: { label: t('transactions.status.pending'), variant: 'warning', icon: 'pending' },
+  VOID: { label: t('transactions.status.void'), variant: 'muted', icon: 'block' },
+}))
 
 const parseTags = (tags: string | null) =>
   tags ? tags.split(',').map(t => t.trim()).filter(Boolean) : []
 
-const transferLabel = (t: TransactionDetail) => {
-  const counterpart = accounts.value.find(a => a.id === t.transferAccountId)?.name ?? 'account'
-  const direction = t.transferIn ? `Transfer from ${counterpart}` : `Transfer to ${counterpart}`
-  if (t.exchangeRate === null) return direction
+const transferLabel = (tx: TransactionDetail) => {
+  const counterpart = accounts.value.find(a => a.id === tx.transferAccountId)?.name ?? t('transactions.unknownAccount')
+  const direction = tx.transferIn ? t('transactions.transferFrom', { account: counterpart }) : t('transactions.transferTo', { account: counterpart })
+  if (tx.exchangeRate === null) return direction
 
-  const sourceAccountId = t.transferIn ? t.transferAccountId : t.accountId
-  const destAccountId = t.transferIn ? t.accountId : t.transferAccountId
+  const sourceAccountId = tx.transferIn ? tx.transferAccountId : tx.accountId
+  const destAccountId = tx.transferIn ? tx.accountId : tx.transferAccountId
   const sourceCode = accounts.value.find(a => a.id === sourceAccountId)?.currencyCode ?? ''
   const destCode = accounts.value.find(a => a.id === destAccountId)?.currencyCode ?? ''
-  return `${direction} · 1 ${sourceCode} = ${t.exchangeRate} ${destCode}`
+  return `${direction} · 1 ${sourceCode} = ${tx.exchangeRate} ${destCode}`
 }
 </script>
 
@@ -190,7 +189,7 @@ const transferLabel = (t: TransactionDetail) => {
     <Sidebar />
 
     <main class="flex-1 overflow-y-auto">
-      <PageHeader title="Transactions" subtitle="Your financial ledger" />
+      <PageHeader :title="t('transactions.pageTitle')" :subtitle="t('transactions.pageSubtitle')" />
 
       <!-- Content -->
       <PageContainer>
@@ -202,40 +201,40 @@ const transferLabel = (t: TransactionDetail) => {
         <div class="surface-card mb-6 flex flex-col gap-4 p-4">
           <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <AppSelect
-              label="Account"
+              :label="t('transactions.filters.accountLabel')"
               :model-value="selectedAccountId ?? ''"
               @update:model-value="(v) => { selectedAccountId = v ? Number(v) : null; applyFilters() }"
             >
-              <option value="">All accounts</option>
+              <option value="">{{ t('transactions.filters.allAccounts') }}</option>
               <option v-for="acc in accounts" :key="acc.id" :value="acc.id">{{ acc.name }}</option>
             </AppSelect>
 
             <AppSelect
-              label="Type"
+              :label="t('transactions.filters.typeLabel')"
               :model-value="typeFilter"
               @update:model-value="(v) => { typeFilter = v as TransactionType | ''; applyFilters() }"
             >
-              <option value="">All types</option>
-              <option value="INCOME">Income</option>
-              <option value="EXPENSE">Expense</option>
-              <option value="TRANSFER">Transfer</option>
+              <option value="">{{ t('transactions.filters.allTypes') }}</option>
+              <option value="INCOME">{{ t('transactions.types.income') }}</option>
+              <option value="EXPENSE">{{ t('transactions.types.expense') }}</option>
+              <option value="TRANSFER">{{ t('transactions.types.transfer') }}</option>
             </AppSelect>
 
             <AppSelect
-              label="Status"
+              :label="t('transactions.filters.statusLabel')"
               :model-value="statusFilter"
               @update:model-value="(v) => { statusFilter = v as TransactionStatus | ''; applyFilters() }"
             >
-              <option value="">All statuses</option>
-              <option value="CLEARED">Cleared</option>
-              <option value="PENDING">Pending</option>
-              <option value="VOID">Void</option>
+              <option value="">{{ t('transactions.filters.allStatuses') }}</option>
+              <option value="CLEARED">{{ t('transactions.status.cleared') }}</option>
+              <option value="PENDING">{{ t('transactions.status.pending') }}</option>
+              <option value="VOID">{{ t('transactions.status.void') }}</option>
             </AppSelect>
 
             <AppInput
-              label="Search"
+              :label="t('transactions.filters.searchLabel')"
               icon="search"
-              placeholder="Payee, memo, tags..."
+              :placeholder="t('transactions.filters.searchPlaceholder')"
               :model-value="searchQuery"
               @update:model-value="onSearchInput"
             />
@@ -243,21 +242,21 @@ const transferLabel = (t: TransactionDetail) => {
 
           <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <AppInput
-              label="From date"
+              :label="t('transactions.filters.fromDate')"
               type="date"
               :model-value="fromDate"
               @update:model-value="(v) => { fromDate = v; applyFilters() }"
             />
             <AppInput
-              label="To date"
+              :label="t('transactions.filters.toDate')"
               type="date"
               :model-value="toDate"
               @update:model-value="(v) => { toDate = v; applyFilters() }"
             />
             <div class="flex items-end gap-2 lg:col-span-2 lg:justify-end">
-              <AppButton variant="secondary" icon="upload_file" @click="importModalOpen = true">Import</AppButton>
-              <AppButton variant="secondary" icon="download" :loading="isExporting" @click="exportTransactions">Export</AppButton>
-              <AppButton icon="add" @click="openCreate">Add Transaction</AppButton>
+              <AppButton variant="secondary" icon="upload_file" @click="importModalOpen = true">{{ t('transactions.actions.import') }}</AppButton>
+              <AppButton variant="secondary" icon="download" :loading="isExporting" @click="exportTransactions">{{ t('transactions.actions.export') }}</AppButton>
+              <AppButton icon="add" @click="openCreate">{{ t('transactions.actions.add') }}</AppButton>
             </div>
           </div>
         </div>
@@ -273,11 +272,11 @@ const transferLabel = (t: TransactionDetail) => {
           class="flex flex-col items-center justify-center rounded-2xl border border-dashed border-line-strong bg-surface py-24 text-center"
         >
           <span class="material-symbols-outlined mb-4 text-5xl text-faint">receipt_long</span>
-          <p class="font-semibold text-content">{{ hasActiveFilters ? 'No transactions match your filters' : 'No transactions yet' }}</p>
+          <p class="font-semibold text-content">{{ hasActiveFilters ? t('transactions.empty.filteredTitle') : t('transactions.empty.title') }}</p>
           <p class="mt-1 text-sm text-muted">
-            {{ hasActiveFilters ? 'Try adjusting the search or filters above.' : 'Click "Add Transaction" to get started' }}
+            {{ hasActiveFilters ? t('transactions.empty.filteredHint') : t('transactions.empty.hint') }}
           </p>
-          <AppButton v-if="!hasActiveFilters" class="mt-6" icon="add" @click="openCreate">Add Transaction</AppButton>
+          <AppButton v-if="!hasActiveFilters" class="mt-6" icon="add" @click="openCreate">{{ t('transactions.actions.add') }}</AppButton>
         </div>
 
         <!-- Table -->
@@ -286,75 +285,75 @@ const transferLabel = (t: TransactionDetail) => {
             <table class="w-full min-w-[900px] text-sm">
               <thead>
                 <tr class="border-b border-line bg-surface-2/50">
-                  <th class="data-th">Date</th>
-                  <th class="data-th">Account</th>
-                  <th class="data-th">Payee</th>
-                  <th class="data-th">Category</th>
-                  <th class="data-th">Tags</th>
-                  <th class="data-th">Status</th>
-                  <th class="data-th text-right text-danger">Expense</th>
-                  <th class="data-th text-right text-success">Income</th>
-                  <th class="data-th">Memo</th>
+                  <th class="data-th">{{ t('transactions.columns.date') }}</th>
+                  <th class="data-th">{{ t('transactions.columns.account') }}</th>
+                  <th class="data-th">{{ t('transactions.columns.payee') }}</th>
+                  <th class="data-th">{{ t('transactions.columns.category') }}</th>
+                  <th class="data-th">{{ t('transactions.columns.tags') }}</th>
+                  <th class="data-th">{{ t('transactions.columns.status') }}</th>
+                  <th class="data-th text-right text-danger">{{ t('transactions.columns.expense') }}</th>
+                  <th class="data-th text-right text-success">{{ t('transactions.columns.income') }}</th>
+                  <th class="data-th">{{ t('transactions.columns.memo') }}</th>
                   <th class="data-th"></th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-line">
                 <tr
-                  v-for="t in transactions"
-                  :key="t.id"
+                  v-for="tx in transactions"
+                  :key="tx.id"
                   class="group transition-colors hover:bg-surface-2"
                 >
                   <td class="whitespace-nowrap px-4 py-3 font-semibold text-content">
-                    {{ formatDate(t.effectiveDate) }}
+                    {{ formatDate(tx.effectiveDate) }}
                   </td>
 
                   <td class="px-4 py-3">
                     <div class="flex items-center gap-2">
                       <span class="material-symbols-outlined text-base text-faint">account_balance_wallet</span>
-                      <span class="font-medium text-muted">{{ t.accountName }}</span>
+                      <span class="font-medium text-muted">{{ tx.accountName }}</span>
                     </div>
-                    <div v-if="t.paymentMethod" class="mt-0.5 text-[11px] text-faint">{{ t.paymentMethod }}</div>
+                    <div v-if="tx.paymentMethod" class="mt-0.5 text-[11px] text-faint">{{ tx.paymentMethod }}</div>
                   </td>
 
                   <td class="px-4 py-3 font-semibold text-content">
-                    {{ t.type === 'TRANSFER' ? transferLabel(t) : (t.payee || '—') }}
+                    {{ tx.type === 'TRANSFER' ? transferLabel(tx) : (tx.payee || '—') }}
                   </td>
 
                   <td class="px-4 py-3 text-muted">
-                    <AppBadge v-if="t.type === 'TRANSFER'" variant="muted" icon="swap_horiz">Transfer</AppBadge>
-                    <template v-else>{{ t.categoryName || '—' }}</template>
+                    <AppBadge v-if="tx.type === 'TRANSFER'" variant="muted" icon="swap_horiz">{{ t('transactions.transferBadge') }}</AppBadge>
+                    <template v-else>{{ tx.categoryName || '—' }}</template>
                   </td>
 
                   <td class="px-4 py-3">
                     <div class="flex flex-wrap gap-1">
-                      <span v-for="tag in parseTags(t.tags)" :key="tag" class="badge badge-muted">{{ tag }}</span>
+                      <span v-for="tag in parseTags(tx.tags)" :key="tag" class="badge badge-muted">{{ tag }}</span>
                     </div>
                   </td>
 
                   <td class="px-4 py-3">
-                    <AppBadge :variant="statusConfig[t.status].variant" :icon="statusConfig[t.status].icon">
-                      {{ statusConfig[t.status].label }}
+                    <AppBadge :variant="statusConfig[tx.status].variant" :icon="statusConfig[tx.status].icon">
+                      {{ statusConfig[tx.status].label }}
                     </AppBadge>
                   </td>
 
                   <td class="px-4 py-3 text-right font-bold tabular-nums">
-                    <span v-if="t.type === 'EXPENSE'" class="text-danger">{{ formatAmount(t.amount) }}</span>
-                    <span v-else-if="t.type === 'TRANSFER' && !t.transferIn" class="text-muted">{{ formatAmount(t.amount) }}</span>
+                    <span v-if="tx.type === 'EXPENSE'" class="text-danger">{{ formatAmount(tx.amount) }}</span>
+                    <span v-else-if="tx.type === 'TRANSFER' && !tx.transferIn" class="text-muted">{{ formatAmount(tx.amount) }}</span>
                   </td>
 
                   <td class="px-4 py-3 text-right font-bold tabular-nums">
-                    <span v-if="t.type === 'INCOME'" class="text-success">{{ formatAmount(t.amount) }}</span>
-                    <span v-else-if="t.type === 'TRANSFER' && t.transferIn" class="text-muted">{{ formatAmount(t.amount) }}</span>
+                    <span v-if="tx.type === 'INCOME'" class="text-success">{{ formatAmount(tx.amount) }}</span>
+                    <span v-else-if="tx.type === 'TRANSFER' && tx.transferIn" class="text-muted">{{ formatAmount(tx.amount) }}</span>
                   </td>
 
-                  <td class="max-w-[180px] truncate px-4 py-3 text-faint" :title="t.memo ?? ''">
-                    {{ t.memo || '' }}
+                  <td class="max-w-[180px] truncate px-4 py-3 text-faint" :title="tx.memo ?? ''">
+                    {{ tx.memo || '' }}
                   </td>
 
                   <td class="px-4 py-3">
                     <div class="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                      <AppIconButton icon="edit" aria-label="Edit" @click="openEdit(t)" />
-                      <AppIconButton icon="delete" variant="danger" aria-label="Delete" @click="requestDeleteTransaction(t.id)" />
+                      <AppIconButton icon="edit" :aria-label="t('common.edit')" @click="openEdit(tx)" />
+                      <AppIconButton icon="delete" variant="danger" :aria-label="t('common.delete')" @click="requestDeleteTransaction(tx.id)" />
                     </div>
                   </td>
                 </tr>
@@ -363,7 +362,7 @@ const transferLabel = (t: TransactionDetail) => {
           </div>
 
           <div class="flex items-center justify-between border-t border-line px-6 py-4">
-            <span class="text-sm text-muted">{{ total }} transaction{{ total === 1 ? '' : 's' }}</span>
+            <span class="text-sm text-muted">{{ t('transactions.totalCount', total) }}</span>
             <div class="flex items-center gap-3">
               <AppButton
                 variant="ghost"
@@ -372,9 +371,9 @@ const transferLabel = (t: TransactionDetail) => {
                 :disabled="page <= 1"
                 @click="goToPage(page - 1)"
               >
-                Prev
+                {{ t('common.prev') }}
               </AppButton>
-              <span class="text-sm font-medium text-content">Page {{ page }} of {{ totalPages }}</span>
+              <span class="text-sm font-medium text-content">{{ t('common.pageOf', { page, total: totalPages }) }}</span>
               <AppButton
                 variant="ghost"
                 size="sm"
@@ -382,7 +381,7 @@ const transferLabel = (t: TransactionDetail) => {
                 :disabled="page >= totalPages"
                 @click="goToPage(page + 1)"
               >
-                Next
+                {{ t('common.next') }}
               </AppButton>
             </div>
           </div>
@@ -392,8 +391,8 @@ const transferLabel = (t: TransactionDetail) => {
 
     <ConfirmDialog
       :is-open="confirmDeleteId !== null"
-      title="Delete transaction?"
-      message="This transaction will be permanently removed. This can't be undone."
+      :title="t('transactions.deleteDialog.title')"
+      :message="t('transactions.deleteDialog.message')"
       :loading="isDeleting"
       @confirm="confirmDelete"
       @cancel="confirmDeleteId = null"

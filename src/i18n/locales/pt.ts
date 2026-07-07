@@ -345,6 +345,47 @@ const pt: MessageSchema = {
       message: 'Esta conta e sua associação serão removidas. As transações existentes não são excluídas.',
     },
   },
+  transactions: {
+    pageTitle: 'Transações',
+    pageSubtitle: 'Seu livro-razão financeiro',
+    loadError: 'Falha ao carregar as transações.',
+    exportError: 'Falha ao exportar as transações.',
+    deleteError: 'Falha ao excluir a transação.',
+    unknownAccount: 'conta',
+    transferBadge: 'Transferência',
+    transferFrom: 'Transferência de {account}',
+    transferTo: 'Transferência para {account}',
+    totalCount: '{count} transação | {count} transações',
+    filters: {
+      accountLabel: 'Conta',
+      allAccounts: 'Todas as contas',
+      typeLabel: 'Tipo',
+      allTypes: 'Todos os tipos',
+      statusLabel: 'Status',
+      allStatuses: 'Todos os status',
+      searchLabel: 'Buscar',
+      searchPlaceholder: 'Beneficiário, memo, tags...',
+      fromDate: 'Data inicial',
+      toDate: 'Data final',
+    },
+    types: { income: 'Receita', expense: 'Despesa', transfer: 'Transferência' },
+    status: { cleared: 'Compensado', pending: 'Pendente', void: 'Anulado' },
+    actions: { import: 'Importar', export: 'Exportar', add: 'Adicionar transação' },
+    empty: {
+      filteredTitle: 'Nenhuma transação corresponde aos seus filtros',
+      title: 'Ainda não há transações',
+      filteredHint: 'Tente ajustar a busca ou os filtros acima.',
+      hint: 'Clique em "Adicionar transação" para começar',
+    },
+    columns: {
+      date: 'Data', account: 'Conta', payee: 'Beneficiário', category: 'Categoria',
+      tags: 'Tags', status: 'Status', expense: 'Despesa', income: 'Receita', memo: 'Memo',
+    },
+    deleteDialog: {
+      title: 'Excluir transação?',
+      message: 'Esta transação será removida permanentemente. Essa ação não pode ser desfeita.',
+    },
+  },
 }
 
 export default pt
