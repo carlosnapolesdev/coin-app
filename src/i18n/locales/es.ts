@@ -17,6 +17,21 @@ const es: MessageSchema = {
     next: 'Siguiente',
     pageOf: 'Página {page} de {total}',
   },
+  languagePicker: {
+    label: 'Idioma',
+    en: 'English',
+    es: 'Español',
+    pt: 'Português',
+  },
+  topHeader: {
+    help: 'Ayuda',
+  },
+  userMenu: {
+    settings: 'Configuración',
+    theme: 'Tema',
+    signOut: 'Cerrar sesión',
+    account: 'Cuenta',
+  },
 }
 
 export default es

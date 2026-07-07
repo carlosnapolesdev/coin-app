@@ -15,6 +15,21 @@ const en = {
     next: 'Next',
     pageOf: 'Page {page} of {total}',
   },
+  languagePicker: {
+    label: 'Language',
+    en: 'English',
+    es: 'Español',
+    pt: 'Português',
+  },
+  topHeader: {
+    help: 'Help',
+  },
+  userMenu: {
+    settings: 'Settings',
+    theme: 'Theme',
+    signOut: 'Sign out',
+    account: 'Account',
+  },
 }
 
 export default en

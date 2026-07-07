@@ -1,5 +1,8 @@
 <script setup lang="ts">
-import { AppButton, BrandMark, ThemeToggle } from '../ui'
+import { useI18n } from 'vue-i18n'
+import { AppButton, BrandMark, LanguageToggle, ThemeToggle } from '../ui'
+
+const { t } = useI18n()
 </script>
 
 <template>
@@ -8,8 +11,9 @@ import { AppButton, BrandMark, ThemeToggle } from '../ui'
   >
     <BrandMark :wordmark="true" />
     <div class="flex items-center gap-3">
+      <LanguageToggle />
       <ThemeToggle />
-      <AppButton variant="secondary" size="md">Help</AppButton>
+      <AppButton variant="secondary" size="md">{{ t('topHeader.help') }}</AppButton>
     </div>
   </header>
 </template>

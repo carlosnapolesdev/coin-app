@@ -17,6 +17,21 @@ const pt: MessageSchema = {
     next: 'Próxima',
     pageOf: 'Página {page} de {total}',
   },
+  languagePicker: {
+    label: 'Idioma',
+    en: 'English',
+    es: 'Español',
+    pt: 'Português',
+  },
+  topHeader: {
+    help: 'Ajuda',
+  },
+  userMenu: {
+    settings: 'Configurações',
+    theme: 'Tema',
+    signOut: 'Sair',
+    account: 'Conta',
+  },
 }
 
 export default pt

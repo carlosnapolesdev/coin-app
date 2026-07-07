@@ -4,10 +4,12 @@ import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { logout, useAuthState } from '../../services/auth'
 import { getInitials } from '../../utils/initials'
-import { ThemeToggle } from '../ui'
+import { useI18n } from 'vue-i18n'
+import { LanguageToggle, ThemeToggle } from '../ui'
 
 const router = useRouter()
 const authState = useAuthState()
+const { t } = useI18n()
 
 const open = ref(false)
 const root = ref<HTMLElement | null>(null)
@@ -52,7 +54,7 @@ const handleSignOut = async () => {
       </span>
       <span class="hidden min-w-0 sm:block">
         <span class="block max-w-[10rem] truncate text-sm font-semibold leading-tight text-content">
-          {{ authState.user?.fullName || 'Account' }}
+          {{ authState.user?.fullName || t('userMenu.account') }}
         </span>
         <span class="block max-w-[10rem] truncate text-xs leading-tight text-muted">
           {{ authState.user?.email }}
@@ -72,7 +74,7 @@ const handleSignOut = async () => {
             {{ getInitials(authState.user?.fullName, authState.user?.email) }}
           </span>
           <div class="min-w-0">
-            <p class="truncate text-sm font-semibold text-content">{{ authState.user?.fullName || 'Account' }}</p>
+            <p class="truncate text-sm font-semibold text-content">{{ authState.user?.fullName || t('userMenu.account') }}</p>
             <p class="truncate text-xs text-muted">{{ authState.user?.email }}</p>
           </div>
         </div>
@@ -85,13 +87,20 @@ const handleSignOut = async () => {
             @click="close"
           >
             <span class="material-symbols-outlined text-[20px]">settings</span>
-            <span class="flex-1 text-left">Settings</span>
+            <span class="flex-1 text-left">{{ t('userMenu.settings') }}</span>
           </RouterLink>
 
           <div class="flex items-center justify-between rounded-lg px-3 py-2">
             <span class="flex items-center gap-3 text-sm font-medium text-content">
+              <span class="material-symbols-outlined text-[20px] text-muted">translate</span>
+              {{ t('languagePicker.label') }}
+            </span>
+            <LanguageToggle />
+          </div>
+          <div class="flex items-center justify-between rounded-lg px-3 py-2">
+            <span class="flex items-center gap-3 text-sm font-medium text-content">
               <span class="material-symbols-outlined text-[20px] text-muted">contrast</span>
-              Theme
+              {{ t('userMenu.theme') }}
             </span>
             <ThemeToggle />
           </div>
@@ -105,7 +114,7 @@ const handleSignOut = async () => {
             @click="handleSignOut"
           >
             <span class="material-symbols-outlined text-[20px]">logout</span>
-            Sign out
+            {{ t('userMenu.signOut') }}
           </button>
         </div>
       </div>
