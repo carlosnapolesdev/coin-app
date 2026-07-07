@@ -1,13 +1,17 @@
 <script setup lang="ts">
 import axios from 'axios'
 import { computed, reactive, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import TopHeader from './common/TopHeader.vue'
 import CurrencyModal from './dashboard/CurrencyModal.vue'
 import { AppButton } from './ui'
 import api from '../services/api'
+import { useLocale } from '../composables/useLocale'
 
 const router = useRouter()
+const { t } = useI18n()
+const { locale: selectedLanguage, setLocale } = useLocale()
 const currentStep = ref(1) // 1: Create Account, 2: Choose Currencies, 3: Choose Categories, 4: Finish
 const isSubmitting = ref(false)
 const isPasswordVisible = ref(false)
@@ -64,7 +68,6 @@ interface Category {
   children: Category[]
 }
 
-const selectedLanguage = ref('en')
 const categories = ref<Category[]>([])
 const isLoadingCategories = ref(false)
 const categoriesError = ref('')
@@ -125,7 +128,7 @@ const fetchCategories = async (language: string) => {
     const firstCategory = response.data[0]
     expandedCategories.value = firstCategory ? [firstCategory.id] : []
   } catch (e) {
-    categoriesError.value = 'Failed to load categories'
+    categoriesError.value = t('auth.register.errors.categoriesLoadFailed')
     console.error(e)
   } finally {
     isLoadingCategories.value = false
@@ -142,8 +145,8 @@ const toggleExpanded = (categoryId: number) => {
 
 const isExpanded = (categoryId: number) => expandedCategories.value.includes(categoryId)
 
-const handleLanguageChange = (language: string) => {
-  selectedLanguage.value = language
+const handleLanguageChange = (language: 'en' | 'es' | 'pt') => {
+  setLocale(language)
   fetchCategories(language)
 }
 
@@ -199,15 +202,15 @@ const registerAccount = () => {
 
   // Basic validation
   if (!form.fullName) {
-    fieldErrors.fullName = 'Full name is required'
+    fieldErrors.fullName = t('auth.register.errors.fullNameRequired')
     return false
   }
   if (!form.email) {
-    fieldErrors.email = 'Email is required'
+    fieldErrors.email = t('auth.register.errors.emailRequired')
     return false
   }
   if (!form.password || form.password.length < 8) {
-    fieldErrors.password = 'Password must be at least 8 characters'
+    fieldErrors.password = t('auth.register.errors.passwordTooShort')
     return false
   }
 
@@ -283,11 +286,11 @@ const completeRegistration = async () => {
         Object.assign(fieldErrors, responseData.validationErrors)
       }
 
-      submissionError.value = responseData?.message ?? 'Unable to create your account right now.'
+      submissionError.value = responseData?.message ?? t('auth.register.errors.genericSubmit')
       return
     }
 
-    submissionError.value = 'Unexpected error while creating your account.'
+    submissionError.value = t('auth.register.errors.unexpected')
   } finally {
     isSubmitting.value = false
   }
@@ -337,12 +340,12 @@ const togglePasswordVisibility = () => {
   isPasswordVisible.value = !isPasswordVisible.value
 }
 
-const steps = [
-  { n: 1, label: 'Create Account', icon: 'person_add' },
-  { n: 2, label: 'Choose Currencies', icon: 'payments' },
-  { n: 3, label: 'Choose Categories', icon: 'category' },
-  { n: 4, label: 'Finish', icon: 'flag' },
-]
+const steps = computed(() => [
+  { n: 1, label: t('auth.register.steps.createAccount'), icon: 'person_add' },
+  { n: 2, label: t('auth.register.steps.chooseCurrencies'), icon: 'payments' },
+  { n: 3, label: t('auth.register.steps.chooseCategories'), icon: 'category' },
+  { n: 4, label: t('auth.register.steps.finish'), icon: 'flag' },
+])
 </script>
 
 <template>
@@ -354,9 +357,9 @@ const steps = [
       <aside class="z-40 hidden w-80 flex-col border-r border-line bg-surface p-8 lg:flex">
         <!-- Progress Header -->
         <div class="mb-12">
-          <p class="mb-2 text-xs font-bold uppercase tracking-widest text-primary">Registration Progress</p>
+          <p class="mb-2 text-xs font-bold uppercase tracking-widest text-primary">{{ t('auth.register.progressLabel') }}</p>
           <h2 class="mb-4 text-lg font-bold text-content">
-            {{ currentStep === 4 ? 'All steps completed!' : `Step ${currentStep} of 4` }}
+            {{ currentStep === 4 ? t('auth.register.allStepsCompleted') : t('auth.register.stepOf', { current: currentStep }) }}
           </h2>
           <div class="h-2 w-full overflow-hidden rounded-full bg-surface-2">
             <div class="h-full rounded-full bg-primary transition-all duration-500" :style="{ width: `${(currentStep / 4) * 100}%` }"></div>
@@ -382,13 +385,13 @@ const steps = [
         </nav>
 
         <div class="mt-auto rounded-xl border border-primary/10 bg-primary/5 p-4">
-          <p class="mb-1 text-xs font-bold text-primary">PRO TIP</p>
+          <p class="mb-1 text-xs font-bold text-primary">{{ t('auth.register.proTip') }}</p>
           <p class="text-sm text-muted">
             {{
-              currentStep === 1 ? 'You can always update your personal information later in your account settings.' :
-              currentStep === 2 ? 'You can always add more currencies later in your account settings.' :
-              currentStep === 3 ? 'You can customize your categories anytime to better track your spending.' :
-              'Explore the dashboard to see your financial health in real-time!'
+              currentStep === 1 ? t('auth.register.tips.step1') :
+              currentStep === 2 ? t('auth.register.tips.step2') :
+              currentStep === 3 ? t('auth.register.tips.step3') :
+              t('auth.register.tips.step4')
             }}
           </p>
         </div>
@@ -400,9 +403,9 @@ const steps = [
         <template v-if="currentStep === 1">
           <header class="mx-auto w-full max-w-4xl p-8 pt-12 text-center lg:px-16 lg:text-left">
             <div class="mx-auto max-w-3xl lg:mx-0">
-              <h2 class="mb-4 text-4xl font-black text-content">Create Your Account</h2>
+              <h2 class="mb-4 text-4xl font-black text-content">{{ t('auth.register.step1.title') }}</h2>
               <p class="text-lg leading-relaxed text-muted">
-                Please enter your personal information to get started. This helps us personalize your experience.
+                {{ t('auth.register.step1.subtitle') }}
               </p>
             </div>
           </header>
@@ -411,23 +414,23 @@ const steps = [
             <div class="surface-card mx-auto max-w-2xl p-8 lg:mx-0">
               <form class="space-y-6" @submit.prevent="handleNext">
                 <div>
-                  <label class="mb-2 block text-sm font-semibold text-content" for="full_name">Full Name</label>
+                  <label class="mb-2 block text-sm font-semibold text-content" for="full_name">{{ t('auth.register.step1.fullNameLabel') }}</label>
                   <div class="relative">
                     <span class="material-symbols-outlined pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[20px] text-faint">badge</span>
-                    <input id="full_name" v-model.trim="form.fullName" class="field-input pl-11" placeholder="John Doe" type="text" @input="clearFieldError('fullName')" />
+                    <input id="full_name" v-model.trim="form.fullName" class="field-input pl-11" :placeholder="t('auth.register.step1.fullNamePlaceholder')" type="text" @input="clearFieldError('fullName')" />
                   </div>
                   <p v-if="fieldErrors.fullName" class="mt-2 text-sm text-danger">{{ fieldErrors.fullName }}</p>
                 </div>
                 <div>
-                  <label class="mb-2 block text-sm font-semibold text-content" for="email">Email Address</label>
+                  <label class="mb-2 block text-sm font-semibold text-content" for="email">{{ t('auth.common.emailAddressLabel') }}</label>
                   <div class="relative">
                     <span class="material-symbols-outlined pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[20px] text-faint">mail</span>
-                    <input id="email" v-model.trim="form.email" class="field-input pl-11" placeholder="john@example.com" type="email" @input="clearFieldError('email')" />
+                    <input id="email" v-model.trim="form.email" class="field-input pl-11" :placeholder="t('auth.register.step1.emailPlaceholder')" type="email" @input="clearFieldError('email')" />
                   </div>
                   <p v-if="fieldErrors.email" class="mt-2 text-sm text-danger">{{ fieldErrors.email }}</p>
                 </div>
                 <div>
-                  <label class="mb-2 block text-sm font-semibold text-content" for="password">Password</label>
+                  <label class="mb-2 block text-sm font-semibold text-content" for="password">{{ t('auth.register.step1.passwordLabel') }}</label>
                   <div class="relative">
                     <span class="material-symbols-outlined pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[20px] text-faint">lock</span>
                     <input id="password" v-model="form.password" class="field-input pl-11 pr-12" placeholder="••••••••" :type="isPasswordVisible ? 'text' : 'password'" @input="clearFieldError('password')" />
@@ -435,7 +438,7 @@ const steps = [
                       <span class="material-symbols-outlined">{{ isPasswordVisible ? 'visibility_off' : 'visibility' }}</span>
                     </button>
                   </div>
-                  <p class="mt-3 text-xs italic text-muted">Must be at least 8 characters with a mix of letters and numbers.</p>
+                  <p class="mt-3 text-xs italic text-muted">{{ t('auth.register.step1.passwordHint') }}</p>
                   <p v-if="fieldErrors.password" class="mt-2 text-sm text-danger">{{ fieldErrors.password }}</p>
                 </div>
                 <p v-if="submissionError" class="rounded-xl border border-danger/30 bg-danger/10 px-4 py-3 text-sm font-medium text-danger">
@@ -451,13 +454,13 @@ const steps = [
                 <div class="icon-tile size-10 bg-surface text-primary shadow-sm">
                   <span class="material-symbols-outlined">shield</span>
                 </div>
-                <p class="text-sm font-medium text-content">Secure, encrypted data storage</p>
+                <p class="text-sm font-medium text-content">{{ t('auth.register.step1.helperSecure') }}</p>
               </div>
               <div class="surface-card flex items-center gap-4 p-5">
                 <div class="icon-tile size-10 bg-surface-2 text-faint">
                   <span class="material-symbols-outlined">speed</span>
                 </div>
-                <p class="text-sm font-medium text-content">30 second quick setup</p>
+                <p class="text-sm font-medium text-content">{{ t('auth.register.step1.helperQuick') }}</p>
               </div>
             </div>
           </section>
@@ -467,9 +470,9 @@ const steps = [
         <template v-else-if="currentStep === 2">
           <header class="mx-auto w-full max-w-4xl p-8 pt-12 text-center lg:px-16 lg:text-left">
             <div class="mx-auto max-w-3xl lg:mx-0">
-              <h2 class="mb-4 text-4xl font-black text-content">Choose Currencies</h2>
+              <h2 class="mb-4 text-4xl font-black text-content">{{ t('auth.register.step2.title') }}</h2>
               <p class="text-lg leading-relaxed text-muted">
-                CoinFlow supports multiple currencies. Set your primary base currency and add any additional currencies you'll be using.
+                {{ t('auth.register.step2.subtitle') }}
               </p>
             </div>
           </header>
@@ -477,18 +480,18 @@ const steps = [
           <section class="mx-auto w-full max-w-4xl space-y-10 px-8 pb-32 lg:px-16">
             <!-- Base Currency -->
             <div class="mx-auto max-w-2xl lg:mx-0">
-              <h3 class="field-label">Base Currency</h3>
+              <h3 class="field-label">{{ t('auth.register.step2.baseCurrencyLabel') }}</h3>
               <div class="surface-card flex items-center justify-between p-6">
                 <div class="flex items-center gap-4">
                   <div class="icon-tile size-14 bg-surface-2 text-muted">
                     <span class="material-symbols-outlined text-3xl">attach_money</span>
                   </div>
                   <div class="text-left">
-                    <h4 class="text-xl font-bold text-content">USD (US Dollar)</h4>
-                    <p class="text-muted">Primary base currency for all transactions</p>
+                    <h4 class="text-xl font-bold text-content">{{ t('auth.register.step2.usdName') }}</h4>
+                    <p class="text-muted">{{ t('auth.register.step2.baseCurrencyDesc') }}</p>
                   </div>
                 </div>
-                <AppButton variant="secondary">Change</AppButton>
+                <AppButton variant="secondary">{{ t('auth.register.step2.changeButton') }}</AppButton>
               </div>
             </div>
 
@@ -496,7 +499,7 @@ const steps = [
             <div class="mx-auto max-w-2xl text-left lg:mx-0">
               <label class="mb-6 flex cursor-pointer items-center gap-3">
                 <input v-model="setupAdditionalCurrencies" class="size-6 rounded border-line" type="checkbox" />
-                <span class="text-lg font-semibold text-content">Setup additional currencies</span>
+                <span class="text-lg font-semibold text-content">{{ t('auth.register.step2.setupAdditional') }}</span>
               </label>
               <div class="grid grid-cols-1 gap-4 md:grid-cols-2" :class="{ 'pointer-events-none opacity-50': !setupAdditionalCurrencies }">
                 <div
@@ -510,7 +513,7 @@ const steps = [
                     </div>
                     <div>
                       <p class="font-bold text-content">{{ currency }}</p>
-                      <p class="text-xs text-muted">Currency</p>
+                      <p class="text-xs text-muted">{{ t('auth.register.step2.currencyWord') }}</p>
                     </div>
                   </div>
                   <button class="text-faint opacity-0 transition-colors hover:text-danger group-hover:opacity-100" @click="removeCurrency(currency)">
@@ -522,7 +525,7 @@ const steps = [
                   @click="openCurrencyModal"
                 >
                   <span class="material-symbols-outlined transition-transform group-hover:scale-110">add</span>
-                  <span class="font-semibold">Add Currency</span>
+                  <span class="font-semibold">{{ t('auth.register.step2.addCurrency') }}</span>
                 </button>
               </div>
             </div>
@@ -530,7 +533,7 @@ const steps = [
             <!-- Helper -->
             <div class="mx-auto flex max-w-2xl items-start gap-4 rounded-2xl border border-primary/20 bg-primary/5 p-6 text-left lg:mx-0">
               <span class="material-symbols-outlined mt-1 text-primary">info</span>
-              <p class="font-medium text-muted">Multiple currencies allow you to track offshore accounts and international investments with live exchange rates updated daily.</p>
+              <p class="font-medium text-muted">{{ t('auth.register.step2.helperInfo') }}</p>
             </div>
           </section>
         </template>
@@ -539,9 +542,9 @@ const steps = [
         <template v-else-if="currentStep === 3">
           <header class="mx-auto w-full max-w-4xl p-8 pt-12 text-center lg:px-16 lg:text-left">
             <div class="mx-auto max-w-3xl lg:mx-0">
-              <h2 class="mb-4 text-4xl font-black text-content">Choose Categories</h2>
+              <h2 class="mb-4 text-4xl font-black text-content">{{ t('auth.register.step3.title') }}</h2>
               <p class="text-lg leading-relaxed text-muted">
-                Select your preferred language to load the categories that will be created for your account.
+                {{ t('auth.register.step3.subtitle') }}
               </p>
             </div>
           </header>
@@ -554,12 +557,12 @@ const steps = [
                   <span class="material-symbols-outlined">translate</span>
                 </div>
                 <div class="text-left">
-                  <p class="font-bold text-content">Select your language</p>
-                  <p class="text-sm text-muted">Categories will be created in this language</p>
+                  <p class="font-bold text-content">{{ t('auth.register.step3.selectLanguage') }}</p>
+                  <p class="text-sm text-muted">{{ t('auth.register.step3.languageHint') }}</p>
                 </div>
               </div>
               <div class="flex min-w-[200px] flex-col gap-1 text-left">
-                <label class="field-label !mb-0 ml-1">Language</label>
+                <label class="field-label !mb-0 ml-1">{{ t('auth.register.step3.languageFieldLabel') }}</label>
                 <div class="relative">
                   <select
                     v-model="selectedLanguage"
@@ -582,7 +585,7 @@ const steps = [
               <div v-else-if="categoriesError" class="flex flex-col items-center justify-center py-16 text-center">
                 <span class="material-symbols-outlined mb-2 text-4xl text-danger">error</span>
                 <p class="font-medium text-danger">{{ categoriesError }}</p>
-                <AppButton class="mt-4" variant="secondary" size="sm" @click="fetchCategories(selectedLanguage)">Retry</AppButton>
+                <AppButton class="mt-4" variant="secondary" size="sm" @click="fetchCategories(selectedLanguage)">{{ t('common.retry') }}</AppButton>
               </div>
 
               <div v-else-if="categories.length" class="flex flex-col">
@@ -596,11 +599,11 @@ const steps = [
                       class="rounded-md px-5 py-2 text-sm font-semibold transition"
                       :class="activeFilter === opt ? 'bg-surface text-content shadow-sm' : 'text-muted hover:text-content'"
                       @click="activeFilter = opt"
-                    >{{ opt === 'EXPENSE' ? 'Expenses' : 'Income' }}</button>
+                    >{{ opt === 'EXPENSE' ? t('auth.register.step3.expensesLabel') : t('auth.register.step3.incomeLabel') }}</button>
                   </div>
                   <p class="text-sm text-muted">
-                    {{ filteredCategories.length }} result{{ filteredCategories.length !== 1 ? 's' : '' }}
-                    <span v-if="filteredSelectedCount > 0" class="font-semibold text-primary">· {{ filteredSelectedCount }} selected</span>
+                    {{ t('auth.register.step3.resultCount', filteredCategories.length) }}
+                    <span v-if="filteredSelectedCount > 0" class="font-semibold text-primary">· {{ t('auth.register.step3.selectedCount', { count: filteredSelectedCount }) }}</span>
                   </p>
                 </div>
 
@@ -638,7 +641,7 @@ const steps = [
 
                         <div class="min-w-0">
                           <p class="truncate text-sm font-semibold text-content">{{ category.name }}</p>
-                          <p class="text-xs text-muted">{{ category.children.length }} subcategories</p>
+                          <p class="text-xs text-muted">{{ t('auth.register.step3.subcategoriesCount', { count: category.children.length }) }}</p>
                         </div>
                       </div>
 
@@ -646,7 +649,7 @@ const steps = [
                         <span
                           class="badge"
                           :class="activeFilter === 'EXPENSE' ? 'badge-danger' : 'badge-success'"
-                        >{{ activeFilter === 'EXPENSE' ? 'Expense' : 'Income' }}</span>
+                        >{{ activeFilter === 'EXPENSE' ? t('auth.register.step3.expenseSingular') : t('auth.register.step3.incomeSingular') }}</span>
                       </div>
                     </div>
 
@@ -683,8 +686,8 @@ const steps = [
                 <div class="icon-tile mx-auto size-14 bg-surface-2 text-faint">
                   <span class="material-symbols-outlined">folder_open</span>
                 </div>
-                <h3 class="mt-4 text-lg font-semibold text-content">No categories available</h3>
-                <p class="mt-2 text-sm text-muted">Try selecting a different language.</p>
+                <h3 class="mt-4 text-lg font-semibold text-content">{{ t('auth.register.step3.emptyTitle') }}</h3>
+                <p class="mt-2 text-sm text-muted">{{ t('auth.register.step3.emptyHint') }}</p>
               </div>
             </div>
           </section>
@@ -697,27 +700,27 @@ const steps = [
               <span class="material-symbols-outlined text-5xl">task_alt</span>
             </div>
 
-            <h2 class="mb-6 text-5xl font-black tracking-tight text-content">You're All Set!</h2>
+            <h2 class="mb-6 text-5xl font-black tracking-tight text-content">{{ t('auth.register.step4.title') }}</h2>
 
             <p class="mb-12 text-xl leading-relaxed text-muted">
-              Welcome aboard. Your account has been created and your personal financial workspace is ready for you.
+              {{ t('auth.register.step4.subtitle') }}
             </p>
 
             <div class="mb-12 grid w-full grid-cols-1 gap-6 md:grid-cols-3">
               <div class="surface-card p-6">
                 <span class="material-symbols-outlined mb-3 text-primary">verified_user</span>
-                <p class="font-bold text-content">Account Active</p>
-                <p class="mt-1 text-xs text-muted">Security & Encryption On</p>
+                <p class="font-bold text-content">{{ t('auth.register.step4.accountActive') }}</p>
+                <p class="mt-1 text-xs text-muted">{{ t('auth.register.step4.accountActiveDesc') }}</p>
               </div>
               <div class="surface-card p-6">
                 <span class="material-symbols-outlined mb-3 text-primary">currency_exchange</span>
-                <p class="font-bold text-content">Multi-Currency</p>
-                <p class="mt-1 text-xs text-muted">Real-time Rates Loaded</p>
+                <p class="font-bold text-content">{{ t('auth.register.step4.multiCurrency') }}</p>
+                <p class="mt-1 text-xs text-muted">{{ t('auth.register.step4.multiCurrencyDesc') }}</p>
               </div>
               <div class="surface-card p-6">
                 <span class="material-symbols-outlined mb-3 text-primary">dashboard_customize</span>
-                <p class="font-bold text-content">Smart Categories</p>
-                <p class="mt-1 text-xs text-muted">Personalized Tracking</p>
+                <p class="font-bold text-content">{{ t('auth.register.step4.smartCategories') }}</p>
+                <p class="mt-1 text-xs text-muted">{{ t('auth.register.step4.smartCategoriesDesc') }}</p>
               </div>
             </div>
 
@@ -726,11 +729,11 @@ const steps = [
             </p>
 
             <AppButton size="lg" :loading="isSubmitting" trailing-icon="rocket_launch" @click="handleNext">
-              {{ isSubmitting ? 'Creating account...' : 'Create Account' }}
+              {{ isSubmitting ? t('auth.register.step4.creating') : t('auth.register.step4.createAccount') }}
             </AppButton>
 
             <p class="mt-8 text-sm text-muted">
-              Need help? Check out our <a href="#" class="font-semibold text-primary hover:underline">Getting Started guide</a>.
+              {{ t('auth.register.step4.needHelpPrefix') }} <a href="#" class="font-semibold text-primary hover:underline">{{ t('auth.register.step4.gettingStartedLink') }}</a>.
             </p>
           </section>
         </template>
@@ -741,10 +744,10 @@ const steps = [
           class="fixed bottom-0 left-0 right-0 z-30 border-t border-line bg-bg/80 p-6 backdrop-blur-md lg:left-80"
         >
           <div class="mx-auto flex max-w-4xl items-center justify-between">
-            <AppButton variant="ghost" :disabled="isSubmitting" @click="handleBack">Cancel</AppButton>
+            <AppButton variant="ghost" :disabled="isSubmitting" @click="handleBack">{{ t('common.cancel') }}</AppButton>
             <div class="flex items-center gap-4">
               <AppButton variant="secondary" icon="arrow_back" :disabled="isSubmitting" @click="handleBack">
-                {{ currentStep === 1 ? 'Back' : 'Previous' }}
+                {{ currentStep === 1 ? t('auth.register.nav.back') : t('auth.register.nav.previous') }}
               </AppButton>
               <AppButton
                 trailing-icon="arrow_forward"
@@ -752,7 +755,7 @@ const steps = [
                 :disabled="isSubmitting || isLoadingCurrencies"
                 @click="handleNext"
               >
-                {{ isSubmitting ? 'Creating account...' : (isLoadingCurrencies ? 'Loading...' : 'Next Step') }}
+                {{ isSubmitting ? t('auth.register.step4.creating') : (isLoadingCurrencies ? t('auth.register.nav.loadingCurrencies') : t('auth.register.nav.nextStep')) }}
               </AppButton>
             </div>
           </div>
