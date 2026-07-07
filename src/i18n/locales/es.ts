@@ -213,6 +213,51 @@ const es: MessageSchema = {
       saveErrorFallback: 'No se pudo actualizar la tasa de cambio en este momento.',
     },
   },
+  dashboard: {
+    pageTitle: 'Panel',
+    pageSubtitle: 'Resumen · {month}',
+    stats: {
+      accountsLabel: 'Cuentas',
+      accountsDesc: 'Registradas en tu portafolio',
+      incomeLabel: 'Ingresos · {month}',
+      incomeDesc: 'Recibidos este mes',
+      spendingLabel: 'Gastos · {month}',
+      spendingDesc: 'En {count} categorías',
+    },
+    tabs: {
+      accounts: 'Cuentas',
+      balances: 'Saldos',
+    },
+    accountsPanel: {
+      empty: 'No se encontraron cuentas',
+    },
+    balancesPanel: {
+      netWorth: 'Patrimonio neto',
+      missingRateHint: 'Define una tasa de cambio para {currencies} para incluirlo.',
+      empty: 'Sin datos',
+    },
+    chart: {
+      title: 'Gastos mensuales por categoría',
+      empty: 'No hay gastos registrados este mes',
+      total: 'Total',
+    },
+    budgetsSection: {
+      title: 'Presupuestos',
+      empty: 'Aún no hay presupuestos configurados',
+      spentOfAmount: '{spent} de {amount}',
+    },
+    recentTransactions: {
+      title: 'Transacciones recientes',
+      empty: 'Aún no hay transacciones este mes',
+      columns: {
+        payee: 'Beneficiario',
+        category: 'Categoría',
+        account: 'Cuenta',
+        date: 'Fecha',
+        amount: 'Monto',
+      },
+    },
+  },
 }
 
 export default es

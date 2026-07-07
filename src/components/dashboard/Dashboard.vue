@@ -1,13 +1,16 @@
 <script setup lang="ts">
 import { computed, ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import Sidebar from './Sidebar.vue'
 import { AnimatedAmount, AppCard, AppSpinner, AppTabs, PageContainer, PageHeader } from '../ui'
 import { accountsApi, type AccountDetail, type AccountType, type NetWorthSummary } from '../../services/accounts'
 import { transactionsApi, type TransactionDetail } from '../../services/transactions'
 import { budgetsApi, type BudgetDetail } from '../../services/budgets'
+import { formatCurrency, formatDate as formatDateLocale, formatMonthYear } from '../../utils/format'
 
 const router = useRouter()
+const { t } = useI18n()
 
 const activeTopTab = ref<'accounts' | 'balances'>('accounts')
 
@@ -31,7 +34,7 @@ const accountIcon = (account: AccountDetail): string =>
 
 const formatBalance = (account: AccountDetail): string => {
   const symbol = account.currencySymbol ?? '$'
-  const abs = Math.abs(account.currentBalance).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  const abs = formatCurrency(Math.abs(account.currentBalance))
   return account.currentBalance >= 0 ? `+${symbol}${abs}` : `-${symbol}${abs}`
 }
 
@@ -93,17 +96,14 @@ const CHART_COLORS = ['#6366f1', '#0ea5e9', '#a855f7', '#10b981', '#f43f5e', '#1
 const currentMonthTransactions = ref<TransactionDetail[]>([])
 const isLoadingChart = ref(false)
 
-const currentMonthLabel = computed(() => {
-  const now = new Date()
-  return now.toLocaleString('en-US', { month: 'long', year: 'numeric' })
-})
+const currentMonthLabel = computed(() => formatMonthYear(new Date()))
 
 const monthlyCategories = computed(() => {
   const map = new Map<string, number>()
-  for (const t of currentMonthTransactions.value) {
-    if (t.type !== 'EXPENSE') continue
-    const label = t.categoryName ?? 'Uncategorized'
-    map.set(label, (map.get(label) ?? 0) + t.amount)
+  for (const tx of currentMonthTransactions.value) {
+    if (tx.type !== 'EXPENSE') continue
+    const label = tx.categoryName ?? t('common.uncategorized')
+    map.set(label, (map.get(label) ?? 0) + tx.amount)
   }
   return Array.from(map.entries())
     .sort((a, b) => b[1] - a[1])
@@ -126,14 +126,9 @@ const monthlyIncome = computed(() =>
   currentMonthTransactions.value.filter(t => t.type === 'INCOME').reduce((s, t) => s + t.amount, 0),
 )
 
-const formatMoney = (amount: number) =>
-  amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+const formatMoney = formatCurrency
 
-const formatDate = (dateStr: string) => {
-  const [year, month, day] = dateStr.split('-')
-  return new Date(Number(year), Number(month) - 1, Number(day))
-    .toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-}
+const formatDate = (dateStr: string) => formatDateLocale(dateStr, { month: 'short', day: 'numeric' })
 
 // Recent activity is derived from real data — no mock rows.
 const recentTransactions = computed(() =>
@@ -150,25 +145,25 @@ const goToTransactions = () => router.push({ name: 'transactions' })
     <Sidebar />
 
     <main class="flex-1 overflow-y-auto">
-      <PageHeader title="Dashboard" :subtitle="`Overview · ${currentMonthLabel}`" />
+      <PageHeader :title="t('dashboard.pageTitle')" :subtitle="t('dashboard.pageSubtitle', { month: currentMonthLabel })" />
 
       <PageContainer>
         <!-- Summary stats -->
         <section class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           <AppCard>
-            <p class="field-label">Accounts</p>
+            <p class="field-label">{{ t('dashboard.stats.accountsLabel') }}</p>
             <p class="mt-2 text-3xl font-bold text-content">{{ accounts.length }}</p>
-            <p class="mt-1 text-sm text-muted">Tracked across your portfolio</p>
+            <p class="mt-1 text-sm text-muted">{{ t('dashboard.stats.accountsDesc') }}</p>
           </AppCard>
           <AppCard>
-            <p class="field-label">Income · {{ currentMonthLabel }}</p>
+            <p class="field-label">{{ t('dashboard.stats.incomeLabel', { month: currentMonthLabel }) }}</p>
             <AnimatedAmount class="mt-2 block" :value="monthlyIncome" />
-            <p class="mt-1 text-sm text-muted">Received this month</p>
+            <p class="mt-1 text-sm text-muted">{{ t('dashboard.stats.incomeDesc') }}</p>
           </AppCard>
           <AppCard>
-            <p class="field-label">Spending · {{ currentMonthLabel }}</p>
+            <p class="field-label">{{ t('dashboard.stats.spendingLabel', { month: currentMonthLabel }) }}</p>
             <AnimatedAmount class="mt-2 block" :value="-totalMonthly" />
-            <p class="mt-1 text-sm text-muted">Across {{ monthlyCategories.length }} categories</p>
+            <p class="mt-1 text-sm text-muted">{{ t('dashboard.stats.spendingDesc', { count: monthlyCategories.length }) }}</p>
           </AppCard>
         </section>
 
@@ -179,7 +174,7 @@ const goToTransactions = () => router.push({ name: 'transactions' })
             <div class="border-b border-line p-3">
               <AppTabs
                 v-model="activeTopTab"
-                :tabs="[{ value: 'accounts', label: 'Accounts' }, { value: 'balances', label: 'Balances' }]"
+                :tabs="[{ value: 'accounts', label: t('dashboard.tabs.accounts') }, { value: 'balances', label: t('dashboard.tabs.balances') }]"
               />
             </div>
 
@@ -190,7 +185,7 @@ const goToTransactions = () => router.push({ name: 'transactions' })
 
               <!-- Accounts -->
               <template v-else-if="activeTopTab === 'accounts'">
-                <p v-if="accounts.length === 0" class="py-10 text-center text-sm text-muted">No accounts found</p>
+                <p v-if="accounts.length === 0" class="py-10 text-center text-sm text-muted">{{ t('dashboard.accountsPanel.empty') }}</p>
                 <div
                   v-for="account in accounts"
                   :key="account.id"
@@ -212,15 +207,15 @@ const goToTransactions = () => router.push({ name: 'transactions' })
               <!-- Balances -->
               <template v-else>
                 <div v-if="netWorth" class="mb-3 rounded-xl border border-line bg-surface-2 px-3 py-2.5">
-                  <p class="text-xs font-semibold uppercase tracking-wide text-faint">Net worth</p>
+                  <p class="text-xs font-semibold uppercase tracking-wide text-faint">{{ t('dashboard.balancesPanel.netWorth') }}</p>
                   <p class="mt-1 text-lg font-bold text-content">
                     {{ netWorth.baseCurrencyCode ?? '' }} {{ formatMoney(netWorth.totalInBase) }}
                   </p>
                   <p v-if="netWorth.unconvertibleCurrencies.length" class="mt-1 text-xs text-muted">
-                    Set an exchange rate for {{ netWorth.unconvertibleCurrencies.join(', ') }} to include it.
+                    {{ t('dashboard.balancesPanel.missingRateHint', { currencies: netWorth.unconvertibleCurrencies.join(', ') }) }}
                   </p>
                 </div>
-                <p v-if="balancesByCurrency.length === 0" class="py-10 text-center text-sm text-muted">No data</p>
+                <p v-if="balancesByCurrency.length === 0" class="py-10 text-center text-sm text-muted">{{ t('dashboard.balancesPanel.empty') }}</p>
                 <div
                   v-for="row in balancesByCurrency"
                   :key="row.code"
@@ -243,7 +238,7 @@ const goToTransactions = () => router.push({ name: 'transactions' })
           <!-- Monthly spending chart -->
           <AppCard class="flex flex-col lg:col-span-2">
             <div class="mb-4 flex items-center justify-between">
-              <h2 class="font-display text-sm font-bold text-content">Monthly Spending by Category</h2>
+              <h2 class="font-display text-sm font-bold text-content">{{ t('dashboard.chart.title') }}</h2>
               <span class="text-xs font-semibold uppercase tracking-wide text-faint">{{ currentMonthLabel }}</span>
             </div>
 
@@ -253,7 +248,7 @@ const goToTransactions = () => router.push({ name: 'transactions' })
               </div>
 
               <p v-else-if="monthlyCategories.length === 0" class="flex-1 py-10 text-center text-sm text-muted">
-                No expenses recorded this month
+                {{ t('dashboard.chart.empty') }}
               </p>
 
               <template v-else>
@@ -277,7 +272,7 @@ const goToTransactions = () => router.push({ name: 'transactions' })
                     />
                   </svg>
                   <div class="absolute inset-0 flex flex-col items-center justify-center">
-                    <span class="text-[10px] font-semibold uppercase tracking-wide text-faint">Total</span>
+                    <span class="text-[10px] font-semibold uppercase tracking-wide text-faint">{{ t('dashboard.chart.total') }}</span>
                     <span class="text-sm font-bold text-content">{{ formatMoney(totalMonthly) }}</span>
                   </div>
                 </div>
@@ -305,8 +300,8 @@ const goToTransactions = () => router.push({ name: 'transactions' })
         <!-- Budgets -->
         <AppCard padding="none">
           <div class="flex items-center justify-between border-b border-line px-6 py-4">
-            <h2 class="font-display text-sm font-bold text-content">Budgets</h2>
-            <button class="text-sm font-semibold text-primary hover:underline" @click="goToBudgets">View all</button>
+            <h2 class="font-display text-sm font-bold text-content">{{ t('dashboard.budgetsSection.title') }}</h2>
+            <button class="text-sm font-semibold text-primary hover:underline" @click="goToBudgets">{{ t('common.viewAll') }}</button>
           </div>
 
           <div v-if="isLoadingBudgets" class="flex items-center justify-center py-16 text-faint">
@@ -315,13 +310,13 @@ const goToTransactions = () => router.push({ name: 'transactions' })
 
           <div v-else-if="topBudgets.length === 0" class="px-6 py-16 text-center">
             <span class="material-symbols-outlined mb-2 text-4xl text-faint">pie_chart</span>
-            <p class="text-sm text-muted">No budgets set up yet</p>
+            <p class="text-sm text-muted">{{ t('dashboard.budgetsSection.empty') }}</p>
           </div>
 
           <div v-else class="grid grid-cols-1 gap-6 p-6 sm:grid-cols-2 lg:grid-cols-4">
             <div v-for="budget in topBudgets" :key="budget.id" class="min-w-0">
               <div class="flex items-baseline justify-between gap-2">
-                <span class="truncate text-sm font-semibold text-content">{{ budget.categoryName ?? 'Uncategorized' }}</span>
+                <span class="truncate text-sm font-semibold text-content">{{ budget.categoryName ?? t('common.uncategorized') }}</span>
                 <span class="shrink-0 text-xs text-muted">{{ budget.percentUsed }}%</span>
               </div>
               <div class="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-surface-2">
@@ -331,7 +326,7 @@ const goToTransactions = () => router.push({ name: 'transactions' })
                   :style="{ width: Math.min(budget.percentUsed, 100) + '%' }"
                 />
               </div>
-              <p class="mt-1 text-xs text-muted">{{ formatMoney(budget.spent) }} of {{ formatMoney(budget.amount) }}</p>
+              <p class="mt-1 text-xs text-muted">{{ t('dashboard.budgetsSection.spentOfAmount', { spent: formatMoney(budget.spent), amount: formatMoney(budget.amount) }) }}</p>
             </div>
           </div>
         </AppCard>
@@ -339,8 +334,8 @@ const goToTransactions = () => router.push({ name: 'transactions' })
         <!-- Recent transactions -->
         <AppCard padding="none">
           <div class="flex items-center justify-between border-b border-line px-6 py-4">
-            <h2 class="font-display text-sm font-bold text-content">Recent Transactions</h2>
-            <button class="text-sm font-semibold text-primary hover:underline" @click="goToTransactions">View all</button>
+            <h2 class="font-display text-sm font-bold text-content">{{ t('dashboard.recentTransactions.title') }}</h2>
+            <button class="text-sm font-semibold text-primary hover:underline" @click="goToTransactions">{{ t('common.viewAll') }}</button>
           </div>
 
           <div v-if="isLoadingChart" class="flex items-center justify-center py-16 text-faint">
@@ -349,7 +344,7 @@ const goToTransactions = () => router.push({ name: 'transactions' })
 
           <div v-else-if="recentTransactions.length === 0" class="px-6 py-16 text-center">
             <span class="material-symbols-outlined mb-2 text-4xl text-faint">receipt_long</span>
-            <p class="text-sm text-muted">No transactions this month yet</p>
+            <p class="text-sm text-muted">{{ t('dashboard.recentTransactions.empty') }}</p>
           </div>
 
           <div v-else class="overflow-x-auto">
@@ -357,29 +352,29 @@ const goToTransactions = () => router.push({ name: 'transactions' })
               <thead class="border-b border-line">
                 <tr>
                   <th class="data-th w-12"></th>
-                  <th class="data-th">Payee</th>
-                  <th class="data-th">Category</th>
-                  <th class="data-th">Account</th>
-                  <th class="data-th">Date</th>
-                  <th class="data-th text-right">Amount</th>
+                  <th class="data-th">{{ t('dashboard.recentTransactions.columns.payee') }}</th>
+                  <th class="data-th">{{ t('dashboard.recentTransactions.columns.category') }}</th>
+                  <th class="data-th">{{ t('dashboard.recentTransactions.columns.account') }}</th>
+                  <th class="data-th">{{ t('dashboard.recentTransactions.columns.date') }}</th>
+                  <th class="data-th text-right">{{ t('dashboard.recentTransactions.columns.amount') }}</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-line">
-                <tr v-for="t in recentTransactions" :key="t.id" class="transition-colors hover:bg-surface-2">
+                <tr v-for="tx in recentTransactions" :key="tx.id" class="transition-colors hover:bg-surface-2">
                   <td class="px-6 py-3">
                     <div
                       class="icon-tile size-9"
-                      :class="t.type === 'INCOME' ? 'bg-success/10 text-success' : 'bg-danger/10 text-danger'"
+                      :class="tx.type === 'INCOME' ? 'bg-success/10 text-success' : 'bg-danger/10 text-danger'"
                     >
-                      <span class="material-symbols-outlined text-[18px]">{{ t.type === 'INCOME' ? 'call_received' : 'call_made' }}</span>
+                      <span class="material-symbols-outlined text-[18px]">{{ tx.type === 'INCOME' ? 'call_received' : 'call_made' }}</span>
                     </div>
                   </td>
-                  <td class="px-6 py-3 text-sm font-semibold text-content">{{ t.payee || t.categoryName || 'Transaction' }}</td>
-                  <td class="px-6 py-3 text-sm text-muted">{{ t.categoryName || '—' }}</td>
-                  <td class="px-6 py-3 text-sm text-muted">{{ t.accountName }}</td>
-                  <td class="px-6 py-3 text-sm text-faint">{{ formatDate(t.effectiveDate) }}</td>
-                  <td class="px-6 py-3 text-right text-sm font-bold tabular-nums" :class="t.type === 'INCOME' ? 'text-success' : 'text-danger'">
-                    {{ t.type === 'INCOME' ? '+' : '-' }}{{ formatMoney(t.amount) }}
+                  <td class="px-6 py-3 text-sm font-semibold text-content">{{ tx.payee || tx.categoryName || t('common.transactionFallback') }}</td>
+                  <td class="px-6 py-3 text-sm text-muted">{{ tx.categoryName || '—' }}</td>
+                  <td class="px-6 py-3 text-sm text-muted">{{ tx.accountName }}</td>
+                  <td class="px-6 py-3 text-sm text-faint">{{ formatDate(tx.effectiveDate) }}</td>
+                  <td class="px-6 py-3 text-right text-sm font-bold tabular-nums" :class="tx.type === 'INCOME' ? 'text-success' : 'text-danger'">
+                    {{ tx.type === 'INCOME' ? '+' : '-' }}{{ formatMoney(tx.amount) }}
                   </td>
                 </tr>
               </tbody>

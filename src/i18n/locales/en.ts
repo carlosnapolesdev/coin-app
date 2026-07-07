@@ -211,6 +211,51 @@ const en = {
       saveErrorFallback: 'Unable to update the exchange rate right now.',
     },
   },
+  dashboard: {
+    pageTitle: 'Dashboard',
+    pageSubtitle: 'Overview · {month}',
+    stats: {
+      accountsLabel: 'Accounts',
+      accountsDesc: 'Tracked across your portfolio',
+      incomeLabel: 'Income · {month}',
+      incomeDesc: 'Received this month',
+      spendingLabel: 'Spending · {month}',
+      spendingDesc: 'Across {count} categories',
+    },
+    tabs: {
+      accounts: 'Accounts',
+      balances: 'Balances',
+    },
+    accountsPanel: {
+      empty: 'No accounts found',
+    },
+    balancesPanel: {
+      netWorth: 'Net worth',
+      missingRateHint: 'Set an exchange rate for {currencies} to include it.',
+      empty: 'No data',
+    },
+    chart: {
+      title: 'Monthly Spending by Category',
+      empty: 'No expenses recorded this month',
+      total: 'Total',
+    },
+    budgetsSection: {
+      title: 'Budgets',
+      empty: 'No budgets set up yet',
+      spentOfAmount: '{spent} of {amount}',
+    },
+    recentTransactions: {
+      title: 'Recent Transactions',
+      empty: 'No transactions this month yet',
+      columns: {
+        payee: 'Payee',
+        category: 'Category',
+        account: 'Account',
+        date: 'Date',
+        amount: 'Amount',
+      },
+    },
+  },
 }
 
 export default en

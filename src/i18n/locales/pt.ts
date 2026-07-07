@@ -213,6 +213,51 @@ const pt: MessageSchema = {
       saveErrorFallback: 'Não foi possível atualizar a taxa de câmbio agora.',
     },
   },
+  dashboard: {
+    pageTitle: 'Painel',
+    pageSubtitle: 'Visão geral · {month}',
+    stats: {
+      accountsLabel: 'Contas',
+      accountsDesc: 'Rastreadas no seu portfólio',
+      incomeLabel: 'Receita · {month}',
+      incomeDesc: 'Recebida este mês',
+      spendingLabel: 'Gastos · {month}',
+      spendingDesc: 'Em {count} categorias',
+    },
+    tabs: {
+      accounts: 'Contas',
+      balances: 'Saldos',
+    },
+    accountsPanel: {
+      empty: 'Nenhuma conta encontrada',
+    },
+    balancesPanel: {
+      netWorth: 'Patrimônio líquido',
+      missingRateHint: 'Defina uma taxa de câmbio para {currencies} para incluí-lo.',
+      empty: 'Sem dados',
+    },
+    chart: {
+      title: 'Gastos mensais por categoria',
+      empty: 'Nenhuma despesa registrada este mês',
+      total: 'Total',
+    },
+    budgetsSection: {
+      title: 'Orçamentos',
+      empty: 'Nenhum orçamento configurado ainda',
+      spentOfAmount: '{spent} de {amount}',
+    },
+    recentTransactions: {
+      title: 'Transações recentes',
+      empty: 'Ainda não há transações este mês',
+      columns: {
+        payee: 'Beneficiário',
+        category: 'Categoria',
+        account: 'Conta',
+        date: 'Data',
+        amount: 'Valor',
+      },
+    },
+  },
 }
 
 export default pt
