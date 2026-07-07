@@ -219,6 +219,7 @@ const en = {
       accountsDesc: 'Tracked across your portfolio',
       incomeLabel: 'Income · {month}',
       incomeDesc: 'Received this month',
+      dominant: 'dominant',
       spendingLabel: 'Spending · {month}',
       spendingDesc: 'Across {count} categories',
     },

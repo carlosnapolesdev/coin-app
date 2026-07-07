@@ -221,6 +221,7 @@ const es: MessageSchema = {
       accountsDesc: 'Registradas en tu portafolio',
       incomeLabel: 'Ingresos · {month}',
       incomeDesc: 'Recibidos este mes',
+      dominant: 'dominante',
       spendingLabel: 'Gastos · {month}',
       spendingDesc: 'En {count} categorías',
     },
