@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
+
 withDefaults(
   defineProps<{
     isOpen: boolean
@@ -11,6 +13,7 @@ withDefaults(
 )
 
 const emit = defineEmits<{ close: [] }>()
+const { t } = useI18n()
 </script>
 
 <template>
@@ -47,7 +50,7 @@ const emit = defineEmits<{ close: [] }>()
           </slot>
           <button
             type="button"
-            aria-label="Close"
+            :aria-label="t('common.close')"
             class="flex size-9 shrink-0 items-center justify-center rounded-lg text-faint transition hover:bg-surface-2 hover:text-content"
             @click="emit('close')"
           >
