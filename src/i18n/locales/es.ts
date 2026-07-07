@@ -79,6 +79,22 @@ const es: MessageSchema = {
         currency: { title: 'Multi-moneda', text: 'Controla saldos en distintas monedas.' },
       },
     },
+    forgotPassword: {
+      title: 'Olvidé mi contraseña',
+      subtitle: 'Ingresa tu correo y te enviaremos un enlace para restablecerla.',
+      confirmationMessage: 'Si el correo existe, se envió un enlace de restablecimiento.',
+      submit: 'Enviar enlace de restablecimiento',
+    },
+    resetPassword: {
+      title: 'Restablecer contraseña',
+      subtitle: 'Elige una nueva contraseña para tu cuenta.',
+      invalidLink: 'Este enlace de restablecimiento no es válido. Solicita uno nuevo.',
+      passwordMismatch: 'Las contraseñas no coinciden.',
+      genericError: 'No se pudo restablecer tu contraseña en este momento.',
+      newPasswordLabel: 'Nueva contraseña',
+      confirmPasswordLabel: 'Confirmar nueva contraseña',
+      submit: 'Restablecer contraseña',
+    },
   },
 }
 

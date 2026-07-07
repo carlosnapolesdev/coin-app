@@ -77,6 +77,22 @@ const en = {
         currency: { title: 'Multi-currency', text: 'Track balances across currencies.' },
       },
     },
+    forgotPassword: {
+      title: 'Forgot password',
+      subtitle: "Enter your email and we'll send you a reset link.",
+      confirmationMessage: 'If the email exists, a reset link was sent.',
+      submit: 'Send reset link',
+    },
+    resetPassword: {
+      title: 'Reset password',
+      subtitle: 'Choose a new password for your account.',
+      invalidLink: 'This reset link is invalid. Please request a new one.',
+      passwordMismatch: 'Passwords do not match.',
+      genericError: 'Unable to reset your password right now.',
+      newPasswordLabel: 'New password',
+      confirmPasswordLabel: 'Confirm new password',
+      submit: 'Reset password',
+    },
   },
 }
 

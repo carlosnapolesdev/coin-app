@@ -79,6 +79,22 @@ const pt: MessageSchema = {
         currency: { title: 'Multi-moeda', text: 'Acompanhe saldos em diferentes moedas.' },
       },
     },
+    forgotPassword: {
+      title: 'Esqueci minha senha',
+      subtitle: 'Digite seu e-mail e enviaremos um link de redefinição.',
+      confirmationMessage: 'Se o e-mail existir, um link de redefinição foi enviado.',
+      submit: 'Enviar link de redefinição',
+    },
+    resetPassword: {
+      title: 'Redefinir senha',
+      subtitle: 'Escolha uma nova senha para sua conta.',
+      invalidLink: 'Este link de redefinição é inválido. Solicite um novo.',
+      passwordMismatch: 'As senhas não coincidem.',
+      genericError: 'Não foi possível redefinir sua senha agora.',
+      newPasswordLabel: 'Nova senha',
+      confirmPasswordLabel: 'Confirmar nova senha',
+      submit: 'Redefinir senha',
+    },
   },
 }
 

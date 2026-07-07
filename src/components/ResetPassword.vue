@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import TopHeader from './common/TopHeader.vue'
 import { AppButton } from './ui'
 import { getApiErrorMessage, resetPassword } from '../services/auth'
@@ -13,6 +14,7 @@ const newPassword = ref('')
 const confirmPassword = ref('')
 const isSubmitting = ref(false)
 const errorMessage = ref('')
+const { t } = useI18n()
 
 const passwordsMatch = computed(() => newPassword.value.length > 0 && newPassword.value === confirmPassword.value)
 
@@ -20,11 +22,11 @@ const handleSubmit = async () => {
   errorMessage.value = ''
 
   if (!token) {
-    errorMessage.value = 'This reset link is invalid. Please request a new one.'
+    errorMessage.value = t('auth.resetPassword.invalidLink')
     return
   }
   if (!passwordsMatch.value) {
-    errorMessage.value = 'Passwords do not match.'
+    errorMessage.value = t('auth.resetPassword.passwordMismatch')
     return
   }
 
@@ -33,7 +35,7 @@ const handleSubmit = async () => {
     await resetPassword(token, newPassword.value)
     router.push({ path: '/login', query: { reset: '1' } })
   } catch (error) {
-    errorMessage.value = getApiErrorMessage(error, 'Unable to reset your password right now.')
+    errorMessage.value = getApiErrorMessage(error, t('auth.resetPassword.genericError'))
   } finally {
     isSubmitting.value = false
   }
@@ -47,8 +49,8 @@ const handleSubmit = async () => {
     <main class="flex flex-1 items-center justify-center p-6">
       <div class="surface-card mx-auto w-full max-w-md p-8 lg:p-10">
         <div class="mb-8">
-          <h2 class="text-3xl font-bold text-content">Reset password</h2>
-          <p class="mt-2 text-muted">Choose a new password for your account.</p>
+          <h2 class="text-3xl font-bold text-content">{{ t('auth.resetPassword.title') }}</h2>
+          <p class="mt-2 text-muted">{{ t('auth.resetPassword.subtitle') }}</p>
         </div>
 
         <p
@@ -60,7 +62,7 @@ const handleSubmit = async () => {
 
         <form class="space-y-5" @submit.prevent="handleSubmit">
           <div>
-            <label class="mb-2 block text-sm font-semibold text-content">New password</label>
+            <label class="mb-2 block text-sm font-semibold text-content">{{ t('auth.resetPassword.newPasswordLabel') }}</label>
             <div class="relative">
               <span class="material-symbols-outlined pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[20px] text-faint">lock</span>
               <input v-model="newPassword" class="field-input pl-11" placeholder="••••••••" type="password" required />
@@ -68,7 +70,7 @@ const handleSubmit = async () => {
           </div>
 
           <div>
-            <label class="mb-2 block text-sm font-semibold text-content">Confirm new password</label>
+            <label class="mb-2 block text-sm font-semibold text-content">{{ t('auth.resetPassword.confirmPasswordLabel') }}</label>
             <div class="relative">
               <span class="material-symbols-outlined pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[20px] text-faint">lock_reset</span>
               <input v-model="confirmPassword" class="field-input pl-11" placeholder="••••••••" type="password" required />
@@ -76,12 +78,12 @@ const handleSubmit = async () => {
           </div>
 
           <AppButton type="submit" block size="lg" :loading="isSubmitting" :disabled="!passwordsMatch">
-            Reset password
+            {{ t('auth.resetPassword.submit') }}
           </AppButton>
         </form>
 
         <div class="mt-8 text-center">
-          <RouterLink class="text-sm font-semibold text-primary hover:underline" to="/login">Back to sign in</RouterLink>
+          <RouterLink class="text-sm font-semibold text-primary hover:underline" to="/login">{{ t('auth.common.backToSignIn') }}</RouterLink>
         </div>
       </div>
     </main>
