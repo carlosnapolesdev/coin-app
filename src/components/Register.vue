@@ -444,7 +444,7 @@ const steps = computed(() => [
                 <p v-if="submissionError" class="rounded-xl border border-danger/30 bg-danger/10 px-4 py-3 text-sm font-medium text-danger">
                   {{ submissionError }}
                 </p>
-                <button class="hidden" type="submit">Create account</button>
+                <button class="hidden" type="submit">{{ t('auth.register.step4.createAccount') }}</button>
               </form>
             </div>
 

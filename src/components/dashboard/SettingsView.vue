@@ -69,7 +69,7 @@ const changePassword = async () => {
   passwordSuccess.value = ''
 
   if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-    passwordError.value = 'Passwords do not match.'
+    passwordError.value = t('auth.resetPassword.passwordMismatch')
     return
   }
 

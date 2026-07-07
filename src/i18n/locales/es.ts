@@ -155,7 +155,7 @@ const es: MessageSchema = {
         incomeSingular: 'Ingreso',
         resultCount: '{count} resultado | {count} resultados',
         selectedCount: '{count} seleccionado(s)',
-        subcategoriesCount: '{count} subcategorías',
+        subcategoriesCount: '{count} subcategoría | {count} subcategorías',
         emptyTitle: 'No hay categorías disponibles',
         emptyHint: 'Intenta seleccionar otro idioma.',
       },

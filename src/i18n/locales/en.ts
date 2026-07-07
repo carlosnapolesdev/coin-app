@@ -153,7 +153,7 @@ const en = {
         incomeSingular: 'Income',
         resultCount: '{count} result | {count} results',
         selectedCount: '{count} selected',
-        subcategoriesCount: '{count} subcategories',
+        subcategoriesCount: '{count} subcategory | {count} subcategories',
         emptyTitle: 'No categories available',
         emptyHint: 'Try selecting a different language.',
       },
