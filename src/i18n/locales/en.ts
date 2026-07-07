@@ -179,6 +179,38 @@ const en = {
       },
     },
   },
+  settings: {
+    pageTitle: 'Settings',
+    pageSubtitle: 'Manage your profile and account security.',
+    profile: {
+      title: 'Profile',
+      subtitle: 'Update your personal information.',
+      fullNameLabel: 'Full name',
+      saveButton: 'Save changes',
+      successMessage: 'Profile updated successfully.',
+      errorFallback: 'Unable to update your profile right now.',
+    },
+    password: {
+      title: 'Password',
+      subtitle: 'Change the password used to sign in.',
+      currentLabel: 'Current password',
+      newLabel: 'New password',
+      confirmLabel: 'Confirm new password',
+      submitButton: 'Change password',
+      successMessage: 'Password changed successfully.',
+      errorFallback: 'Unable to change your password right now.',
+    },
+    currencies: {
+      title: 'Currencies',
+      subtitle: 'Set the exchange rate for each currency (units of that currency per 1 unit of your base currency).',
+      baseCurrency: 'Base currency',
+      rateVsBase: 'Rate vs. base',
+      saved: 'Saved',
+      invalidRate: 'Exchange rate must be greater than 0.',
+      errorFallback: 'Unable to load your currencies right now.',
+      saveErrorFallback: 'Unable to update the exchange rate right now.',
+    },
+  },
 }
 
 export default en

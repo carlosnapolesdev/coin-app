@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import axios from 'axios'
 import { onMounted, reactive, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import Sidebar from './Sidebar.vue'
 import { setCurrentUser, useAuthState } from '../../services/auth'
 import { usersApi } from '../../services/users'
@@ -9,23 +10,16 @@ import {
   AppButton,
   AppCard,
   AppInput,
-  AppSelect,
   AppSpinner,
   PageContainer,
   PageHeader,
 } from '../ui'
 
 const authState = useAuthState()
-
-const languages = [
-  { code: 'en', name: 'English' },
-  { code: 'es', name: 'Español' },
-  { code: 'pt', name: 'Português' },
-]
+const { t } = useI18n()
 
 const profileForm = reactive({
   fullName: authState.user?.fullName ?? '',
-  language: authState.user?.language ?? 'en',
 })
 const isSavingProfile = ref(false)
 const profileError = ref('')
@@ -38,12 +32,11 @@ const saveProfile = async () => {
   try {
     const { data } = await usersApi.updateProfile({
       fullName: profileForm.fullName,
-      language: profileForm.language,
     })
     setCurrentUser(data)
-    profileSuccess.value = 'Profile updated successfully.'
+    profileSuccess.value = t('settings.profile.successMessage')
   } catch (e) {
-    profileError.value = getErrorMessage(e, 'Unable to update your profile right now.')
+    profileError.value = getErrorMessage(e, t('settings.profile.errorFallback'))
   } finally {
     isSavingProfile.value = false
   }
@@ -86,12 +79,12 @@ const changePassword = async () => {
       currentPassword: passwordForm.currentPassword,
       newPassword: passwordForm.newPassword,
     })
-    passwordSuccess.value = 'Password changed successfully.'
+    passwordSuccess.value = t('settings.password.successMessage')
     passwordForm.currentPassword = ''
     passwordForm.newPassword = ''
     passwordForm.confirmPassword = ''
   } catch (e) {
-    passwordError.value = getErrorMessage(e, 'Unable to change your password right now.')
+    passwordError.value = getErrorMessage(e, t('settings.password.errorFallback'))
   } finally {
     isSavingPassword.value = false
   }
@@ -114,7 +107,7 @@ const loadCurrencies = async () => {
       exchangeRateInputs[uc.currencyId] = String(uc.exchangeRate)
     }
   } catch (e) {
-    currenciesError.value = getErrorMessage(e, 'Unable to load your currencies right now.')
+    currenciesError.value = getErrorMessage(e, t('settings.currencies.errorFallback'))
   } finally {
     isLoadingCurrencies.value = false
   }
@@ -126,7 +119,7 @@ const saveExchangeRate = async (currencyId: number) => {
   const rawValue = exchangeRateInputs[currencyId]
   const exchangeRate = Number(rawValue)
   if (!Number.isFinite(exchangeRate) || exchangeRate <= 0) {
-    currenciesError.value = 'Exchange rate must be greater than 0.'
+    currenciesError.value = t('settings.currencies.invalidRate')
     return
   }
 
@@ -139,7 +132,7 @@ const saveExchangeRate = async (currencyId: number) => {
     if (index !== -1) userCurrencies.value[index] = data
     currencySavedId.value = currencyId
   } catch (e) {
-    currenciesError.value = getErrorMessage(e, 'Unable to update the exchange rate right now.')
+    currenciesError.value = getErrorMessage(e, t('settings.currencies.saveErrorFallback'))
   } finally {
     savingCurrencyId.value = null
   }
@@ -151,13 +144,13 @@ const saveExchangeRate = async (currencyId: number) => {
     <Sidebar />
 
     <main class="flex-1 overflow-y-auto">
-      <PageHeader title="Settings" subtitle="Manage your profile and account security." />
+      <PageHeader :title="t('settings.pageTitle')" :subtitle="t('settings.pageSubtitle')" />
 
       <PageContainer>
         <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <AppCard>
-            <h2 class="text-lg font-bold text-content">Profile</h2>
-            <p class="mt-1 text-sm text-muted">Update your personal information.</p>
+            <h2 class="text-lg font-bold text-content">{{ t('settings.profile.title') }}</h2>
+            <p class="mt-1 text-sm text-muted">{{ t('settings.profile.subtitle') }}</p>
 
             <form class="mt-6 space-y-5" @submit.prevent="saveProfile">
               <div v-if="profileError" class="rounded-xl border border-danger/30 bg-danger/10 p-4 text-sm font-medium text-danger">
@@ -168,31 +161,22 @@ const saveExchangeRate = async (currencyId: number) => {
               </div>
 
               <AppInput
-                label="Full name"
+                :label="t('settings.profile.fullNameLabel')"
                 icon="badge"
                 :model-value="profileForm.fullName"
                 :disabled="isSavingProfile"
                 @update:model-value="(v) => (profileForm.fullName = v)"
               />
 
-              <AppSelect
-                label="Language"
-                :model-value="profileForm.language"
-                :disabled="isSavingProfile"
-                @update:model-value="(v) => (profileForm.language = v)"
-              >
-                <option v-for="lang in languages" :key="lang.code" :value="lang.code">{{ lang.name }}</option>
-              </AppSelect>
-
               <AppButton type="submit" :loading="isSavingProfile" :disabled="!profileForm.fullName">
-                Save changes
+                {{ t('settings.profile.saveButton') }}
               </AppButton>
             </form>
           </AppCard>
 
           <AppCard>
-            <h2 class="text-lg font-bold text-content">Password</h2>
-            <p class="mt-1 text-sm text-muted">Change the password used to sign in.</p>
+            <h2 class="text-lg font-bold text-content">{{ t('settings.password.title') }}</h2>
+            <p class="mt-1 text-sm text-muted">{{ t('settings.password.subtitle') }}</p>
 
             <form class="mt-6 space-y-5" @submit.prevent="changePassword">
               <div v-if="passwordError" class="rounded-xl border border-danger/30 bg-danger/10 p-4 text-sm font-medium text-danger">
@@ -203,7 +187,7 @@ const saveExchangeRate = async (currencyId: number) => {
               </div>
 
               <AppInput
-                label="Current password"
+                :label="t('settings.password.currentLabel')"
                 icon="lock"
                 type="password"
                 :model-value="passwordForm.currentPassword"
@@ -212,7 +196,7 @@ const saveExchangeRate = async (currencyId: number) => {
               />
 
               <AppInput
-                label="New password"
+                :label="t('settings.password.newLabel')"
                 icon="lock_reset"
                 type="password"
                 :model-value="passwordForm.newPassword"
@@ -221,7 +205,7 @@ const saveExchangeRate = async (currencyId: number) => {
               />
 
               <AppInput
-                label="Confirm new password"
+                :label="t('settings.password.confirmLabel')"
                 icon="lock_reset"
                 type="password"
                 :model-value="passwordForm.confirmPassword"
@@ -230,15 +214,15 @@ const saveExchangeRate = async (currencyId: number) => {
               />
 
               <AppButton type="submit" :loading="isSavingPassword" :disabled="!isPasswordFormValid()">
-                Change password
+                {{ t('settings.password.submitButton') }}
               </AppButton>
             </form>
           </AppCard>
 
           <AppCard class="lg:col-span-2">
-            <h2 class="text-lg font-bold text-content">Currencies</h2>
+            <h2 class="text-lg font-bold text-content">{{ t('settings.currencies.title') }}</h2>
             <p class="mt-1 text-sm text-muted">
-              Set the exchange rate for each currency (units of that currency per 1 unit of your base currency).
+              {{ t('settings.currencies.subtitle') }}
             </p>
 
             <div v-if="currenciesError" class="mt-6 rounded-xl border border-danger/30 bg-danger/10 p-4 text-sm font-medium text-danger">
@@ -257,7 +241,7 @@ const saveExchangeRate = async (currencyId: number) => {
               >
                 <div class="min-w-[120px] flex-1">
                   <p class="text-sm font-semibold text-content">{{ uc.code }} — {{ uc.name }}</p>
-                  <p class="text-xs text-muted">{{ uc.base ? 'Base currency' : 'Rate vs. base' }}</p>
+                  <p class="text-xs text-muted">{{ uc.base ? t('settings.currencies.baseCurrency') : t('settings.currencies.rateVsBase') }}</p>
                 </div>
 
                 <div v-if="uc.base" class="text-sm font-medium text-faint">1.000000</div>
@@ -275,7 +259,7 @@ const saveExchangeRate = async (currencyId: number) => {
                     :loading="savingCurrencyId === uc.currencyId"
                     @click="saveExchangeRate(uc.currencyId)"
                   >
-                    {{ currencySavedId === uc.currencyId ? 'Saved' : 'Save' }}
+                    {{ currencySavedId === uc.currencyId ? t('settings.currencies.saved') : t('common.save') }}
                   </AppButton>
                 </template>
               </div>

@@ -181,6 +181,38 @@ const es: MessageSchema = {
       },
     },
   },
+  settings: {
+    pageTitle: 'Configuración',
+    pageSubtitle: 'Administra tu perfil y la seguridad de tu cuenta.',
+    profile: {
+      title: 'Perfil',
+      subtitle: 'Actualiza tu información personal.',
+      fullNameLabel: 'Nombre completo',
+      saveButton: 'Guardar cambios',
+      successMessage: 'Perfil actualizado correctamente.',
+      errorFallback: 'No se pudo actualizar tu perfil en este momento.',
+    },
+    password: {
+      title: 'Contraseña',
+      subtitle: 'Cambia la contraseña que usas para iniciar sesión.',
+      currentLabel: 'Contraseña actual',
+      newLabel: 'Nueva contraseña',
+      confirmLabel: 'Confirmar nueva contraseña',
+      submitButton: 'Cambiar contraseña',
+      successMessage: 'Contraseña cambiada correctamente.',
+      errorFallback: 'No se pudo cambiar tu contraseña en este momento.',
+    },
+    currencies: {
+      title: 'Monedas',
+      subtitle: 'Define la tasa de cambio de cada moneda (unidades de esa moneda por 1 unidad de tu moneda base).',
+      baseCurrency: 'Moneda base',
+      rateVsBase: 'Tasa frente a la base',
+      saved: 'Guardado',
+      invalidRate: 'La tasa de cambio debe ser mayor que 0.',
+      errorFallback: 'No se pudieron cargar tus monedas en este momento.',
+      saveErrorFallback: 'No se pudo actualizar la tasa de cambio en este momento.',
+    },
+  },
 }
 
 export default es

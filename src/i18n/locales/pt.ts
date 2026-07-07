@@ -181,6 +181,38 @@ const pt: MessageSchema = {
       },
     },
   },
+  settings: {
+    pageTitle: 'Configurações',
+    pageSubtitle: 'Gerencie seu perfil e a segurança da conta.',
+    profile: {
+      title: 'Perfil',
+      subtitle: 'Atualize suas informações pessoais.',
+      fullNameLabel: 'Nome completo',
+      saveButton: 'Salvar alterações',
+      successMessage: 'Perfil atualizado com sucesso.',
+      errorFallback: 'Não foi possível atualizar seu perfil agora.',
+    },
+    password: {
+      title: 'Senha',
+      subtitle: 'Altere a senha usada para entrar.',
+      currentLabel: 'Senha atual',
+      newLabel: 'Nova senha',
+      confirmLabel: 'Confirmar nova senha',
+      submitButton: 'Alterar senha',
+      successMessage: 'Senha alterada com sucesso.',
+      errorFallback: 'Não foi possível alterar sua senha agora.',
+    },
+    currencies: {
+      title: 'Moedas',
+      subtitle: 'Defina a taxa de câmbio de cada moeda (unidades dessa moeda por 1 unidade da sua moeda base).',
+      baseCurrency: 'Moeda base',
+      rateVsBase: 'Taxa em relação à base',
+      saved: 'Salvo',
+      invalidRate: 'A taxa de câmbio deve ser maior que 0.',
+      errorFallback: 'Não foi possível carregar suas moedas agora.',
+      saveErrorFallback: 'Não foi possível atualizar a taxa de câmbio agora.',
+    },
+  },
 }
 
 export default pt
