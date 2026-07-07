@@ -1,10 +1,14 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import Sidebar from './Sidebar.vue'
 import { AnimatedAmount, AppButton, AppIconButton, AppSpinner, AppTabs, ConfirmDialog, PageContainer, PageHeader } from '../ui'
 import api from '../../services/api'
 import { accountsApi, type AccountDetail, type AccountType, type AccountTemplate } from '../../services/accounts'
 import iconVersions from '@material-symbols/metadata/versions.json'
+import { formatDate } from '../../utils/format'
+
+const { t } = useI18n()
 
 interface AccountSummary {
   id: number
@@ -84,11 +88,11 @@ const selectedAccountMisc = ref({
   checkbook2: 0,
 })
 
-const tabs = [
-  { value: 'general', label: 'General' },
-  { value: 'behaviour', label: 'Behaviour' },
-  { value: 'misc', label: 'Misc' },
-] as const
+const tabs = computed(() => [
+  { value: 'general', label: t('accounts.tabs.general') },
+  { value: 'behaviour', label: t('accounts.tabs.behaviour') },
+  { value: 'misc', label: t('accounts.tabs.misc') },
+])
 
 const filteredAccounts = computed(() => {
   const q = searchQuery.value.toLowerCase().trim()
@@ -100,11 +104,7 @@ const filteredAccounts = computed(() => {
 
 const formattedLastUpdated = computed(() => {
   if (!lastUpdatedAt.value) return '—'
-  return new Date(lastUpdatedAt.value).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  })
+  return formatDate(lastUpdatedAt.value, { month: 'short', day: 'numeric', year: 'numeric' })
 })
 
 const populateForm = (account: AccountDetail) => {
@@ -170,7 +170,7 @@ const fetchAccounts = async () => {
       startCreating()
     }
   } catch (e) {
-    error.value = 'Failed to load accounts'
+    error.value = t('accounts.loadError')
     console.error(e)
   } finally {
     isLoading.value = false
@@ -304,14 +304,14 @@ onMounted(() => {
     <Sidebar />
 
     <main class="flex-1 overflow-y-auto">
-      <PageHeader title="Accounts" subtitle="Manage your financial accounts from one place." />
+      <PageHeader :title="t('accounts.pageTitle')" :subtitle="t('accounts.pageSubtitle')" />
 
       <PageContainer>
         <div class="grid grid-cols-12 gap-6 lg:gap-8">
         <!-- Account list (Master) -->
         <aside class="col-span-12 flex h-fit flex-col gap-6 md:col-span-4 lg:col-span-3">
           <div class="surface-card flex flex-col gap-4 p-6">
-            <h2 class="field-label !mb-0">Your accounts</h2>
+            <h2 class="field-label !mb-0">{{ t('accounts.listTitle') }}</h2>
 
             <!-- Search -->
             <div class="relative">
@@ -319,7 +319,7 @@ onMounted(() => {
               <input
                 v-model="searchQuery"
                 class="field-input pl-11"
-                placeholder="Search accounts..."
+                :placeholder="t('accounts.searchPlaceholder')"
                 type="text"
               />
             </div>
@@ -333,7 +333,7 @@ onMounted(() => {
               <div v-else-if="error" class="flex flex-col items-center gap-2 py-6 text-center">
                 <span class="material-symbols-outlined text-3xl text-danger">error</span>
                 <p class="text-sm text-danger">{{ error }}</p>
-                <AppButton variant="secondary" size="sm" @click="fetchAccounts">Retry</AppButton>
+                <AppButton variant="secondary" size="sm" @click="fetchAccounts">{{ t('common.retry') }}</AppButton>
               </div>
 
               <template v-else>
@@ -361,7 +361,7 @@ onMounted(() => {
                       icon="delete"
                       variant="danger"
                       size="sm"
-                      aria-label="Delete account"
+                      :aria-label="t('accounts.deleteAriaLabel')"
                       @click.stop="requestDeleteAccount(account.id)"
                     />
                     <span v-if="account.id === activeAccountId" class="material-symbols-outlined text-primary">chevron_right</span>
@@ -369,7 +369,7 @@ onMounted(() => {
                 </div>
 
                 <div v-if="!filteredAccounts.length && !isLoading" class="py-6 text-center">
-                  <p class="text-sm text-muted">No accounts found.</p>
+                  <p class="text-sm text-muted">{{ t('accounts.listEmpty') }}</p>
                 </div>
               </template>
 
@@ -378,7 +378,7 @@ onMounted(() => {
                 @click="startCreating"
               >
                 <span class="material-symbols-outlined text-[20px]">add</span>
-                New Account
+                {{ t('accounts.newAccountButton') }}
               </button>
             </div>
           </div>
@@ -389,7 +389,7 @@ onMounted(() => {
           <div class="surface-card flex flex-1 flex-col overflow-hidden p-0">
             <!-- Tabs -->
             <div class="border-b border-line p-4 lg:px-8">
-              <AppTabs v-model="activeTab" :tabs="[...tabs]" />
+              <AppTabs v-model="activeTab" :tabs="tabs" />
             </div>
 
             <!-- General -->
@@ -398,24 +398,24 @@ onMounted(() => {
                 <!-- Left -->
                 <div class="flex flex-col gap-5">
                   <div>
-                    <label class="field-label">Account Name</label>
-                    <input v-model="selectedAccount.name" class="field-input" type="text" placeholder="e.g. Main Savings" />
+                    <label class="field-label">{{ t('accounts.fields.nameLabel') }}</label>
+                    <input v-model="selectedAccount.name" class="field-input" type="text" :placeholder="t('accounts.fields.namePlaceholder')" />
                   </div>
                   <div>
-                    <label class="field-label">Account Type</label>
+                    <label class="field-label">{{ t('accounts.fields.typeLabel') }}</label>
                     <select v-model="selectedAccount.type" class="field-input">
-                      <option value="NO_TYPE">(no type)</option>
-                      <option value="BANK">Bank</option>
-                      <option value="CASH">Cash</option>
-                      <option value="ASSET">Asset</option>
-                      <option value="CREDIT_CARD">Credit Card</option>
-                      <option value="LIABILITY">Liability</option>
-                      <option value="CHECKING">Checking</option>
-                      <option value="SAVINGS">Savings</option>
+                      <option value="NO_TYPE">{{ t('accounts.accountTypes.noType') }}</option>
+                      <option value="BANK">{{ t('accounts.accountTypes.bank') }}</option>
+                      <option value="CASH">{{ t('accounts.accountTypes.cash') }}</option>
+                      <option value="ASSET">{{ t('accounts.accountTypes.asset') }}</option>
+                      <option value="CREDIT_CARD">{{ t('accounts.accountTypes.creditCard') }}</option>
+                      <option value="LIABILITY">{{ t('accounts.accountTypes.liability') }}</option>
+                      <option value="CHECKING">{{ t('accounts.accountTypes.checking') }}</option>
+                      <option value="SAVINGS">{{ t('accounts.accountTypes.savings') }}</option>
                     </select>
                   </div>
                   <div>
-                    <label class="field-label">Institution</label>
+                    <label class="field-label">{{ t('accounts.fields.institutionLabel') }}</label>
                     <div class="relative">
                       <span class="material-symbols-outlined pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[20px] text-faint">account_balance</span>
                       <input v-model="selectedAccount.institution" class="field-input pl-11" type="text" />
@@ -423,11 +423,11 @@ onMounted(() => {
                   </div>
                   <div class="grid grid-cols-2 gap-4">
                     <div>
-                      <label class="field-label">Account Number</label>
-                      <input v-model="selectedAccount.accountNumber" class="field-input" placeholder="**** 4829" type="text" />
+                      <label class="field-label">{{ t('accounts.fields.accountNumberLabel') }}</label>
+                      <input v-model="selectedAccount.accountNumber" class="field-input" :placeholder="t('accounts.fields.accountNumberPlaceholder')" type="text" />
                     </div>
                     <div>
-                      <label class="field-label">Currency</label>
+                      <label class="field-label">{{ t('accounts.fields.currencyLabel') }}</label>
                       <select v-model="selectedAccount.currencyId" class="field-input">
                         <option v-for="c in userCurrencies" :key="c.currencyId" :value="c.currencyId">
                           {{ c.code }} ({{ c.symbol }})
@@ -437,7 +437,7 @@ onMounted(() => {
                   </div>
                   <label class="flex cursor-pointer items-center gap-3 rounded-xl border border-line bg-surface-2 p-4">
                     <input v-model="selectedAccount.closed" class="size-5 rounded border-line" type="checkbox" />
-                    <span class="text-sm font-semibold text-content">Account was closed</span>
+                    <span class="text-sm font-semibold text-content">{{ t('accounts.fields.closedLabel') }}</span>
                     <span class="material-symbols-outlined ml-auto cursor-help text-[20px] text-faint">info</span>
                   </label>
                 </div>
@@ -445,25 +445,25 @@ onMounted(() => {
                 <!-- Right -->
                 <div class="flex flex-col gap-5">
                   <div>
-                    <label class="field-label">Account Group</label>
+                    <label class="field-label">{{ t('accounts.fields.groupLabel') }}</label>
                     <input v-model="selectedAccount.groupName" class="field-input" type="text" />
                   </div>
                   <div>
-                    <label class="field-label">Start Balance</label>
+                    <label class="field-label">{{ t('accounts.fields.startBalanceLabel') }}</label>
                     <div class="relative">
                       <span class="absolute left-4 top-1/2 -translate-y-1/2 font-semibold text-faint">$</span>
                       <input v-model="selectedAccount.startBalance" class="field-input pl-8" type="number" />
                     </div>
                   </div>
                   <div v-if="!isCreating">
-                    <label class="field-label">Current Balance</label>
+                    <label class="field-label">{{ t('accounts.fields.currentBalanceLabel') }}</label>
                     <div class="flex items-center gap-2 rounded-xl border border-line bg-surface-2 px-4 py-2.5">
                       <AnimatedAmount :value="currentBalanceDisplay" size="md" :show-sign="false" />
                     </div>
-                    <p class="mt-1 text-xs text-muted">Calculated from start balance + all transactions.</p>
+                    <p class="mt-1 text-xs text-muted">{{ t('accounts.fields.currentBalanceHint') }}</p>
                   </div>
                   <div>
-                    <label class="field-label">Icon</label>
+                    <label class="field-label">{{ t('accounts.fields.iconLabel') }}</label>
                     <!-- Preview / Toggle -->
                     <button
                       type="button"
@@ -484,7 +484,7 @@ onMounted(() => {
                         <input
                           v-model="iconSearch"
                           type="text"
-                          placeholder="Search icon..."
+                          :placeholder="t('accounts.iconPicker.searchPlaceholder')"
                           class="field-input pl-11"
                           @input="visibleIconLimit = 60"
                         />
@@ -507,21 +507,21 @@ onMounted(() => {
                         </div>
                         <div v-if="hasMoreIcons" class="mt-3 flex justify-center">
                           <button type="button" class="text-xs font-semibold text-primary hover:underline" @click="visibleIconLimit += 60">
-                            Load more ({{ filteredIcons.length - displayedIcons.length }} remaining)
+                            {{ t('accounts.iconPicker.loadMore', { count: filteredIcons.length - displayedIcons.length }) }}
                           </button>
                         </div>
                         <div v-if="filteredIcons.length === 0" class="py-8 text-center text-sm text-muted">
-                          No icons found for "{{ iconSearch }}"
+                          {{ t('accounts.iconPicker.noResults', { query: iconSearch }) }}
                         </div>
                       </div>
                     </div>
                   </div>
                   <div class="flex-1">
-                    <label class="field-label">Notes</label>
+                    <label class="field-label">{{ t('accounts.fields.notesLabel') }}</label>
                     <textarea
                       v-model="selectedAccount.notes"
                       class="field-input h-full min-h-[120px] resize-none"
-                      placeholder="Add account details, emergency contacts, or internal references..."
+                      :placeholder="t('accounts.fields.notesPlaceholder')"
                     ></textarea>
                   </div>
                 </div>
@@ -532,45 +532,45 @@ onMounted(() => {
             <div v-if="activeTab === 'behaviour'" class="flex-1 overflow-y-auto p-6 lg:p-8">
               <div class="flex flex-col gap-8">
                 <div>
-                  <label class="field-label">Default Template</label>
+                  <label class="field-label">{{ t('accounts.behaviour.defaultTemplateLabel') }}</label>
                   <select v-model="selectedAccountBehaviour.defaultTemplate" class="field-input max-w-sm">
-                    <option value="NONE">(none)</option>
-                    <option value="STANDARD_TRANSACTIONS">Standard Transactions</option>
-                    <option value="INCOME_TRACKING">Income Tracking</option>
-                    <option value="EXPENSE_TRACKING">Expense Tracking</option>
+                    <option value="NONE">{{ t('accounts.behaviour.templates.none') }}</option>
+                    <option value="STANDARD_TRANSACTIONS">{{ t('accounts.behaviour.templates.standard') }}</option>
+                    <option value="INCOME_TRACKING">{{ t('accounts.behaviour.templates.income') }}</option>
+                    <option value="EXPENSE_TRACKING">{{ t('accounts.behaviour.templates.expense') }}</option>
                   </select>
-                  <p class="mt-2 text-xs text-muted">Select a template to automate operations associated with this account.</p>
+                  <p class="mt-2 text-xs text-muted">{{ t('accounts.behaviour.templateHint') }}</p>
                 </div>
 
                 <div class="flex flex-col gap-4">
-                  <label class="field-label">Report Exclusion</label>
+                  <label class="field-label">{{ t('accounts.behaviour.reportExclusionLabel') }}</label>
                   <div class="flex max-w-md flex-col gap-3">
                     <label class="flex cursor-pointer items-center gap-3 rounded-xl border border-line bg-surface-2 p-4 transition-all hover:bg-surface">
                       <input v-model="selectedAccountBehaviour.excludeFromAccountSummary" class="size-5 rounded border-line" type="checkbox" />
                       <div>
-                        <span class="text-sm font-semibold text-content">Exclude from account summary</span>
-                        <p class="mt-0.5 text-xs text-muted">Prevents the account from appearing in the general summary.</p>
+                        <span class="text-sm font-semibold text-content">{{ t('accounts.behaviour.checks.excludeSummary') }}</span>
+                        <p class="mt-0.5 text-xs text-muted">{{ t('accounts.behaviour.checks.excludeSummaryHint') }}</p>
                       </div>
                     </label>
                     <label class="flex cursor-pointer items-center gap-3 rounded-xl border border-line bg-surface-2 p-4 transition-all hover:bg-surface">
                       <input v-model="selectedAccountBehaviour.outlineIntoSummary" class="size-5 rounded border-line" type="checkbox" />
                       <div>
-                        <span class="text-sm font-semibold text-content">Outline into summary</span>
-                        <p class="mt-0.5 text-xs text-muted">Show as reference only without including values.</p>
+                        <span class="text-sm font-semibold text-content">{{ t('accounts.behaviour.checks.outlineSummary') }}</span>
+                        <p class="mt-0.5 text-xs text-muted">{{ t('accounts.behaviour.checks.outlineSummaryHint') }}</p>
                       </div>
                     </label>
                     <label class="flex cursor-pointer items-center gap-3 rounded-xl border border-line bg-surface-2 p-4 transition-all hover:bg-surface">
                       <input v-model="selectedAccountBehaviour.excludeFromBudget" class="size-5 rounded border-line" type="checkbox" />
                       <div>
-                        <span class="text-sm font-semibold text-content">Exclude from the budget</span>
-                        <p class="mt-0.5 text-xs text-muted">Removes the account from budget calculations.</p>
+                        <span class="text-sm font-semibold text-content">{{ t('accounts.behaviour.checks.excludeBudget') }}</span>
+                        <p class="mt-0.5 text-xs text-muted">{{ t('accounts.behaviour.checks.excludeBudgetHint') }}</p>
                       </div>
                     </label>
                     <label class="flex cursor-pointer items-center gap-3 rounded-xl border border-line bg-surface-2 p-4 transition-all hover:bg-surface">
                       <input v-model="selectedAccountBehaviour.excludeFromAnyReports" class="size-5 rounded border-line" type="checkbox" />
                       <div>
-                        <span class="text-sm font-semibold text-content">Exclude from any reports</span>
-                        <p class="mt-0.5 text-xs text-muted">Removes the account from all generated reports.</p>
+                        <span class="text-sm font-semibold text-content">{{ t('accounts.behaviour.checks.excludeReports') }}</span>
+                        <p class="mt-0.5 text-xs text-muted">{{ t('accounts.behaviour.checks.excludeReportsHint') }}</p>
                       </div>
                     </label>
                   </div>
@@ -582,10 +582,10 @@ onMounted(() => {
             <div v-if="activeTab === 'misc'" class="flex-1 overflow-y-auto p-6 lg:p-8">
               <div class="flex flex-col gap-8">
                 <div class="flex flex-col gap-4">
-                  <label class="field-label">Balance Limits</label>
+                  <label class="field-label">{{ t('accounts.misc.balanceLimitsLabel') }}</label>
                   <div class="grid max-w-md grid-cols-1 gap-6 md:grid-cols-2">
                     <div>
-                      <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-muted">Overdraft at</label>
+                      <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-muted">{{ t('accounts.misc.overdraftLabel') }}</label>
                       <div class="flex items-center gap-2">
                         <button @click="decrement('overdraftAt')" class="flex size-10 items-center justify-center rounded-lg bg-surface-2 text-muted transition-all hover:bg-line">
                           <span class="material-symbols-outlined">remove</span>
@@ -595,10 +595,10 @@ onMounted(() => {
                           <span class="material-symbols-outlined">add</span>
                         </button>
                       </div>
-                      <p class="mt-1 text-xs text-muted">Maximum allowed negative balance.</p>
+                      <p class="mt-1 text-xs text-muted">{{ t('accounts.misc.overdraftHint') }}</p>
                     </div>
                     <div>
-                      <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-muted">Maximum</label>
+                      <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-muted">{{ t('accounts.misc.maximumLabel') }}</label>
                       <div class="flex items-center gap-2">
                         <button @click="decrement('maximumBalance')" class="flex size-10 items-center justify-center rounded-lg bg-surface-2 text-muted transition-all hover:bg-line">
                           <span class="material-symbols-outlined">remove</span>
@@ -608,16 +608,16 @@ onMounted(() => {
                           <span class="material-symbols-outlined">add</span>
                         </button>
                       </div>
-                      <p class="mt-1 text-xs text-muted">Maximum allowed balance.</p>
+                      <p class="mt-1 text-xs text-muted">{{ t('accounts.misc.maximumHint') }}</p>
                     </div>
                   </div>
                 </div>
 
                 <div class="flex flex-col gap-4">
-                  <label class="field-label">Current Check Number</label>
+                  <label class="field-label">{{ t('accounts.misc.checkNumberLabel') }}</label>
                   <div class="grid max-w-md grid-cols-1 gap-6 md:grid-cols-2">
                     <div>
-                      <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-muted">Checkbook 1</label>
+                      <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-muted">{{ t('accounts.misc.checkbook1Label') }}</label>
                       <div class="flex items-center gap-2">
                         <button @click="decrement('checkbook1')" class="flex size-10 items-center justify-center rounded-lg bg-surface-2 text-muted transition-all hover:bg-line">
                           <span class="material-symbols-outlined">remove</span>
@@ -627,10 +627,10 @@ onMounted(() => {
                           <span class="material-symbols-outlined">add</span>
                         </button>
                       </div>
-                      <p class="mt-1 text-xs text-muted">Current check number for checkbook 1.</p>
+                      <p class="mt-1 text-xs text-muted">{{ t('accounts.misc.checkbook1Hint') }}</p>
                     </div>
                     <div>
-                      <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-muted">Checkbook 2</label>
+                      <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-muted">{{ t('accounts.misc.checkbook2Label') }}</label>
                       <div class="flex items-center gap-2">
                         <button @click="decrement('checkbook2')" class="flex size-10 items-center justify-center rounded-lg bg-surface-2 text-muted transition-all hover:bg-line">
                           <span class="material-symbols-outlined">remove</span>
@@ -640,7 +640,7 @@ onMounted(() => {
                           <span class="material-symbols-outlined">add</span>
                         </button>
                       </div>
-                      <p class="mt-1 text-xs text-muted">Current check number for checkbook 2.</p>
+                      <p class="mt-1 text-xs text-muted">{{ t('accounts.misc.checkbook2Hint') }}</p>
                     </div>
                   </div>
                 </div>
@@ -650,7 +650,7 @@ onMounted(() => {
             <!-- Footer Actions -->
             <div class="flex items-center justify-end border-t border-line bg-surface-2/40 p-6 lg:px-8">
               <AppButton :loading="isSaving" trailing-icon="check" @click="saveChanges">
-                {{ isCreating ? 'Create Account' : 'Save Changes' }}
+                {{ isCreating ? t('accounts.saveButton.create') : t('accounts.saveButton.update') }}
               </AppButton>
             </div>
           </div>
@@ -660,12 +660,14 @@ onMounted(() => {
             <div class="flex items-start gap-4 rounded-2xl border border-primary/20 bg-primary/5 p-6 md:col-span-2">
               <span class="material-symbols-outlined rounded-lg bg-primary/10 p-2 text-primary">lightbulb</span>
               <div>
-                <h4 class="mb-1 text-sm font-bold text-content">Tip: Keep balances current</h4>
-                <p class="text-sm leading-relaxed text-muted">Set an accurate <strong>start balance</strong> when you create an account. Every transaction is calculated from it, so your running balance and reports stay correct.</p>
+                <h4 class="mb-1 text-sm font-bold text-content">{{ t('accounts.tip.title') }}</h4>
+                <i18n-t keypath="accounts.tip.body" tag="p" class="text-sm leading-relaxed text-muted">
+                  <template #balance><strong>{{ t('accounts.tip.balanceWord') }}</strong></template>
+                </i18n-t>
               </div>
             </div>
             <div class="surface-card flex flex-col items-center justify-center p-6 text-center">
-              <p class="field-label !mb-1">Last Updated</p>
+              <p class="field-label !mb-1">{{ t('accounts.lastUpdatedLabel') }}</p>
               <p class="text-lg font-bold text-content">{{ formattedLastUpdated }}</p>
             </div>
           </div>
@@ -676,8 +678,8 @@ onMounted(() => {
 
     <ConfirmDialog
       :is-open="confirmDeleteId !== null"
-      title="Delete account?"
-      message="This account and its association will be removed. Existing transactions are not deleted."
+      :title="t('accounts.deleteDialog.title')"
+      :message="t('accounts.deleteDialog.message')"
       @confirm="confirmDeleteAccount"
       @cancel="confirmDeleteId = null"
     />
