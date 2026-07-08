@@ -25,7 +25,7 @@ describe('foldChartEntries', () => {
   it('folds the tail into an Other bucket when exceeding the slots', () => {
     const folded = foldChartEntries(entries(10), 'Other')
     expect(folded).toHaveLength(CHART_SERIES_COUNT)
-    const other = folded[folded.length - 1]
+    const other = folded[folded.length - 1]!
     expect(other.label).toBe('Other')
     // entries 8, 9, 10 have amounts 93, 92, 91
     expect(other.amount).toBe(93 + 92 + 91)

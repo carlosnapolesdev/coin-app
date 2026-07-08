@@ -9,6 +9,7 @@ import { transactionsApi, type TransactionDetail } from '../../services/transact
 import { budgetsApi, type BudgetDetail } from '../../services/budgets'
 import { formatCurrency, formatDate as formatDateLocale, formatMonthYear } from '../../utils/format'
 import { groupByCurrency } from '../../utils/currency'
+import { chartSeriesColor, foldChartEntries } from '../../utils/chartColors'
 
 const router = useRouter()
 const { t } = useI18n()
@@ -92,8 +93,6 @@ const balancesByCurrency = computed(() => {
   return Array.from(map.values())
 })
 
-const CHART_COLORS = ['#6366f1', '#0ea5e9', '#a855f7', '#10b981', '#f43f5e', '#14b8a6', '#f59e0b', '#64748b']
-
 const currentMonthTransactions = ref<TransactionDetail[]>([])
 const isLoadingChart = ref(false)
 
@@ -106,9 +105,13 @@ const monthlyCategories = computed(() => {
     const label = tx.categoryName ?? t('common.uncategorized')
     map.set(label, (map.get(label) ?? 0) + tx.amount)
   }
-  return Array.from(map.entries())
+  const entries = Array.from(map.entries())
     .sort((a, b) => b[1] - a[1])
-    .map(([label, amount], i) => ({ label, amount, color: CHART_COLORS[i % CHART_COLORS.length] }))
+    .map(([label, amount]) => ({ label, amount }))
+  return foldChartEntries(entries, t('dashboard.chart.other')).map((entry, i) => ({
+    ...entry,
+    color: chartSeriesColor(i),
+  }))
 })
 
 const totalMonthly = computed(() => monthlyCategories.value.reduce((s, c) => s + c.amount, 0))
@@ -303,8 +306,13 @@ const goToTransactions = () => router.push({ name: 'transactions' })
 
               <template v-else>
                 <!-- Donut -->
-                <div class="relative shrink-0" style="width: 120px; height: 120px">
-                  <svg class="h-full w-full -rotate-90" viewBox="0 0 36 36">
+                <div
+                  class="relative shrink-0"
+                  style="width: 120px; height: 120px"
+                  role="img"
+                  :aria-label="t('dashboard.chart.ariaLabel', { total: formatMoney(totalMonthly) })"
+                >
+                  <svg class="h-full w-full -rotate-90" viewBox="0 0 36 36" aria-hidden="true">
                     <path
                       class="text-line"
                       d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
