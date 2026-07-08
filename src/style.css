@@ -36,6 +36,17 @@
     --color-danger: 226 63 87;         /* #E23F57 */
     --color-warning: 184 121 10;       /* #B8790A */
     --color-info: 30 116 184;          /* #1E74B8 */
+
+    /* Categorical chart palette — validated for CVD separation and contrast
+       on the light surface. Slot order is load-bearing; see DESIGN_SYSTEM.md. */
+    --chart-1: #5C7A14;
+    --chart-2: #2A78D6;
+    --chart-3: #EDA100;
+    --chart-4: #4A3AA7;
+    --chart-5: #159E94;
+    --chart-6: #D14B3A;
+    --chart-7: #E87BA4;
+    --chart-8: #EB6834;
   }
 
   .dark {
@@ -63,6 +74,16 @@
     --color-danger: 255 92 114;        /* #FF5C72 */
     --color-warning: 255 194 75;       /* #FFC24B */
     --color-info: 79 168 230;          /* #4FA8E6 */
+
+    /* Same eight hues re-stepped for the dark surface — not an automatic flip */
+    --chart-1: #75A226;
+    --chart-2: #3987E5;
+    --chart-3: #C98500;
+    --chart-4: #9085E9;
+    --chart-5: #17A091;
+    --chart-6: #E0654F;
+    --chart-7: #D55181;
+    --chart-8: #D95926;
   }
 
   body {
