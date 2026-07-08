@@ -239,6 +239,8 @@ const en = {
       title: 'Monthly Spending by Category',
       empty: 'No expenses recorded this month',
       total: 'Total',
+      other: 'Other',
+      ariaLabel: 'Spending by category donut chart. Total: {total}',
     },
     budgetsSection: {
       title: 'Budgets',

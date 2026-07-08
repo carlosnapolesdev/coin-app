@@ -241,6 +241,8 @@ const pt: MessageSchema = {
       title: 'Gastos mensais por categoria',
       empty: 'Nenhuma despesa registrada este mês',
       total: 'Total',
+      other: 'Outros',
+      ariaLabel: 'Gráfico de rosca de gastos por categoria. Total: {total}',
     },
     budgetsSection: {
       title: 'Orçamentos',
