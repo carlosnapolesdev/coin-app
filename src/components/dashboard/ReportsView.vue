@@ -8,10 +8,9 @@ import {
   type CategoryTotal,
   type NetWorthPoint,
 } from '../../services/reports'
+import { chartSeriesColor } from '../../utils/chartColors'
 
 type RangePreset = 'thisMonth' | '3m' | '6m' | '12m' | 'custom'
-
-const CATEGORY_COLORS = ['#6366f1', '#0ea5e9', '#a855f7', '#10b981', '#f43f5e', '#14b8a6', '#f59e0b', '#64748b']
 
 const rangePreset = ref<RangePreset>('6m')
 const customFrom = ref('')
@@ -210,7 +209,7 @@ const totalCategoryExpense = computed(() => categoryTotals.value.reduce((s, c) =
 const topCategories = computed(() =>
   categoryTotals.value.slice(0, 8).map((c, i) => ({
     ...c,
-    color: CATEGORY_COLORS[i % CATEGORY_COLORS.length],
+    color: chartSeriesColor(i),
     pct: totalCategoryExpense.value > 0 ? (c.total / totalCategoryExpense.value) * 100 : 0,
   })),
 )
