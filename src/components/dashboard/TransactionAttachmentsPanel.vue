@@ -91,14 +91,23 @@ async function confirmRemove() {
   }
   confirmDialogOpen.value = false
 }
-async function openPdf(id: number) {
-  try {
-    await attachmentsApi.openInNewTab(id)
-  } catch (err) {
-    // No es un flujo crítico (token ausente, 5xx transitorio). El usuario verá que
-    // la pestaña no se abre; dejamos al navegador/comunicación del server el detalle.
-    console.error('attachment openInNewTab failed', err)
-  }
+function openPdf(id: number) {
+  // window.open DEBE ser síncrono dentro del clic: si se llamara tras el await del
+  // fetch, la activación transitoria del gesto ya habría expirado y el navegador
+  // bloquearía el popup (Safari/Firefox siempre; Chrome con red lenta). Abrimos la
+  // pestaña ahora y le asignamos el blob URL cuando esté listo.
+  const win = window.open('', '_blank')
+  attachmentsApi
+    .fetchInlineBlobUrl(id)
+    .then((blobUrl) => {
+      if (win) win.location.href = blobUrl
+      else window.open(blobUrl, '_blank') // fallback si el popup ya venía bloqueado
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000)
+    })
+    .catch((err) => {
+      win?.close()
+      console.error('attachment openPdf failed', err)
+    })
 }
 function openLightboxFor(id: number) {
   // El lightbox recibe lightboxImages (sólo imágenes, PDFs excluidos), por eso el
