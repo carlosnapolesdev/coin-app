@@ -42,6 +42,10 @@ export default {
         danger: token("--color-danger"),
         warning: token("--color-warning"),
         info: token("--color-info"),
+        // Modal/lightbox overlay — theme-agnostic. Use as bg-overlay/X (X = alpha).
+        overlay: token("--color-overlay"),
+        // Text/icons that sit ON the overlay surface. Use as text-overlay-fg.
+        "overlay-fg": token("--color-overlay-fg"),
       },
       fontFamily: {
         display: ["Space Grotesk", "sans-serif"],

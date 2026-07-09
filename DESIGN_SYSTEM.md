@@ -39,6 +39,8 @@ derived secondary. New sessions with no stored theme preference open in dark
 | `danger`         | `text-danger` `bg-danger/10`           | `#E23F57`    | `#FF5C72`    | Expenses, destructive, errors |
 | `warning`        | `text-warning` `bg-warning/10`         | `#B8790A`    | `#FFC24B`    | Pending / caution |
 | `info`           | `text-info`                            | `#1E74B8`    | `#4FA8E6`    | Neutral information |
+| `overlay`        | `bg-overlay/50` `bg-overlay/80`        | black        | black        | Modal / lightbox scrim — **theme-agnostic by design** (it sits BETWEEN background and card), used with Tailwind's alpha modifier. Never `bg-slate-950` |
+| `overlay-fg`     | `text-overlay-fg` `bg-overlay-fg/10`   | white        | white        | Text/icons **on** the overlay surface (lightbox controls) |
 
 **Tinted backgrounds** (badges, soft chips) are always `bg-{status}/10` +
 `text-{status}` — never a hard-coded `bg-emerald-100`. The alpha approach is the

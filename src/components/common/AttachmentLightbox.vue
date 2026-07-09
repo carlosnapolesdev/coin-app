@@ -78,13 +78,13 @@ watch(
     aria-modal="true"
     :aria-label="t('transactionAttachments.lightboxAriaLabel')"
     tabindex="-1"
-    class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 outline-none backdrop-blur-sm"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-overlay/80 outline-none backdrop-blur-sm"
     @click.self="close"
     @keydown="onKeydown"
   >
     <button
       type="button"
-      class="absolute right-4 top-4 rounded-lg p-2 text-white hover:bg-white/10"
+      class="absolute right-4 top-4 rounded-lg p-2 text-overlay-fg hover:bg-overlay-fg/10"
       :aria-label="t('transactionAttachments.viewerClose')"
       @click="close"
     >&times;</button>
@@ -92,7 +92,7 @@ watch(
     <button
       v-if="hasMultiple"
       type="button"
-      class="absolute left-4 top-1/2 -translate-y-1/2 rounded-lg p-2 text-white hover:bg-white/10"
+      class="absolute left-4 top-1/2 -translate-y-1/2 rounded-lg p-2 text-overlay-fg hover:bg-overlay-fg/10"
       :aria-label="t('transactionAttachments.viewerPrev')"
       @click.stop="prev"
     >&lsaquo;</button>
@@ -106,7 +106,7 @@ watch(
     <button
       v-if="hasMultiple"
       type="button"
-      class="absolute right-4 bottom-4 rounded-lg p-2 text-white hover:bg-white/10"
+      class="absolute right-4 bottom-4 rounded-lg p-2 text-overlay-fg hover:bg-overlay-fg/10"
       :aria-label="t('transactionAttachments.viewerNext')"
       @click.stop="next"
     >&rsaquo;</button>

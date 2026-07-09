@@ -37,6 +37,10 @@
     --color-warning: 184 121 10;       /* #B8790A */
     --color-info: 30 116 184;          /* #1E74B8 */
 
+    /* Modal/lightbox overlay — theme-agnostic dark scrim used with /alpha modifier */
+    --color-overlay: 0 0 0;            /* rgba(0,0,0,0.5) gives a black scrim */
+    --color-overlay-fg: 255 255 255;   /* text/icons that sit ON the overlay */
+
     /* Categorical chart palette — validated for CVD separation and contrast
        on the light surface. Slot order is load-bearing; see DESIGN_SYSTEM.md. */
     --chart-1: #5C7A14;
@@ -74,6 +78,10 @@
     --color-danger: 255 92 114;        /* #FF5C72 */
     --color-warning: 255 194 75;       /* #FFC24B */
     --color-info: 79 168 230;          /* #4FA8E6 */
+
+    /* Overlay is theme-agnostic by design — black scrim reads correctly on both bg colors */
+    --color-overlay: 0 0 0;
+    --color-overlay-fg: 255 255 255;
 
     /* Same eight hues re-stepped for the dark surface — not an automatic flip */
     --chart-1: #75A226;
