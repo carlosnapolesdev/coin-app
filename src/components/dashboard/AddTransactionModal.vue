@@ -5,7 +5,10 @@ import api from '../../services/api'
 import { type CreateTransactionPayload, type TransactionDetail, type TransactionStatus, type TransactionType, transactionsApi } from '../../services/transactions'
 import { type AccountDetail, accountsApi } from '../../services/accounts'
 import { currenciesApi } from '../../services/currencies'
-import { AppButton, AppModal, AppSpinner } from '../ui'
+import { attachmentsApi } from '../../services/attachments'
+import { useAttachments } from '../../composables/useAttachments'
+import AttachmentLightbox from '../common/AttachmentLightbox.vue'
+import { AppButton, AppModal, AppSpinner, ConfirmDialog } from '../ui'
 
 const { t } = useI18n()
 
@@ -127,6 +130,16 @@ const populateFromTransaction = (t: TransactionDetail) => {
 
 let suppressAutoRate = false
 
+const attach = useAttachments()
+const localTransactionId = ref<number | null>(props.transaction?.id ?? null)
+const lightboxOpen = ref(false)
+const lightboxIndex = ref(0)
+const filePicker = ref<HTMLInputElement | null>(null)
+const confirmDialogOpen = ref(false)
+const attachmentToRemove = ref<number | null>(null)
+const isDragOver = ref(false)
+const pendingFiles = new Map<string, File>()
+
 const loadData = async () => {
   isLoading.value = true
   try {
@@ -140,9 +153,12 @@ const loadData = async () => {
     suppressAutoRate = true
     if (props.mode === 'edit' && props.transaction) {
       populateFromTransaction(props.transaction)
+      localTransactionId.value = props.transaction.id
+      await attach.load(props.transaction.id)
     } else {
       resetForm()
       accountId.value = accounts.value[0]?.id ?? null
+      localTransactionId.value = null
     }
     await nextTick()
     suppressAutoRate = false
@@ -208,16 +224,25 @@ const handleSave = async (keepOpen = false) => {
     if (props.mode === 'edit' && props.transaction) {
       const res = await transactionsApi.update(props.transaction.id, payload)
       saved = res.data
+    } else if (localTransactionId.value !== null) {
+      const res = await transactionsApi.update(localTransactionId.value, payload)
+      saved = res.data
     } else {
       const res = await transactionsApi.create(payload)
       saved = res.data
     }
     emit('saved', saved)
-    if (keepOpen) {
+    localTransactionId.value = saved.id
+    if (props.mode === 'create' && localTransactionId.value !== null) {
+      await attach.load(saved.id)
+    }
+    if (props.mode === 'edit') {
+      if (!keepOpen) handleClose()
+    } else if (keepOpen) {
       resetForm()
       accountId.value = accounts.value[0]?.id ?? null
-    } else {
-      handleClose()
+      localTransactionId.value = null
+      pendingFiles.clear()
     }
   } catch {
     error.value = t('transactionModal.saveError')
@@ -225,6 +250,82 @@ const handleSave = async (keepOpen = false) => {
     isSaving.value = false
   }
 }
+
+function openFilePicker() {
+  filePicker.value?.click()
+}
+function onFilePickerChange(e: Event) {
+  const files = (e.target as HTMLInputElement).files
+  if (files) handleFiles(Array.from(files))
+  ;(e.target as HTMLInputElement).value = ''
+}
+function onDrop(e: DragEvent) {
+  isDragOver.value = false
+  if (!e.dataTransfer?.files) return
+  handleFiles(Array.from(e.dataTransfer.files))
+}
+async function handleFiles(files: File[]) {
+  if (localTransactionId.value === null) return
+  const allowed = ['image/png', 'image/jpeg', 'image/webp', 'application/pdf']
+  const maxBytes = 5 * 1024 * 1024
+  for (const f of files) {
+    if (!allowed.includes(f.type)) {
+      const next = new Map(attach.errorByFile.value)
+      next.set(f.name, t('transactionAttachments.mimeError'))
+      attach.errorByFile.value = next
+    } else if (f.size > maxBytes) {
+      const next = new Map(attach.errorByFile.value)
+      next.set(f.name, t('transactionAttachments.sizeError'))
+      attach.errorByFile.value = next
+    }
+  }
+  const filtered = files.filter((f) => allowed.includes(f.type) && f.size <= maxBytes)
+  if (!filtered.length) return
+  filtered.forEach((f) => pendingFiles.set(f.name, f))
+  if (localTransactionId.value !== null) {
+    await attach.addFiles(localTransactionId.value, filtered)
+  }
+}
+function retryUpload(name: string) {
+  const f = pendingFiles.get(name)
+  if (f && localTransactionId.value !== null) {
+    void attach.retry(localTransactionId.value, f)
+  }
+}
+function formatSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`
+}
+function askRemove(id: number) {
+  attachmentToRemove.value = id
+  confirmDialogOpen.value = true
+}
+async function confirmRemove() {
+  if (attachmentToRemove.value !== null) {
+    await attach.remove(attachmentToRemove.value)
+    attachmentToRemove.value = null
+  }
+  confirmDialogOpen.value = false
+}
+function openLightboxFor(id: number) {
+  const i = attach.attachments.value.findIndex((a) => a.id === id)
+  if (i >= 0) {
+    lightboxIndex.value = i
+    lightboxOpen.value = true
+  }
+}
+const lightboxImages = computed(() =>
+  attach.attachments.value
+    .filter((a) => a.mimeType.startsWith('image/'))
+    .map((a) => ({
+      id: a.id,
+      fileName: a.fileName,
+      mimeType: a.mimeType,
+      url: attachmentsApi.downloadUrl(a.id, 'inline'),
+    })),
+)
+const attachmentCount = computed(() => attach.attachments.value.length)
 </script>
 
 <template>
@@ -362,10 +463,117 @@ const handleSave = async (keepOpen = false) => {
       </div>
     </form>
 
+    <section v-if="localTransactionId" class="border-t border-line bg-surface-2/30 px-6 py-5 lg:px-8">
+      <h3 class="text-sm font-semibold text-content">{{ t('transactionAttachments.panel') }}</h3>
+      <p class="mt-1 text-xs text-muted">{{ t('transactionAttachments.dropzoneHint') }}</p>
+
+      <div
+        class="mt-3 rounded-lg border-2 border-dashed border-border bg-surface px-4 py-6 text-center text-sm text-muted transition-colors"
+        :class="{ 'border-accent bg-surface-hover': isDragOver }"
+        role="button"
+        tabindex="0"
+        @dragover.prevent="isDragOver = true"
+        @dragleave.prevent="isDragOver = false"
+        @drop.prevent="onDrop"
+        @click="openFilePicker"
+        @keydown.enter.prevent="openFilePicker"
+        @keydown.space.prevent="openFilePicker"
+      >
+        {{ t('transactionAttachments.dropzone') }}
+        <input
+          ref="filePicker"
+          type="file"
+          multiple
+          class="hidden"
+          accept="image/png,image/jpeg,image/webp,application/pdf"
+          @change="onFilePickerChange"
+        />
+      </div>
+
+      <p class="mt-3 text-xs text-muted">
+        {{ t('transactionAttachments.ofAttachments', { count: attachmentCount, max: 5 }) }}
+      </p>
+
+      <ul v-if="attach.attachments.value.length" class="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+        <li
+          v-for="a in attach.attachments.value"
+          :key="a.id"
+          class="rounded-lg border border-border bg-surface p-2"
+        >
+          <div class="flex items-center justify-between gap-2">
+            <div class="min-w-0">
+              <p class="truncate text-xs text-content">{{ a.fileName }}</p>
+              <p class="text-[11px] text-muted">{{ formatSize(a.sizeBytes) }}</p>
+            </div>
+            <button
+              type="button"
+              class="text-muted hover:text-danger"
+              :aria-label="t('transactionAttachments.remove')"
+              @click="askRemove(a.id)"
+            >&times;</button>
+          </div>
+
+          <div
+            v-if="a.mimeType.startsWith('image/')"
+            class="mt-2 aspect-square w-full overflow-hidden rounded-md bg-surface-2"
+          >
+            <img
+              :src="attachmentsApi.downloadUrl(a.id, 'inline')"
+              :alt="a.fileName"
+              class="h-full w-full cursor-zoom-in object-cover"
+              @click="openLightboxFor(a.id)"
+            />
+          </div>
+          <div v-else class="mt-2 flex h-full min-h-[2.5rem] items-center justify-center">
+            <a
+              :href="attachmentsApi.downloadUrl(a.id, 'inline')"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="rounded-md border border-border px-3 py-1 text-xs text-content hover:bg-surface-hover"
+            >
+              {{ t('transactionAttachments.openPdf') }}
+            </a>
+          </div>
+        </li>
+      </ul>
+
+      <ul
+        v-if="attach.progressByFile.value.size || attach.errorByFile.value.size"
+        class="mt-3 space-y-1"
+      >
+        <li
+          v-for="[name, pct] in attach.progressByFile.value"
+          :key="`p-${name}`"
+          class="flex items-center gap-2 text-[11px] text-muted"
+        >
+          <span class="truncate">{{ name }}</span>
+          <span class="ml-auto">{{ t('transactionAttachments.uploading') }} {{ pct }}%</span>
+        </li>
+        <li
+          v-for="[name, msg] in attach.errorByFile.value"
+          :key="`e-${name}`"
+          class="flex items-center gap-2 text-[11px] text-danger"
+        >
+          <span class="truncate">{{ name }} — {{ msg }}</span>
+          <button type="button" class="ml-auto underline" @click="retryUpload(name)">
+            {{ t('transactionAttachments.retry') }}
+          </button>
+        </li>
+      </ul>
+
+      <ConfirmDialog
+        :is-open="confirmDialogOpen"
+        :title="t('transactionAttachments.remove')"
+        :message="t('transactionAttachments.removeConfirm')"
+        @cancel="confirmDialogOpen = false"
+        @confirm="confirmRemove"
+      />
+    </section>
+
     <template #footer>
       <AppButton variant="ghost" :disabled="isSaving" @click="handleClose">{{ t('common.close') }}</AppButton>
       <AppButton
-        v-if="mode === 'create'"
+        v-if="mode === 'create' && localTransactionId === null"
         variant="secondary"
         :disabled="isSaveDisabled"
         @click="handleSave(true)"
@@ -378,8 +586,15 @@ const handleSave = async (keepOpen = false) => {
         :loading="isSaving"
         :disabled="isSaveDisabled"
       >
-        {{ mode === 'create' ? t('transactions.actions.add') : t('accounts.saveButton.update') }}
+        {{ (mode === 'edit' || localTransactionId !== null) ? t('accounts.saveButton.update') : t('transactions.actions.add') }}
       </AppButton>
     </template>
+
+    <AttachmentLightbox
+      :images="lightboxImages"
+      :start-index="lightboxIndex"
+      :open="lightboxOpen"
+      @close="lightboxOpen = false"
+    />
   </AppModal>
 </template>

@@ -21,6 +21,7 @@ const tx = (overrides: Partial<TransactionDetail>): TransactionDetail => ({
   transferIn: null,
   exchangeRate: null,
   balance: null,
+  attachmentCount: 0,
   createdAt: '2026-07-01',
   updatedAt: null,
   ...overrides,

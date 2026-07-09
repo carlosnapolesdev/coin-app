@@ -21,6 +21,7 @@ export interface TransactionDetail {
   transferIn: boolean | null
   exchangeRate: number | null
   balance: number | null
+  attachmentCount: number
   createdAt: string
   updatedAt: string | null
 }
