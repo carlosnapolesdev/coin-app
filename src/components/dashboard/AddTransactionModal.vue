@@ -8,6 +8,7 @@ import { currenciesApi } from '../../services/currencies'
 import { attachmentsApi } from '../../services/attachments'
 import { useAttachments } from '../../composables/useAttachments'
 import AttachmentLightbox from '../common/AttachmentLightbox.vue'
+import { lightboxIndexFor } from '../common/lightboxIndex'
 import { AppButton, AppModal, AppSpinner, ConfirmDialog } from '../ui'
 
 const { t } = useI18n()
@@ -309,7 +310,10 @@ async function confirmRemove() {
   confirmDialogOpen.value = false
 }
 function openLightboxFor(id: number) {
-  const i = attach.attachments.value.findIndex((a) => a.id === id)
+  // El lightbox recibe lightboxImages (sólo imágenes, PDFs excluidos), por eso el
+  // índice debe calcularse sobre esa lista filtrada — usar attach.attachments.value
+  // abre la imagen siguiente cuando hay un PDF antes del adjunto clickeado.
+  const i = lightboxIndexFor(lightboxImages.value, id)
   if (i >= 0) {
     lightboxIndex.value = i
     lightboxOpen.value = true

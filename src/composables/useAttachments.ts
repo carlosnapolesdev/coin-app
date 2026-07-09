@@ -21,7 +21,8 @@ export function useAttachments() {
   }
 
   async function addFiles(transactionId: number, files: File[]): Promise<void> {
-    clearErrors();
+    // Only the caller's per-file pre-existing entries count — we never wipe a Map we don't own.
+    // The modal sets client validation errors for files it filtered out; those must survive this call.
     isUploading.value = true;
     try {
       const results = await Promise.allSettled(
@@ -38,6 +39,12 @@ export function useAttachments() {
         if (r.status === 'fulfilled') {
           attachments.value.push(r.value);
           progressByFile.value.delete(file.name);
+          // A successful upload supersedes any prior error for this exact filename.
+          if (errorByFile.value.has(file.name)) {
+            const next = new Map(errorByFile.value);
+            next.delete(file.name);
+            errorByFile.value = next;
+          }
         } else {
           const next = new Map(errorByFile.value);
           next.set(file.name, (r.reason as Error)?.message ?? 'Upload failed');

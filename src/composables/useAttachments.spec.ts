@@ -56,4 +56,19 @@ describe('useAttachments', () => {
     expect(attachments.value.find((a) => a.id === 2)).toBeUndefined()
     expect((attachmentsApi.remove as any)).toHaveBeenCalledWith(2)
   })
+
+  it('addFiles preserves pre-existing errorByFile entries (client validation errors survive)', async () => {
+    // The modal sets errorByFile for client-rejected files (mime/size) BEFORE calling addFiles.
+    // addFiles must NOT wipe those — only its own upload-time rejections belong to addFiles.
+    ;(attachmentsApi.upload as any).mockReset()
+    ;(attachmentsApi.upload as any).mockResolvedValue(dto(99, 'ok.png'))
+    const { addFiles, errorByFile } = useAttachments()
+    // Pre-populate a client validation error for a file that will NOT be uploaded.
+    const next = new Map(errorByFile.value)
+    next.set('rejected.exe', 'Tipo de archivo no admitido')
+    errorByFile.value = next
+    await addFiles(7, [new File(['x'], 'ok.png', { type: 'image/png' })])
+    // The pre-existing client validation error must survive.
+    expect(errorByFile.value.get('rejected.exe')).toBe('Tipo de archivo no admitido')
+  })
 })
