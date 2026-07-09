@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import Sidebar from './Sidebar.vue'
 import EditCategoryModal from './EditCategoryModal.vue'
 import { AppBadge, AppButton, AppIconButton, AppSpinner, AppTabs, ConfirmDialog, PageContainer, PageHeader } from '../ui'
 import api from '../../services/api'
+
+const { t } = useI18n()
 
 type FlowType = 'expense' | 'income'
 type FilterType = FlowType | 'deleted'
@@ -107,7 +110,7 @@ const fetchCategories = async (silent = false) => {
       expandedCategories.value = expandedCategories.value.filter(id => existingIds.has(id))
     }
   } catch (e) {
-    error.value = 'Failed to load categories'
+    error.value = t('categories.loadError')
     console.error(e)
   } finally {
     if (!silent) isLoading.value = false
@@ -153,7 +156,7 @@ const fetchDeletedCategories = async (silent = false) => {
 
     deletedCategories.value = deleted
   } catch (e) {
-    errorDeleted.value = 'Failed to load deleted categories'
+    errorDeleted.value = t('categories.loadDeletedError')
     console.error(e)
   } finally {
     if (!silent) isLoadingDeleted.value = false
@@ -289,7 +292,7 @@ onMounted(() => {
     <Sidebar />
 
     <main class="flex-1 overflow-y-auto">
-      <PageHeader title="Categories" subtitle="Organize your categories and subcategories." />
+      <PageHeader :title="t('categories.pageTitle')" :subtitle="t('categories.pageSubtitle')" />
 
       <PageContainer>
         <!-- Table section -->
@@ -301,14 +304,13 @@ onMounted(() => {
                 <AppTabs
                   v-model="activeFilter"
                   :tabs="[
-                    { value: 'expense', label: 'Expenses' },
-                    { value: 'income', label: 'Income' },
-                    { value: 'deleted', label: 'Deleted' },
+                    { value: 'expense', label: t('categories.tabs.expenses') },
+                    { value: 'income', label: t('categories.tabs.income') },
+                    { value: 'deleted', label: t('categories.tabs.deleted') },
                   ]"
                 />
                 <p class="text-sm text-muted">
-                  {{ activeFilter === 'deleted' ? filteredDeletedCategories.length : filteredCategories.length }}
-                  result<span v-if="(activeFilter === 'deleted' ? filteredDeletedCategories.length : filteredCategories.length) !== 1">s</span>
+                  {{ t('categories.resultCount', activeFilter === 'deleted' ? filteredDeletedCategories.length : filteredCategories.length) }}
                 </p>
               </div>
 
@@ -318,20 +320,20 @@ onMounted(() => {
                   <input
                     v-model="searchQuery"
                     type="text"
-                    placeholder="Search category or subcategory"
+                    :placeholder="t('categories.searchPlaceholder')"
                     class="field-input w-full pl-11 md:w-72"
                   />
                 </div>
-                <AppButton icon="add" @click="openCreateModal">New Category</AppButton>
+                <AppButton icon="add" @click="openCreateModal">{{ t('categories.newButton') }}</AppButton>
               </div>
             </div>
 
             <!-- Column headers -->
             <div class="shrink-0 px-6 py-4 border-b border-line">
               <div class="grid grid-cols-12 gap-4 text-[11px] font-semibold uppercase tracking-wide text-faint">
-                <div class="col-span-7 md:col-span-8">Category / Subcategory</div>
-                <div class="col-span-2 text-center">Type</div>
-                <div class="col-span-3 md:col-span-2 text-right">Actions</div>
+                <div class="col-span-7 md:col-span-8">{{ t('categories.columns.category') }}</div>
+                <div class="col-span-2 text-center">{{ t('categories.columns.type') }}</div>
+                <div class="col-span-3 md:col-span-2 text-right">{{ t('categories.columns.actions') }}</div>
               </div>
             </div>
 
@@ -344,7 +346,7 @@ onMounted(() => {
               <div v-else-if="error" class="flex flex-col items-center justify-center py-16 text-center">
                 <span class="material-symbols-outlined text-danger text-4xl mb-2">error</span>
                 <p class="text-danger font-medium">{{ error }}</p>
-                <AppButton class="mt-4" variant="secondary" size="sm" @click="() => fetchCategories()">Retry</AppButton>
+                <AppButton class="mt-4" variant="secondary" size="sm" @click="() => fetchCategories()">{{ t('common.retry') }}</AppButton>
               </div>
 
               <div v-else-if="filteredCategories.length" class="flex-1 overflow-y-auto divide-y divide-line">
@@ -368,20 +370,20 @@ onMounted(() => {
 
                       <div class="min-w-0">
                         <p class="truncate text-sm font-semibold text-content">{{ category.name }}</p>
-                        <p class="text-xs text-muted">{{ category.children.length }} subcategories</p>
+                        <p class="text-xs text-muted">{{ t('categories.subcategoriesCount', category.children.length) }}</p>
                       </div>
                     </div>
 
                     <div class="col-span-2 flex justify-center">
                       <AppBadge :variant="category.type === 'expense' ? 'danger' : 'success'">
-                        {{ category.type === 'expense' ? 'Expense' : 'Income' }}
+                        {{ category.type === 'expense' ? t('categories.typeExpense') : t('categories.typeIncome') }}
                       </AppBadge>
                     </div>
 
                     <div class="col-span-3 md:col-span-2 flex justify-end gap-1">
-                      <AppIconButton icon="add" variant="primary" aria-label="Add subcategory" />
-                      <AppIconButton icon="edit" aria-label="Edit" @click="openEditModal(category.id, category.name, category.icon, false)" />
-                      <AppIconButton icon="delete" variant="danger" aria-label="Delete" @click="requestDeleteCategory(category.id)" />
+                      <AppIconButton icon="add" variant="primary" :aria-label="t('categories.addSubcategoryAria')" />
+                      <AppIconButton icon="edit" :aria-label="t('categories.editAria')" @click="openEditModal(category.id, category.name, category.icon, false)" />
+                      <AppIconButton icon="delete" variant="danger" :aria-label="t('categories.deleteAria')" @click="requestDeleteCategory(category.id)" />
                     </div>
                   </div>
 
@@ -399,8 +401,8 @@ onMounted(() => {
                       <div class="col-span-2"></div>
 
                       <div class="col-span-3 md:col-span-2 flex justify-end gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
-                        <AppIconButton icon="edit" size="sm" aria-label="Edit" @click="openEditModal(child.id, child.name, child.icon, true)" />
-                        <AppIconButton icon="delete" size="sm" variant="danger" aria-label="Delete" @click="requestDeleteCategory(child.id)" />
+                        <AppIconButton icon="edit" size="sm" :aria-label="t('categories.editAria')" @click="openEditModal(child.id, child.name, child.icon, true)" />
+                        <AppIconButton icon="delete" size="sm" variant="danger" :aria-label="t('categories.deleteAria')" @click="requestDeleteCategory(child.id)" />
                       </div>
                     </div>
                   </div>
@@ -411,8 +413,8 @@ onMounted(() => {
                 <div class="icon-tile mx-auto size-14 bg-surface-2 text-faint">
                   <span class="material-symbols-outlined">folder_open</span>
                 </div>
-                <h3 class="mt-4 text-lg font-semibold text-content">No categories yet</h3>
-                <p class="mt-2 text-sm text-muted">Create your first category to get started.</p>
+                <h3 class="mt-4 text-lg font-semibold text-content">{{ t('categories.empty.title') }}</h3>
+                <p class="mt-2 text-sm text-muted">{{ t('categories.empty.hint') }}</p>
               </div>
             </template>
 
@@ -425,7 +427,7 @@ onMounted(() => {
               <div v-else-if="errorDeleted" class="flex flex-col items-center justify-center py-16 text-center">
                 <span class="material-symbols-outlined text-danger text-4xl mb-2">error</span>
                 <p class="text-danger font-medium">{{ errorDeleted }}</p>
-                <AppButton class="mt-4" variant="secondary" size="sm" @click="() => fetchDeletedCategories()">Retry</AppButton>
+                <AppButton class="mt-4" variant="secondary" size="sm" @click="() => fetchDeletedCategories()">{{ t('common.retry') }}</AppButton>
               </div>
 
               <div v-else-if="filteredDeletedCategories.length" class="flex-1 overflow-y-auto divide-y divide-line">
@@ -452,14 +454,14 @@ onMounted(() => {
                       <div class="min-w-0">
                         <p class="truncate text-sm font-semibold text-muted line-through">{{ category.name }}</p>
                         <p class="text-xs text-faint">
-                          {{ category.orphan ? 'Deleted subcategory' : `${category.children.length} subcategories` }}
+                          {{ category.orphan ? t('categories.deleted.subcategory') : t('categories.subcategoriesCount', category.children.length) }}
                         </p>
                       </div>
                     </div>
 
                     <div class="col-span-2 flex justify-center opacity-70">
                       <AppBadge :variant="category.type === 'expense' ? 'danger' : 'success'">
-                        {{ category.type === 'expense' ? 'Expense' : 'Income' }}
+                        {{ category.type === 'expense' ? t('categories.typeExpense') : t('categories.typeIncome') }}
                       </AppBadge>
                     </div>
 
@@ -470,7 +472,7 @@ onMounted(() => {
                         @click="restoreCategory(category.id)"
                       >
                         <span class="material-symbols-outlined text-[16px]">restore</span>
-                        Restore
+                        {{ t('categories.deleted.restore') }}
                       </button>
                     </div>
                   </div>
@@ -498,8 +500,8 @@ onMounted(() => {
                 <div class="icon-tile mx-auto size-14 bg-surface-2 text-faint">
                   <span class="material-symbols-outlined">delete_sweep</span>
                 </div>
-                <h3 class="mt-4 text-lg font-semibold text-content">No deleted categories</h3>
-                <p class="mt-2 text-sm text-muted">Categories you delete will appear here for recovery.</p>
+                <h3 class="mt-4 text-lg font-semibold text-content">{{ t('categories.deleted.emptyTitle') }}</h3>
+                <p class="mt-2 text-sm text-muted">{{ t('categories.deleted.emptyHint') }}</p>
               </div>
             </template>
 
@@ -509,9 +511,9 @@ onMounted(() => {
 
     <ConfirmDialog
       :is-open="confirmDeleteId !== null"
-      title="Delete category?"
-      message="Deleted categories can be restored from the Deleted filter."
-      confirm-label="Delete"
+      :title="t('categories.deleteDialog.title')"
+      :message="t('categories.deleteDialog.message')"
+      :confirm-label="t('common.delete')"
       @confirm="confirmDeleteCategory"
       @cancel="confirmDeleteId = null"
     />

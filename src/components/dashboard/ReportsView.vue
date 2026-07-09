@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import Sidebar from './Sidebar.vue'
 import { AppButton, AppCard, AppInput, AppSpinner, AppTabs, PageContainer, PageHeader } from '../ui'
 import {
@@ -9,6 +10,9 @@ import {
   type NetWorthPoint,
 } from '../../services/reports'
 import { chartSeriesColor } from '../../utils/chartColors'
+import { formatCurrency, formatDate } from '../../utils/format'
+
+const { t } = useI18n()
 
 type RangePreset = 'thisMonth' | '3m' | '6m' | '12m' | 'custom'
 
@@ -57,7 +61,7 @@ const loadReports = async () => {
   if (ieRes.status === 'fulfilled') {
     monthlyPoints.value = ieRes.value.data
   } else {
-    error.value = 'Failed to load reports.'
+    error.value = t('reports.loadError')
   }
   categoryTotals.value = catRes.status === 'fulfilled' ? catRes.value.data : []
   netWorthPoints.value = nwRes.status === 'fulfilled' ? nwRes.value.data : []
@@ -70,12 +74,11 @@ watch(rangePreset, () => {
   if (rangePreset.value !== 'custom') loadReports()
 })
 
-const formatMoney = (amount: number): string =>
-  amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+const formatMoney = formatCurrency
 
 const monthLabel = (month: string): string => {
   const [year, m] = month.split('-')
-  return new Date(Number(year), Number(m) - 1, 1).toLocaleDateString('en-US', { month: 'short' })
+  return formatDate(new Date(Number(year), Number(m) - 1, 1), { month: 'short' })
 }
 
 // ---- Income vs Expense + Net (shared axis, bars + line) ----
@@ -220,7 +223,7 @@ const topCategories = computed(() =>
     <Sidebar />
 
     <main class="flex-1 overflow-y-auto">
-      <PageHeader title="Reports" subtitle="Income vs. expense, net worth trend and top spending categories." />
+      <PageHeader :title="t('reports.pageTitle')" :subtitle="t('reports.pageSubtitle')" />
 
       <PageContainer>
         <!-- Range selector -->
@@ -229,18 +232,18 @@ const topCategories = computed(() =>
             <AppTabs
               v-model="rangePreset"
               :tabs="[
-                { value: 'thisMonth', label: 'This month' },
-                { value: '3m', label: '3M' },
-                { value: '6m', label: '6M' },
-                { value: '12m', label: '12M' },
-                { value: 'custom', label: 'Custom' },
+                { value: 'thisMonth', label: t('reports.range.thisMonth') },
+                { value: '3m', label: t('reports.range.threeMonths') },
+                { value: '6m', label: t('reports.range.sixMonths') },
+                { value: '12m', label: t('reports.range.twelveMonths') },
+                { value: 'custom', label: t('reports.range.custom') },
               ]"
             />
 
             <div v-if="rangePreset === 'custom'" class="flex flex-wrap items-end gap-3">
-              <AppInput label="From" type="date" :model-value="customFrom" @update:model-value="(v) => (customFrom = v)" />
-              <AppInput label="To" type="date" :model-value="customTo" @update:model-value="(v) => (customTo = v)" />
-              <AppButton size="sm" @click="loadReports">Apply</AppButton>
+              <AppInput :label="t('reports.fromLabel')" type="date" :model-value="customFrom" @update:model-value="(v) => (customFrom = v)" />
+              <AppInput :label="t('reports.toLabel')" type="date" :model-value="customTo" @update:model-value="(v) => (customTo = v)" />
+              <AppButton size="sm" @click="loadReports">{{ t('reports.apply') }}</AppButton>
             </div>
           </div>
         </AppCard>
@@ -252,23 +255,23 @@ const topCategories = computed(() =>
         <div v-else-if="error" class="flex flex-col items-center gap-2 py-16 text-center">
           <span class="material-symbols-outlined text-3xl text-danger">error</span>
           <p class="text-sm text-danger">{{ error }}</p>
-          <AppButton variant="secondary" size="sm" @click="loadReports">Retry</AppButton>
+          <AppButton variant="secondary" size="sm" @click="loadReports">{{ t('common.retry') }}</AppButton>
         </div>
 
         <template v-else>
           <!-- Income vs Expense -->
           <AppCard>
             <div class="mb-4 flex items-center justify-between">
-              <h2 class="font-display text-sm font-bold text-content">Income vs. Expense</h2>
+              <h2 class="font-display text-sm font-bold text-content">{{ t('reports.incomeExpense.title') }}</h2>
               <div class="flex items-center gap-4 text-xs font-semibold text-muted">
-                <span class="flex items-center gap-1.5"><span class="size-2.5 rounded-full bg-success" />Income</span>
-                <span class="flex items-center gap-1.5"><span class="size-2.5 rounded-full bg-danger" />Expense</span>
-                <span class="flex items-center gap-1.5"><span class="h-0.5 w-3 rounded-full bg-primary" />Net</span>
+                <span class="flex items-center gap-1.5"><span class="size-2.5 rounded-full bg-success" />{{ t('reports.incomeExpense.income') }}</span>
+                <span class="flex items-center gap-1.5"><span class="size-2.5 rounded-full bg-danger" />{{ t('reports.incomeExpense.expense') }}</span>
+                <span class="flex items-center gap-1.5"><span class="h-0.5 w-3 rounded-full bg-primary" />{{ t('reports.incomeExpense.net') }}</span>
               </div>
             </div>
 
             <p v-if="monthlyPoints.length === 0" class="py-10 text-center text-sm text-muted">
-              No transactions recorded in this range
+              {{ t('reports.incomeExpense.empty') }}
             </p>
 
             <template v-else>
@@ -305,23 +308,23 @@ const topCategories = computed(() =>
                   class="pointer-events-none absolute left-1/2 top-2 -translate-x-1/2 rounded-lg border border-line bg-surface px-3 py-2 text-xs shadow-elevated"
                 >
                   <p class="font-display font-bold text-content">{{ monthLabel(hoveredMonthData.month) }}</p>
-                  <p class="text-success">Income: {{ formatMoney(hoveredMonthData.income) }}</p>
-                  <p class="text-danger">Expense: {{ formatMoney(hoveredMonthData.expense) }}</p>
-                  <p class="text-primary">Net: {{ formatMoney(hoveredMonthData.net) }}</p>
+                  <p class="text-success">{{ t('reports.incomeExpense.tooltipIncome', { amount: formatMoney(hoveredMonthData.income) }) }}</p>
+                  <p class="text-danger">{{ t('reports.incomeExpense.tooltipExpense', { amount: formatMoney(hoveredMonthData.expense) }) }}</p>
+                  <p class="text-primary">{{ t('reports.incomeExpense.tooltipNet', { amount: formatMoney(hoveredMonthData.net) }) }}</p>
                 </div>
               </div>
 
               <details class="mt-4 text-sm">
-                <summary class="cursor-pointer font-semibold text-primary">View data table</summary>
+                <summary class="cursor-pointer font-semibold text-primary">{{ t('reports.dataTable.toggle') }}</summary>
                 <div class="mt-3 overflow-x-auto">
                   <table class="w-full min-w-[480px] text-left text-sm">
                     <thead class="border-b border-line">
                       <tr>
-                        <th class="data-th">Month</th>
-                        <th class="data-th text-right">Income</th>
-                        <th class="data-th text-right">Expense</th>
-                        <th class="data-th text-right">Net</th>
-                        <th class="data-th text-right">Net worth</th>
+                        <th class="data-th">{{ t('reports.dataTable.month') }}</th>
+                        <th class="data-th text-right">{{ t('reports.dataTable.income') }}</th>
+                        <th class="data-th text-right">{{ t('reports.dataTable.expense') }}</th>
+                        <th class="data-th text-right">{{ t('reports.dataTable.net') }}</th>
+                        <th class="data-th text-right">{{ t('reports.dataTable.netWorth') }}</th>
                       </tr>
                     </thead>
                     <tbody class="divide-y divide-line">
@@ -344,9 +347,9 @@ const topCategories = computed(() =>
           <div class="grid gap-6 lg:grid-cols-2">
             <!-- Net worth trend -->
             <AppCard>
-              <h2 class="mb-4 font-display text-sm font-bold text-content">Net Worth Trend</h2>
+              <h2 class="mb-4 font-display text-sm font-bold text-content">{{ t('reports.netWorth.title') }}</h2>
 
-              <p v-if="nwPoints.length === 0" class="py-10 text-center text-sm text-muted">No data for this range</p>
+              <p v-if="nwPoints.length === 0" class="py-10 text-center text-sm text-muted">{{ t('reports.netWorth.empty') }}</p>
 
               <div v-else class="relative" @mouseleave="hoveredNetWorthMonth = null">
                 <svg :viewBox="`0 0 ${NW_W} ${NW_H}`" class="w-full" preserveAspectRatio="none" style="height: 160px">
@@ -373,17 +376,17 @@ const topCategories = computed(() =>
                   class="pointer-events-none absolute left-1/2 top-2 -translate-x-1/2 rounded-lg border border-line bg-surface px-3 py-2 text-xs shadow-elevated"
                 >
                   <p class="font-display font-bold text-content">{{ monthLabel(hoveredNetWorthData.month) }}</p>
-                  <p class="text-content">Balance: {{ formatMoney(hoveredNetWorthData.balance) }}</p>
+                  <p class="text-content">{{ t('reports.netWorth.tooltipBalance', { amount: formatMoney(hoveredNetWorthData.balance) }) }}</p>
                 </div>
               </div>
             </AppCard>
 
             <!-- Top categories -->
             <AppCard>
-              <h2 class="mb-4 font-display text-sm font-bold text-content">Top Categories</h2>
+              <h2 class="mb-4 font-display text-sm font-bold text-content">{{ t('reports.topCategories.title') }}</h2>
 
               <p v-if="topCategories.length === 0" class="py-10 text-center text-sm text-muted">
-                No expenses recorded in this range
+                {{ t('reports.topCategories.empty') }}
               </p>
 
               <div v-else class="space-y-3">

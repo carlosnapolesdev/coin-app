@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed, ref, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import Sidebar from './Sidebar.vue'
+import { formatCurrency } from '../../utils/format'
 import { accountsApi, type AccountDetail } from '../../services/accounts'
 import {
   goalsApi,
@@ -22,6 +24,8 @@ import {
 } from '../ui'
 
 type FormMode = 'create' | 'edit'
+
+const { t } = useI18n()
 
 const goals = ref<GoalDetail[]>([])
 const accounts = ref<AccountDetail[]>([])
@@ -47,8 +51,7 @@ const contributionAmount = ref('')
 const isContributing = ref(false)
 const contributionError = ref('')
 
-const formatMoney = (amount: number): string =>
-  amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+const formatMoney = formatCurrency
 
 const barClass = (goal: GoalDetail): string => {
   if (goal.isAchieved) return 'bg-success'
@@ -63,7 +66,7 @@ const loadGoals = async () => {
     const { data } = await goalsApi.list()
     goals.value = data
   } catch (e) {
-    error.value = 'Failed to load savings goals'
+    error.value = t('goals.loadError')
     console.error(e)
   } finally {
     isLoading.value = false
@@ -133,7 +136,7 @@ const saveGoal = async () => {
     }
     closeModal()
   } catch (e) {
-    formError.value = 'Failed to save goal. Please try again.'
+    formError.value = t('goals.saveError')
     console.error(e)
   } finally {
     isSaving.value = false
@@ -188,7 +191,7 @@ const saveContribution = async () => {
     if (idx !== -1) goals.value[idx] = data
     closeContributeModal()
   } catch (e) {
-    contributionError.value = 'Failed to add contribution. Please try again.'
+    contributionError.value = t('goals.contribute.error')
     console.error(e)
   } finally {
     isContributing.value = false
@@ -206,11 +209,11 @@ onMounted(() => {
     <Sidebar />
 
     <main class="flex-1 overflow-y-auto">
-      <PageHeader title="Savings Goals" subtitle="Set a target amount and track your progress toward it." />
+      <PageHeader :title="t('goals.pageTitle')" :subtitle="t('goals.pageSubtitle')" />
 
       <PageContainer>
         <div class="flex items-center justify-end">
-          <AppButton icon="add" @click="openCreateModal">New goal</AppButton>
+          <AppButton icon="add" @click="openCreateModal">{{ t('goals.newButton') }}</AppButton>
         </div>
 
         <div v-if="isLoading" class="flex justify-center py-16 text-primary">
@@ -220,13 +223,13 @@ onMounted(() => {
         <div v-else-if="error" class="flex flex-col items-center gap-2 py-16 text-center">
           <span class="material-symbols-outlined text-3xl text-danger">error</span>
           <p class="text-sm text-danger">{{ error }}</p>
-          <AppButton variant="secondary" size="sm" @click="loadGoals">Retry</AppButton>
+          <AppButton variant="secondary" size="sm" @click="loadGoals">{{ t('common.retry') }}</AppButton>
         </div>
 
         <div v-else-if="goals.length === 0" class="surface-card flex flex-col items-center gap-3 py-16 text-center">
           <span class="material-symbols-outlined text-4xl text-faint">flag</span>
-          <p class="text-sm text-muted">No savings goals yet. Create one to start tracking your progress.</p>
-          <AppButton icon="add" @click="openCreateModal">New goal</AppButton>
+          <p class="text-sm text-muted">{{ t('goals.empty') }}</p>
+          <AppButton icon="add" @click="openCreateModal">{{ t('goals.newButton') }}</AppButton>
         </div>
 
         <div v-else class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -235,18 +238,18 @@ onMounted(() => {
               <div class="min-w-0">
                 <p class="truncate text-sm font-semibold text-content">{{ goal.name }}</p>
                 <p class="mt-0.5 text-xs text-muted">
-                  {{ goal.accountName ? `Linked to ${goal.accountName}` : 'Manual contributions' }}
+                  {{ goal.accountName ? t('goals.linkedTo', { account: goal.accountName }) : t('goals.manualContributions') }}
                 </p>
               </div>
               <div class="flex shrink-0 items-center gap-1">
-                <AppIconButton icon="edit" size="sm" aria-label="Edit goal" @click="openEditModal(goal)" />
-                <AppIconButton icon="delete" variant="danger" size="sm" aria-label="Delete goal" @click="requestDelete(goal.id)" />
+                <AppIconButton icon="edit" size="sm" :aria-label="t('goals.editAria')" @click="openEditModal(goal)" />
+                <AppIconButton icon="delete" variant="danger" size="sm" :aria-label="t('goals.deleteAria')" @click="requestDelete(goal.id)" />
               </div>
             </div>
 
             <div class="mt-4 flex items-baseline justify-between gap-2">
               <span class="text-lg font-bold text-content">{{ formatMoney(goal.currentAmount) }}</span>
-              <span class="text-sm text-muted">of {{ formatMoney(goal.targetAmount) }}</span>
+              <span class="text-sm text-muted">{{ t('goals.ofAmount', { amount: formatMoney(goal.targetAmount) }) }}</span>
             </div>
 
             <div class="mt-2 h-2 w-full overflow-hidden rounded-full bg-surface-2">
@@ -258,12 +261,12 @@ onMounted(() => {
             </div>
 
             <div class="mt-2 flex items-center justify-between text-xs">
-              <span class="font-semibold text-muted">{{ goal.percentComplete }}% complete</span>
-              <AppBadge v-if="goal.isAchieved" variant="success" icon="check_circle">Achieved</AppBadge>
-              <span v-else class="text-muted">{{ formatMoney(goal.remaining) }} left</span>
+              <span class="font-semibold text-muted">{{ t('goals.percentComplete', { percent: goal.percentComplete }) }}</span>
+              <AppBadge v-if="goal.isAchieved" variant="success" icon="check_circle">{{ t('goals.achieved') }}</AppBadge>
+              <span v-else class="text-muted">{{ t('goals.remainingLeft', { amount: formatMoney(goal.remaining) }) }}</span>
             </div>
 
-            <p v-if="goal.targetDate" class="mt-2 text-xs text-muted">Target date: {{ goal.targetDate }}</p>
+            <p v-if="goal.targetDate" class="mt-2 text-xs text-muted">{{ t('goals.targetDate', { date: goal.targetDate }) }}</p>
 
             <AppButton
               v-if="!goal.accountId && !goal.isAchieved"
@@ -273,7 +276,7 @@ onMounted(() => {
               class="mt-4 w-full"
               @click="openContributeModal(goal)"
             >
-              Add contribution
+              {{ t('goals.addContribution') }}
             </AppButton>
           </AppCard>
         </div>
@@ -282,7 +285,7 @@ onMounted(() => {
 
     <AppModal
       :is-open="isModalOpen"
-      :title="formMode === 'create' ? 'New Goal' : 'Edit Goal'"
+      :title="formMode === 'create' ? t('goals.modal.titleCreate') : t('goals.modal.titleEdit')"
       icon="flag"
       size="sm"
       @close="closeModal"
@@ -293,16 +296,16 @@ onMounted(() => {
         </div>
 
         <AppInput
-          label="Name"
+          :label="t('goals.modal.nameLabel')"
           icon="flag"
-          placeholder="e.g. Emergency fund"
+          :placeholder="t('goals.modal.namePlaceholder')"
           :model-value="formName"
           :disabled="isSaving"
           @update:model-value="(v) => (formName = v)"
         />
 
         <AppInput
-          label="Target amount"
+          :label="t('goals.modal.targetAmountLabel')"
           icon="attach_money"
           type="number"
           placeholder="0.00"
@@ -312,7 +315,7 @@ onMounted(() => {
         />
 
         <AppInput
-          label="Target date (optional)"
+          :label="t('goals.modal.targetDateLabel')"
           icon="event"
           type="date"
           :model-value="formTargetDate"
@@ -321,27 +324,27 @@ onMounted(() => {
         />
 
         <AppSelect
-          label="Linked account (optional)"
+          :label="t('goals.modal.linkedAccountLabel')"
           :model-value="formAccountId ?? ''"
           :disabled="isSaving"
           @update:model-value="(v) => (formAccountId = v ? Number(v) : null)"
         >
-          <option :value="null">No linked account (manual contributions)</option>
+          <option :value="null">{{ t('goals.modal.noLinkedAccount') }}</option>
           <option v-for="acc in accounts" :key="acc.id" :value="acc.id">{{ acc.name }}</option>
         </AppSelect>
       </form>
 
       <template #footer>
-        <AppButton variant="ghost" :disabled="isSaving" @click="closeModal">Cancel</AppButton>
+        <AppButton variant="ghost" :disabled="isSaving" @click="closeModal">{{ t('common.cancel') }}</AppButton>
         <AppButton type="submit" form="goal-form" :loading="isSaving" :disabled="isSaveDisabled">
-          {{ formMode === 'create' ? 'Create Goal' : 'Save Changes' }}
+          {{ formMode === 'create' ? t('goals.modal.createButton') : t('goals.modal.updateButton') }}
         </AppButton>
       </template>
     </AppModal>
 
     <AppModal
       :is-open="isContributeModalOpen"
-      title="Add contribution"
+      :title="t('goals.contribute.title')"
       icon="savings"
       size="sm"
       @close="closeContributeModal"
@@ -352,11 +355,11 @@ onMounted(() => {
         </div>
 
         <p v-if="contributingGoal" class="text-sm text-muted">
-          Current progress: {{ formatMoney(contributingGoal.currentAmount) }} of {{ formatMoney(contributingGoal.targetAmount) }}
+          {{ t('goals.contribute.currentProgress', { current: formatMoney(contributingGoal.currentAmount), target: formatMoney(contributingGoal.targetAmount) }) }}
         </p>
 
         <AppInput
-          label="Contribution amount"
+          :label="t('goals.contribute.amountLabel')"
           icon="attach_money"
           type="number"
           placeholder="0.00"
@@ -367,17 +370,17 @@ onMounted(() => {
       </form>
 
       <template #footer>
-        <AppButton variant="ghost" :disabled="isContributing" @click="closeContributeModal">Cancel</AppButton>
+        <AppButton variant="ghost" :disabled="isContributing" @click="closeContributeModal">{{ t('common.cancel') }}</AppButton>
         <AppButton type="submit" form="contribution-form" :loading="isContributing" :disabled="isContributeDisabled">
-          Add contribution
+          {{ t('goals.addContribution') }}
         </AppButton>
       </template>
     </AppModal>
 
     <ConfirmDialog
       :is-open="confirmDeleteId !== null"
-      title="Delete goal?"
-      message="This savings goal will be removed."
+      :title="t('goals.deleteDialog.title')"
+      :message="t('goals.deleteDialog.message')"
       :loading="isDeleting"
       @confirm="confirmDelete"
       @cancel="confirmDeleteId = null"

@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import api from '../../services/api'
 import { AppButton, AppModal, AppSpinner } from '../ui'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   isOpen: boolean
@@ -32,7 +35,7 @@ const fetchCurrencies = async () => {
     const response = await api.get<Currency[]>('/currencies')
     currencies.value = response.data
   } catch (e) {
-    error.value = 'Failed to load currencies'
+    error.value = t('currencyModal.loadError')
     console.error(e)
   } finally {
     isLoading.value = false
@@ -73,7 +76,7 @@ const handleOk = () => {
 </script>
 
 <template>
-  <AppModal :is-open="isOpen" title="Select Currency" icon="payments" size="sm" @close="emit('close')">
+  <AppModal :is-open="isOpen" :title="t('currencyModal.title')" icon="payments" size="sm" @close="emit('close')">
     <div class="space-y-4 p-6">
       <!-- Search -->
       <div class="relative">
@@ -81,7 +84,7 @@ const handleOk = () => {
         <input
           v-model="searchQuery"
           type="text"
-          placeholder="Search currency..."
+          :placeholder="t('currencyModal.searchPlaceholder')"
           class="field-input pl-11"
         />
       </div>
@@ -95,7 +98,7 @@ const handleOk = () => {
       <div v-else-if="error" class="flex flex-col items-center justify-center py-12 text-center">
         <span class="material-symbols-outlined mb-2 text-4xl text-danger">error</span>
         <p class="font-medium text-danger">{{ error }}</p>
-        <AppButton class="mt-4" variant="secondary" size="sm" @click="fetchCurrencies">Retry</AppButton>
+        <AppButton class="mt-4" variant="secondary" size="sm" @click="fetchCurrencies">{{ t('common.retry') }}</AppButton>
       </div>
 
       <!-- Currency List -->
@@ -130,8 +133,8 @@ const handleOk = () => {
     </div>
 
     <template #footer>
-      <AppButton variant="secondary" @click="emit('close')">Cancel</AppButton>
-      <AppButton @click="handleOk">Done</AppButton>
+      <AppButton variant="secondary" @click="emit('close')">{{ t('common.cancel') }}</AppButton>
+      <AppButton @click="handleOk">{{ t('currencyModal.done') }}</AppButton>
     </template>
   </AppModal>
 </template>

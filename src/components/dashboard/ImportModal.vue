@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { AppButton, AppModal } from '../ui'
 import { type ColumnMapping, type ImportRow, transactionsApi } from '../../services/transactions'
+
+const { t } = useI18n()
 
 const props = defineProps<{ isOpen: boolean }>()
 
@@ -12,17 +15,17 @@ const emit = defineEmits<{
 
 type WizardStep = 'upload' | 'preview' | 'done'
 
-const MAPPING_FIELDS: { key: keyof ColumnMapping; label: string; required: boolean }[] = [
-  { key: 'date', label: 'Date', required: true },
-  { key: 'account', label: 'Account', required: true },
-  { key: 'type', label: 'Type', required: true },
-  { key: 'amount', label: 'Amount', required: true },
-  { key: 'category', label: 'Category', required: false },
-  { key: 'payee', label: 'Payee', required: false },
-  { key: 'paymentMethod', label: 'Payment Method', required: false },
-  { key: 'status', label: 'Status', required: false },
-  { key: 'tags', label: 'Tags', required: false },
-  { key: 'memo', label: 'Memo', required: false },
+const MAPPING_FIELDS: { key: keyof ColumnMapping; required: boolean }[] = [
+  { key: 'date', required: true },
+  { key: 'account', required: true },
+  { key: 'type', required: true },
+  { key: 'amount', required: true },
+  { key: 'category', required: false },
+  { key: 'payee', required: false },
+  { key: 'paymentMethod', required: false },
+  { key: 'status', required: false },
+  { key: 'tags', required: false },
+  { key: 'memo', required: false },
 ]
 
 const step = ref<WizardStep>('upload')
@@ -90,7 +93,7 @@ const onFileChange = async (event: Event) => {
     csvHeaders.value = await readHeaders(file)
     mapping.value = autodetectMapping(csvHeaders.value)
   } catch {
-    error.value = 'Could not read the selected file.'
+    error.value = t('importModal.readError')
   }
 }
 
@@ -103,7 +106,7 @@ const runPreview = async () => {
     previewRows.value = res.data.rows
     step.value = 'preview'
   } catch {
-    error.value = 'Could not preview this file. Check the column mapping and try again.'
+    error.value = t('importModal.previewError')
   } finally {
     isLoading.value = false
   }
@@ -119,7 +122,7 @@ const confirmImport = async () => {
     step.value = 'done'
     emit('imported')
   } catch {
-    error.value = 'Could not import the transactions. Please try again.'
+    error.value = t('importModal.importError')
   } finally {
     isCommitting.value = false
   }
@@ -131,7 +134,7 @@ const handleClose = () => {
 </script>
 
 <template>
-  <AppModal :is-open="isOpen" title="Import Transactions" icon="upload_file" size="lg" @close="handleClose">
+  <AppModal :is-open="isOpen" :title="t('importModal.title')" icon="upload_file" size="lg" @close="handleClose">
     <div class="space-y-6 p-6 lg:p-8">
       <div v-if="error" class="rounded-xl border border-danger/30 bg-danger/10 p-4 text-sm font-medium text-danger">
         {{ error }}
@@ -140,7 +143,7 @@ const handleClose = () => {
       <!-- Step 1: Upload + column mapping -->
       <template v-if="step === 'upload'">
         <div>
-          <label class="field-label">CSV file</label>
+          <label class="field-label">{{ t('importModal.csvFileLabel') }}</label>
           <input
             type="file"
             accept=".csv,text/csv"
@@ -150,12 +153,12 @@ const handleClose = () => {
         </div>
 
         <div v-if="csvHeaders.length > 0">
-          <p class="mb-3 text-sm font-semibold text-content">Map columns</p>
+          <p class="mb-3 text-sm font-semibold text-content">{{ t('importModal.mapColumns') }}</p>
           <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div v-for="field in MAPPING_FIELDS" :key="field.key">
-              <label class="field-label">{{ field.label }}<span v-if="field.required" class="text-danger"> *</span></label>
+              <label class="field-label">{{ t(`importModal.fields.${field.key}`) }}<span v-if="field.required" class="text-danger"> *</span></label>
               <select v-model="mapping[field.key]" class="field-input">
-                <option :value="undefined">(not mapped)</option>
+                <option :value="undefined">{{ t('importModal.notMapped') }}</option>
                 <option v-for="header in csvHeaders" :key="header" :value="header">{{ header }}</option>
               </select>
             </div>
@@ -166,20 +169,20 @@ const handleClose = () => {
       <!-- Step 2: Preview -->
       <template v-else-if="step === 'preview'">
         <p class="text-sm text-muted">
-          {{ validRows.length }} of {{ previewRows.length }} row{{ previewRows.length === 1 ? '' : 's' }} are valid and will be imported.
+          {{ t('importModal.previewSummary', { valid: validRows.length, total: previewRows.length }, previewRows.length) }}
         </p>
         <div class="max-h-96 overflow-auto rounded-xl border border-line">
           <table class="w-full min-w-[720px] text-sm">
             <thead>
               <tr class="border-b border-line bg-surface-2/50">
-                <th class="data-th">Line</th>
-                <th class="data-th">Date</th>
-                <th class="data-th">Account</th>
-                <th class="data-th">Category</th>
-                <th class="data-th">Type</th>
-                <th class="data-th text-right">Amount</th>
-                <th class="data-th">Payee</th>
-                <th class="data-th">Status / Errors</th>
+                <th class="data-th">{{ t('importModal.table.line') }}</th>
+                <th class="data-th">{{ t('importModal.table.date') }}</th>
+                <th class="data-th">{{ t('importModal.table.account') }}</th>
+                <th class="data-th">{{ t('importModal.table.category') }}</th>
+                <th class="data-th">{{ t('importModal.table.type') }}</th>
+                <th class="data-th text-right">{{ t('importModal.table.amount') }}</th>
+                <th class="data-th">{{ t('importModal.table.payee') }}</th>
+                <th class="data-th">{{ t('importModal.table.statusErrors') }}</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-line">
@@ -192,7 +195,7 @@ const handleClose = () => {
                 <td class="px-3 py-2 text-right tabular-nums">{{ row.amount ?? '—' }}</td>
                 <td class="px-3 py-2">{{ row.payee ?? '—' }}</td>
                 <td class="px-3 py-2">
-                  <span v-if="row.valid" class="text-success">Valid</span>
+                  <span v-if="row.valid" class="text-success">{{ t('importModal.rowValid') }}</span>
                   <span v-else class="text-danger">{{ row.errors.join('; ') }}</span>
                 </td>
               </tr>
@@ -205,34 +208,34 @@ const handleClose = () => {
       <template v-else-if="step === 'done'">
         <div class="flex flex-col items-center justify-center py-10 text-center">
           <span class="material-symbols-outlined mb-4 text-5xl text-success">check_circle</span>
-          <p class="font-semibold text-content">{{ createdCount }} transaction{{ createdCount === 1 ? '' : 's' }} imported</p>
+          <p class="font-semibold text-content">{{ t('importModal.doneSummary', createdCount) }}</p>
         </div>
       </template>
     </div>
 
     <template #footer>
       <template v-if="step === 'upload'">
-        <AppButton variant="ghost" @click="handleClose">Cancel</AppButton>
+        <AppButton variant="ghost" @click="handleClose">{{ t('common.cancel') }}</AppButton>
         <AppButton
           :loading="isLoading"
           :disabled="!selectedFile || !requiredFieldsMapped"
           @click="runPreview"
         >
-          Preview
+          {{ t('importModal.preview') }}
         </AppButton>
       </template>
       <template v-else-if="step === 'preview'">
-        <AppButton variant="ghost" :disabled="isCommitting" @click="step = 'upload'">Back</AppButton>
+        <AppButton variant="ghost" :disabled="isCommitting" @click="step = 'upload'">{{ t('importModal.back') }}</AppButton>
         <AppButton
           :loading="isCommitting"
           :disabled="validRows.length === 0"
           @click="confirmImport"
         >
-          Import {{ validRows.length }} row{{ validRows.length === 1 ? '' : 's' }}
+          {{ t('importModal.importButton', validRows.length) }}
         </AppButton>
       </template>
       <template v-else>
-        <AppButton @click="handleClose">Close</AppButton>
+        <AppButton @click="handleClose">{{ t('common.close') }}</AppButton>
       </template>
     </template>
   </AppModal>

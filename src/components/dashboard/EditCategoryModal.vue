@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import api from '../../services/api'
 import iconVersions from '@material-symbols/metadata/versions.json'
 import { AppButton, AppModal } from '../ui'
+
+const { t } = useI18n()
 
 type FlowType = 'expense' | 'income'
 type FormMode = 'create' | 'edit'
@@ -120,7 +123,7 @@ const handleSave = async () => {
       })
     } else {
       if (!props.categoryId) {
-        error.value = 'Invalid category selected.'
+        error.value = t('categoryModal.invalidCategory')
         return
       }
 
@@ -141,8 +144,8 @@ const handleSave = async () => {
     handleClose()
   } catch (e) {
     error.value = isCreateMode.value
-      ? 'Failed to create category. Please try again.'
-      : 'Failed to update category. Please try again.'
+      ? t('categoryModal.createError')
+      : t('categoryModal.updateError')
     console.error(e)
   } finally {
     isLoading.value = false
@@ -153,10 +156,10 @@ const handleSave = async () => {
 <template>
   <AppModal
     :is-open="isOpen"
-    :title="isCreateMode ? 'New category' : (isSubcategory ? 'Edit subcategory' : 'Edit category')"
+    :title="isCreateMode ? t('categoryModal.titleCreate') : (isSubcategory ? t('categoryModal.titleEditSubcategory') : t('categoryModal.titleEditCategory'))"
     :subtitle="isCreateMode
-      ? 'Create a category with a type and icon to keep your dashboard consistent.'
-      : `Update the name and icon for this ${isSubcategory ? 'subcategory' : 'category'}.`"
+      ? t('categoryModal.subtitleCreate')
+      : (isSubcategory ? t('categoryModal.subtitleEditSubcategory') : t('categoryModal.subtitleEditCategory'))"
     icon="category"
     size="lg"
     @close="handleClose"
@@ -170,44 +173,42 @@ const handleSave = async () => {
         <!-- Left -->
         <div class="space-y-5">
           <div>
-            <label class="field-label">Name</label>
+            <label class="field-label">{{ t('categoryModal.nameLabel') }}</label>
             <div class="relative">
               <span class="material-symbols-outlined pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[20px] text-faint">label</span>
               <input
                 v-model="editName"
                 type="text"
-                placeholder="Enter category name"
+                :placeholder="t('categoryModal.namePlaceholder')"
                 class="field-input pl-11"
                 :disabled="isLoading"
               />
             </div>
-            <p v-if="editName.trim().length === 0" class="mt-1.5 text-xs text-muted">Name is required</p>
+            <p v-if="editName.trim().length === 0" class="mt-1.5 text-xs text-muted">{{ t('categoryModal.nameRequired') }}</p>
           </div>
 
           <div v-if="isCreateMode">
-            <label class="field-label">Flow type</label>
+            <label class="field-label">{{ t('categoryModal.flowTypeLabel') }}</label>
             <select v-model="selectedFlow" class="field-input" :disabled="isLoading">
-              <option value="expense">Expense</option>
-              <option value="income">Income</option>
+              <option value="expense">{{ t('categoryModal.flowExpense') }}</option>
+              <option value="income">{{ t('categoryModal.flowIncome') }}</option>
             </select>
           </div>
 
           <div class="rounded-xl border border-primary/15 bg-primary/5 p-4 text-sm text-muted">
-            {{ isCreateMode
-              ? 'Top-level categories help with clean reporting. Use subcategories for details inside the same group.'
-              : 'Changes are applied immediately after saving and reflected in the current list.' }}
+            {{ isCreateMode ? t('categoryModal.tipCreate') : t('categoryModal.tipEdit') }}
           </div>
         </div>
 
         <!-- Icon picker -->
         <div class="space-y-3">
-          <label class="field-label">Icon</label>
+          <label class="field-label">{{ t('categoryModal.iconLabel') }}</label>
           <div class="relative">
             <span class="material-symbols-outlined pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[20px] text-faint">search</span>
             <input
               v-model="iconSearch"
               type="text"
-              placeholder="Search icon"
+              :placeholder="t('categoryModal.iconSearchPlaceholder')"
               class="field-input pl-11"
               :disabled="isLoading"
               @input="visibleIconLimit = 180"
@@ -233,12 +234,12 @@ const handleSave = async () => {
 
             <div v-if="hasMoreIcons" class="mt-4 flex justify-center">
               <AppButton variant="secondary" size="sm" :disabled="isLoading" @click="loadMoreIcons">
-                Load more icons ({{ filteredIconOptions.length - displayedIconOptions.length }} remaining)
+                {{ t('categoryModal.loadMoreIcons', { count: filteredIconOptions.length - displayedIconOptions.length }) }}
               </AppButton>
             </div>
 
             <div v-if="filteredIconOptions.length === 0" class="py-10 text-center text-sm text-muted">
-              No icons found for "{{ iconSearch }}"
+              {{ t('categoryModal.noIcons', { query: iconSearch }) }}
             </div>
           </div>
         </div>
@@ -246,9 +247,9 @@ const handleSave = async () => {
     </div>
 
     <template #footer>
-      <AppButton variant="secondary" :disabled="isLoading" @click="handleClose">Cancel</AppButton>
+      <AppButton variant="secondary" :disabled="isLoading" @click="handleClose">{{ t('common.cancel') }}</AppButton>
       <AppButton :loading="isLoading" :disabled="isSaveDisabled" @click="handleSave">
-        {{ isCreateMode ? 'Save category' : 'Save changes' }}
+        {{ isCreateMode ? t('categoryModal.saveCreate') : t('categoryModal.saveEdit') }}
       </AppButton>
     </template>
   </AppModal>

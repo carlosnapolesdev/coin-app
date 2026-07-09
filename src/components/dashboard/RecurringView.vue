@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { computed, ref, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import Sidebar from './Sidebar.vue'
 import api from '../../services/api'
+import { formatCurrency } from '../../utils/format'
 import { type AccountDetail, accountsApi } from '../../services/accounts'
 import {
   type CreateRecurringPayload,
@@ -38,6 +40,8 @@ interface FlatCategory {
 }
 
 type FormMode = 'create' | 'edit'
+
+const { t } = useI18n()
 
 const templates = ref<RecurringDetail[]>([])
 const accounts = ref<AccountDetail[]>([])
@@ -92,12 +96,11 @@ function buildFlatCategories(type: 'EXPENSE' | 'INCOME'): FlatCategory[] {
 const destinationAccounts = computed(() => accounts.value.filter((acc) => acc.id !== accountId.value))
 
 const frequencyLabel = (freq: RecurrenceFrequency, n: number): string => {
-  const unit = { DAILY: 'day', WEEKLY: 'week', MONTHLY: 'month', YEARLY: 'year' }[freq]
-  return n === 1 ? `Every ${unit}` : `Every ${n} ${unit}s`
+  const key = freq.toLowerCase() as 'daily' | 'weekly' | 'monthly' | 'yearly'
+  return t(`recurring.frequency.${key}`, n)
 }
 
-const formatMoney = (n: number): string =>
-  n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+const formatMoney = formatCurrency
 
 const isSaveDisabled = computed(() => {
   const amt = parseFloat(amount.value)
@@ -113,7 +116,7 @@ const loadTemplates = async () => {
     const { data } = await recurringApi.list()
     templates.value = data
   } catch (e) {
-    error.value = 'Failed to load recurring transactions'
+    error.value = t('recurring.loadError')
     console.error(e)
   } finally {
     isLoading.value = false
@@ -156,21 +159,21 @@ const openCreateModal = () => {
   isModalOpen.value = true
 }
 
-const openEditModal = (t: RecurringDetail) => {
+const openEditModal = (tpl: RecurringDetail) => {
   formMode.value = 'edit'
-  editingId.value = t.id
-  selectedType.value = t.type
-  accountId.value = t.accountId
-  destinationAccountId.value = t.destinationAccountId
-  categoryId.value = t.categoryId
-  amount.value = String(t.amount)
-  frequency.value = t.frequency
-  interval.value = String(t.interval)
-  startDate.value = t.nextRunDate
-  endDate.value = t.endDate ?? ''
-  payee.value = t.payee ?? ''
-  memo.value = t.memo ?? ''
-  tags.value = t.tags ?? ''
+  editingId.value = tpl.id
+  selectedType.value = tpl.type
+  accountId.value = tpl.accountId
+  destinationAccountId.value = tpl.destinationAccountId
+  categoryId.value = tpl.categoryId
+  amount.value = String(tpl.amount)
+  frequency.value = tpl.frequency
+  interval.value = String(tpl.interval)
+  startDate.value = tpl.nextRunDate
+  endDate.value = tpl.endDate ?? ''
+  payee.value = tpl.payee ?? ''
+  memo.value = tpl.memo ?? ''
+  tags.value = tpl.tags ?? ''
   formError.value = ''
   isModalOpen.value = true
 }
@@ -212,7 +215,7 @@ const saveTemplate = async () => {
     }
     closeModal()
   } catch (e) {
-    formError.value = 'Failed to save recurring transaction. Please try again.'
+    formError.value = t('recurring.saveError')
     console.error(e)
   } finally {
     isSaving.value = false
@@ -271,11 +274,11 @@ onMounted(() => {
     <Sidebar />
 
     <main class="flex-1 overflow-y-auto">
-      <PageHeader title="Recurring" subtitle="Automate transactions that repeat on a schedule, like rent or subscriptions." />
+      <PageHeader :title="t('recurring.pageTitle')" :subtitle="t('recurring.pageSubtitle')" />
 
       <PageContainer>
         <div class="flex items-center justify-end">
-          <AppButton icon="add" @click="openCreateModal">New recurring</AppButton>
+          <AppButton icon="add" @click="openCreateModal">{{ t('recurring.newButton') }}</AppButton>
         </div>
 
         <div v-if="isLoading" class="flex justify-center py-16 text-primary">
@@ -285,43 +288,43 @@ onMounted(() => {
         <div v-else-if="error" class="flex flex-col items-center gap-2 py-16 text-center">
           <span class="material-symbols-outlined text-3xl text-danger">error</span>
           <p class="text-sm text-danger">{{ error }}</p>
-          <AppButton variant="secondary" size="sm" @click="loadTemplates">Retry</AppButton>
+          <AppButton variant="secondary" size="sm" @click="loadTemplates">{{ t('common.retry') }}</AppButton>
         </div>
 
         <div v-else-if="templates.length === 0" class="surface-card flex flex-col items-center gap-3 py-16 text-center">
           <span class="material-symbols-outlined text-4xl text-faint">event_repeat</span>
-          <p class="text-sm text-muted">No recurring transactions yet. Create one for your salary, rent, or subscriptions.</p>
-          <AppButton icon="add" @click="openCreateModal">New recurring</AppButton>
+          <p class="text-sm text-muted">{{ t('recurring.empty') }}</p>
+          <AppButton icon="add" @click="openCreateModal">{{ t('recurring.newButton') }}</AppButton>
         </div>
 
         <div v-else class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          <AppCard v-for="t in templates" :key="t.id">
+          <AppCard v-for="tpl in templates" :key="tpl.id">
             <div class="flex items-start justify-between gap-3">
               <div class="min-w-0">
-                <p class="truncate text-sm font-semibold text-content">{{ t.payee || t.categoryName || 'Recurring transaction' }}</p>
+                <p class="truncate text-sm font-semibold text-content">{{ tpl.payee || tpl.categoryName || t('recurring.fallbackName') }}</p>
                 <p class="mt-0.5 truncate text-xs text-muted">
-                  {{ t.accountName }}<span v-if="t.destinationAccountName"> › {{ t.destinationAccountName }}</span>
+                  {{ tpl.accountName }}<span v-if="tpl.destinationAccountName"> › {{ tpl.destinationAccountName }}</span>
                 </p>
               </div>
               <div class="flex shrink-0 items-center gap-1">
-                <AppIconButton icon="edit" size="sm" aria-label="Edit recurring transaction" @click="openEditModal(t)" />
-                <AppIconButton icon="delete" variant="danger" size="sm" aria-label="Delete recurring transaction" @click="requestDelete(t.id)" />
+                <AppIconButton icon="edit" size="sm" :aria-label="t('recurring.editAria')" @click="openEditModal(tpl)" />
+                <AppIconButton icon="delete" variant="danger" size="sm" :aria-label="t('recurring.deleteAria')" @click="requestDelete(tpl.id)" />
               </div>
             </div>
 
             <div class="mt-4 flex items-baseline justify-between gap-2">
-              <span class="text-lg font-bold text-content">{{ formatMoney(t.amount) }}</span>
-              <AppBadge :variant="t.active ? 'success' : 'muted'">{{ t.active ? 'Active' : 'Paused' }}</AppBadge>
+              <span class="text-lg font-bold text-content">{{ formatMoney(tpl.amount) }}</span>
+              <AppBadge :variant="tpl.active ? 'success' : 'muted'">{{ tpl.active ? t('recurring.active') : t('recurring.paused') }}</AppBadge>
             </div>
 
             <div class="mt-2 flex items-center justify-between text-xs text-muted">
-              <span>{{ frequencyLabel(t.frequency, t.interval) }}</span>
-              <span>Next: {{ t.nextRunDate }}</span>
+              <span>{{ frequencyLabel(tpl.frequency, tpl.interval) }}</span>
+              <span>{{ t('recurring.nextRun', { date: tpl.nextRunDate }) }}</span>
             </div>
 
             <div class="mt-4 flex items-center gap-2">
-              <AppButton variant="secondary" size="sm" class="flex-1" :loading="runningId === t.id" @click="runNow(t)">Pay now</AppButton>
-              <AppButton variant="ghost" size="sm" class="flex-1" @click="toggleActive(t)">{{ t.active ? 'Pause' : 'Resume' }}</AppButton>
+              <AppButton variant="secondary" size="sm" class="flex-1" :loading="runningId === tpl.id" @click="runNow(tpl)">{{ t('recurring.payNow') }}</AppButton>
+              <AppButton variant="ghost" size="sm" class="flex-1" @click="toggleActive(tpl)">{{ tpl.active ? t('recurring.pause') : t('recurring.resume') }}</AppButton>
             </div>
           </AppCard>
         </div>
@@ -330,7 +333,7 @@ onMounted(() => {
 
     <AppModal
       :is-open="isModalOpen"
-      :title="formMode === 'create' ? 'New Recurring Transaction' : 'Edit Recurring Transaction'"
+      :title="formMode === 'create' ? t('recurring.modal.titleCreate') : t('recurring.modal.titleEdit')"
       icon="event_repeat"
       size="md"
       @close="closeModal"
@@ -342,21 +345,21 @@ onMounted(() => {
 
         <div class="flex gap-1 rounded-lg border border-line bg-surface-2 p-1">
           <button
-            v-for="t in (['EXPENSE', 'INCOME', 'TRANSFER'] as TransactionType[])"
-            :key="t"
+            v-for="opt in (['EXPENSE', 'INCOME', 'TRANSFER'] as TransactionType[])"
+            :key="opt"
             type="button"
             class="flex-1 rounded-md px-4 py-2.5 text-sm font-semibold transition-all"
-            :class="selectedType === t ? 'bg-surface text-primary shadow-sm' : 'text-muted hover:text-content'"
+            :class="selectedType === opt ? 'bg-surface text-primary shadow-sm' : 'text-muted hover:text-content'"
             :disabled="isSaving"
-            @click="selectedType = t; categoryId = null; if (t !== 'TRANSFER') destinationAccountId = null"
+            @click="selectedType = opt; categoryId = null; if (opt !== 'TRANSFER') destinationAccountId = null"
           >
-            {{ t.charAt(0) + t.slice(1).toLowerCase() }}
+            {{ t(`recurring.types.${opt.toLowerCase()}`) }}
           </button>
         </div>
 
         <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
           <div>
-            <label class="field-label">Amount</label>
+            <label class="field-label">{{ t('recurring.modal.amountLabel') }}</label>
             <div class="relative">
               <span class="material-symbols-outlined pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[20px] text-faint">attach_money</span>
               <input v-model="amount" type="number" step="0.01" min="0.01" placeholder="0.00" class="field-input pl-11 text-base font-bold" :disabled="isSaving" />
@@ -364,45 +367,45 @@ onMounted(() => {
           </div>
 
           <div>
-            <label class="field-label">{{ selectedType === 'TRANSFER' ? 'From Account' : 'Account' }}</label>
+            <label class="field-label">{{ selectedType === 'TRANSFER' ? t('recurring.modal.fromAccountLabel') : t('recurring.modal.accountLabel') }}</label>
             <select v-model="accountId" class="field-input" :disabled="isSaving">
               <option v-for="acc in accounts" :key="acc.id" :value="acc.id">{{ acc.name }}</option>
             </select>
           </div>
 
           <div v-if="selectedType === 'TRANSFER'">
-            <label class="field-label">To Account</label>
+            <label class="field-label">{{ t('recurring.modal.toAccountLabel') }}</label>
             <select v-model="destinationAccountId" class="field-input" :disabled="isSaving">
-              <option :value="null" disabled>Select destination account...</option>
+              <option :value="null" disabled>{{ t('recurring.modal.selectDestination') }}</option>
               <option v-for="acc in destinationAccounts" :key="acc.id" :value="acc.id">{{ acc.name }}</option>
             </select>
           </div>
 
           <div v-if="selectedType !== 'TRANSFER'">
-            <label class="field-label">Category</label>
+            <label class="field-label">{{ t('recurring.modal.categoryLabel') }}</label>
             <select v-model="categoryId" class="field-input" :disabled="isSaving">
-              <option :value="null">(none)</option>
+              <option :value="null">{{ t('recurring.modal.noneOption') }}</option>
               <option v-for="cat in filteredCategories" :key="cat.id" :value="cat.id">{{ cat.label }}</option>
             </select>
           </div>
 
           <div>
-            <label class="field-label">Frequency</label>
+            <label class="field-label">{{ t('recurring.modal.frequencyLabel') }}</label>
             <select v-model="frequency" class="field-input" :disabled="isSaving">
-              <option value="DAILY">Daily</option>
-              <option value="WEEKLY">Weekly</option>
-              <option value="MONTHLY">Monthly</option>
-              <option value="YEARLY">Yearly</option>
+              <option value="DAILY">{{ t('recurring.modal.freqDaily') }}</option>
+              <option value="WEEKLY">{{ t('recurring.modal.freqWeekly') }}</option>
+              <option value="MONTHLY">{{ t('recurring.modal.freqMonthly') }}</option>
+              <option value="YEARLY">{{ t('recurring.modal.freqYearly') }}</option>
             </select>
           </div>
 
           <div>
-            <label class="field-label">Every</label>
+            <label class="field-label">{{ t('recurring.modal.everyLabel') }}</label>
             <input v-model="interval" type="number" min="1" max="365" class="field-input" :disabled="isSaving" />
           </div>
 
           <div>
-            <label class="field-label">Start Date</label>
+            <label class="field-label">{{ t('recurring.modal.startDateLabel') }}</label>
             <div class="relative">
               <span class="material-symbols-outlined pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[20px] text-faint">calendar_today</span>
               <input v-model="startDate" type="date" class="field-input pl-11" :disabled="isSaving" />
@@ -410,7 +413,7 @@ onMounted(() => {
           </div>
 
           <div>
-            <label class="field-label">End Date (optional)</label>
+            <label class="field-label">{{ t('recurring.modal.endDateLabel') }}</label>
             <div class="relative">
               <span class="material-symbols-outlined pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[20px] text-faint">event_busy</span>
               <input v-model="endDate" type="date" class="field-input pl-11" :disabled="isSaving" />
@@ -418,33 +421,33 @@ onMounted(() => {
           </div>
 
           <div>
-            <label class="field-label">Payee / Entity</label>
-            <input v-model="payee" type="text" placeholder="Enter name..." class="field-input" :disabled="isSaving" />
+            <label class="field-label">{{ t('recurring.modal.payeeLabel') }}</label>
+            <input v-model="payee" type="text" :placeholder="t('recurring.modal.payeePlaceholder')" class="field-input" :disabled="isSaving" />
           </div>
         </div>
 
         <div>
-          <label class="field-label">Memo / Private Notes</label>
-          <textarea v-model="memo" placeholder="Describe this recurring transaction..." rows="2" class="field-input resize-none" :disabled="isSaving"></textarea>
+          <label class="field-label">{{ t('recurring.modal.memoLabel') }}</label>
+          <textarea v-model="memo" :placeholder="t('recurring.modal.memoPlaceholder')" rows="2" class="field-input resize-none" :disabled="isSaving"></textarea>
         </div>
         <div>
-          <label class="field-label">Tags</label>
-          <input v-model="tags" type="text" placeholder="Comma-separated tags..." class="field-input" :disabled="isSaving" />
+          <label class="field-label">{{ t('recurring.modal.tagsLabel') }}</label>
+          <input v-model="tags" type="text" :placeholder="t('recurring.modal.tagsPlaceholder')" class="field-input" :disabled="isSaving" />
         </div>
       </form>
 
       <template #footer>
-        <AppButton variant="ghost" :disabled="isSaving" @click="closeModal">Cancel</AppButton>
+        <AppButton variant="ghost" :disabled="isSaving" @click="closeModal">{{ t('common.cancel') }}</AppButton>
         <AppButton type="submit" form="recurring-form" :loading="isSaving" :disabled="isSaveDisabled">
-          {{ formMode === 'create' ? 'Create Recurring' : 'Save Changes' }}
+          {{ formMode === 'create' ? t('recurring.modal.createButton') : t('recurring.modal.updateButton') }}
         </AppButton>
       </template>
     </AppModal>
 
     <ConfirmDialog
       :is-open="confirmDeleteId !== null"
-      title="Delete recurring transaction?"
-      message="This template will be removed. Already-created transactions are not affected."
+      :title="t('recurring.deleteDialog.title')"
+      :message="t('recurring.deleteDialog.message')"
       :loading="isDeleting"
       @confirm="confirmDelete"
       @cancel="confirmDeleteId = null"

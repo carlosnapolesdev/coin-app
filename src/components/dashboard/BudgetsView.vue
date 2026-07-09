@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { computed, ref, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import Sidebar from './Sidebar.vue'
 import api from '../../services/api'
+import { formatCurrency } from '../../utils/format'
 import {
   budgetsApi,
   type BudgetDetail,
@@ -36,6 +38,8 @@ interface FlatCategory {
 }
 
 type FormMode = 'create' | 'edit'
+
+const { t } = useI18n()
 
 const budgets = ref<BudgetDetail[]>([])
 const allCategories = ref<BackendCategory[]>([])
@@ -83,8 +87,7 @@ const textClass = (percentUsed: number): string => {
   return 'text-success'
 }
 
-const formatMoney = (amount: number): string =>
-  amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+const formatMoney = formatCurrency
 
 const loadBudgets = async () => {
   isLoading.value = true
@@ -93,7 +96,7 @@ const loadBudgets = async () => {
     const { data } = await budgetsApi.list()
     budgets.value = data
   } catch (e) {
-    error.value = 'Failed to load budgets'
+    error.value = t('budgets.loadError')
     console.error(e)
   } finally {
     isLoading.value = false
@@ -154,7 +157,7 @@ const saveBudget = async () => {
     }
     closeModal()
   } catch (e) {
-    formError.value = 'Failed to save budget. Please try again.'
+    formError.value = t('budgets.saveError')
     console.error(e)
   } finally {
     isSaving.value = false
@@ -191,11 +194,11 @@ onMounted(() => {
     <Sidebar />
 
     <main class="flex-1 overflow-y-auto">
-      <PageHeader title="Budgets" subtitle="Set a monthly spending limit per category and track your progress." />
+      <PageHeader :title="t('budgets.pageTitle')" :subtitle="t('budgets.pageSubtitle')" />
 
       <PageContainer>
         <div class="flex items-center justify-end">
-          <AppButton icon="add" @click="openCreateModal">New budget</AppButton>
+          <AppButton icon="add" @click="openCreateModal">{{ t('budgets.newButton') }}</AppButton>
         </div>
 
         <div v-if="isLoading" class="flex justify-center py-16 text-primary">
@@ -205,31 +208,31 @@ onMounted(() => {
         <div v-else-if="error" class="flex flex-col items-center gap-2 py-16 text-center">
           <span class="material-symbols-outlined text-3xl text-danger">error</span>
           <p class="text-sm text-danger">{{ error }}</p>
-          <AppButton variant="secondary" size="sm" @click="loadBudgets">Retry</AppButton>
+          <AppButton variant="secondary" size="sm" @click="loadBudgets">{{ t('common.retry') }}</AppButton>
         </div>
 
         <div v-else-if="budgets.length === 0" class="surface-card flex flex-col items-center gap-3 py-16 text-center">
           <span class="material-symbols-outlined text-4xl text-faint">pie_chart</span>
-          <p class="text-sm text-muted">No budgets yet. Create one to start tracking your spending.</p>
-          <AppButton icon="add" @click="openCreateModal">New budget</AppButton>
+          <p class="text-sm text-muted">{{ t('budgets.empty') }}</p>
+          <AppButton icon="add" @click="openCreateModal">{{ t('budgets.newButton') }}</AppButton>
         </div>
 
         <div v-else class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           <AppCard v-for="budget in budgets" :key="budget.id">
             <div class="flex items-start justify-between gap-3">
               <div class="min-w-0">
-                <p class="truncate text-sm font-semibold text-content">{{ budget.categoryName ?? 'Uncategorized' }}</p>
-                <p class="mt-0.5 text-xs text-muted">Monthly budget</p>
+                <p class="truncate text-sm font-semibold text-content">{{ budget.categoryName ?? t('common.uncategorized') }}</p>
+                <p class="mt-0.5 text-xs text-muted">{{ t('budgets.monthlyBudget') }}</p>
               </div>
               <div class="flex shrink-0 items-center gap-1">
-                <AppIconButton icon="edit" size="sm" aria-label="Edit budget" @click="openEditModal(budget)" />
-                <AppIconButton icon="delete" variant="danger" size="sm" aria-label="Delete budget" @click="requestDelete(budget.id)" />
+                <AppIconButton icon="edit" size="sm" :aria-label="t('budgets.editAria')" @click="openEditModal(budget)" />
+                <AppIconButton icon="delete" variant="danger" size="sm" :aria-label="t('budgets.deleteAria')" @click="requestDelete(budget.id)" />
               </div>
             </div>
 
             <div class="mt-4 flex items-baseline justify-between gap-2">
               <span class="text-lg font-bold text-content">{{ formatMoney(budget.spent) }}</span>
-              <span class="text-sm text-muted">of {{ formatMoney(budget.amount) }}</span>
+              <span class="text-sm text-muted">{{ t('budgets.ofAmount', { amount: formatMoney(budget.amount) }) }}</span>
             </div>
 
             <div class="mt-2 h-2 w-full overflow-hidden rounded-full bg-surface-2">
@@ -241,9 +244,9 @@ onMounted(() => {
             </div>
 
             <div class="mt-2 flex items-center justify-between text-xs">
-              <span :class="textClass(budget.percentUsed)" class="font-semibold">{{ budget.percentUsed }}% used</span>
+              <span :class="textClass(budget.percentUsed)" class="font-semibold">{{ t('budgets.percentUsed', { percent: budget.percentUsed }) }}</span>
               <span class="text-muted">
-                {{ budget.remaining >= 0 ? `${formatMoney(budget.remaining)} left` : `${formatMoney(-budget.remaining)} over` }}
+                {{ budget.remaining >= 0 ? t('budgets.remainingLeft', { amount: formatMoney(budget.remaining) }) : t('budgets.remainingOver', { amount: formatMoney(-budget.remaining) }) }}
               </span>
             </div>
           </AppCard>
@@ -253,7 +256,7 @@ onMounted(() => {
 
     <AppModal
       :is-open="isModalOpen"
-      :title="formMode === 'create' ? 'New Budget' : 'Edit Budget'"
+      :title="formMode === 'create' ? t('budgets.modal.titleCreate') : t('budgets.modal.titleEdit')"
       icon="pie_chart"
       size="sm"
       @close="closeModal"
@@ -264,13 +267,13 @@ onMounted(() => {
         </div>
 
         <AppSelect
-          label="Category"
+          :label="t('budgets.modal.categoryLabel')"
           :model-value="formCategoryId ?? ''"
           :disabled="formMode === 'edit' || isSaving"
           @update:model-value="(v) => (formCategoryId = v ? Number(v) : null)"
         >
           <option v-if="formMode === 'create' && availableCategoriesForCreate.length === 0" :value="null" disabled>
-            All categories already have a budget
+            {{ t('budgets.modal.allBudgeted') }}
           </option>
           <option v-for="cat in (formMode === 'create' ? availableCategoriesForCreate : expenseCategories)" :key="cat.id" :value="cat.id">
             {{ cat.label }}
@@ -278,7 +281,7 @@ onMounted(() => {
         </AppSelect>
 
         <AppInput
-          label="Monthly amount"
+          :label="t('budgets.modal.amountLabel')"
           icon="attach_money"
           type="number"
           placeholder="0.00"
@@ -289,17 +292,17 @@ onMounted(() => {
       </form>
 
       <template #footer>
-        <AppButton variant="ghost" :disabled="isSaving" @click="closeModal">Cancel</AppButton>
+        <AppButton variant="ghost" :disabled="isSaving" @click="closeModal">{{ t('common.cancel') }}</AppButton>
         <AppButton type="submit" form="budget-form" :loading="isSaving" :disabled="isSaveDisabled">
-          {{ formMode === 'create' ? 'Create Budget' : 'Save Changes' }}
+          {{ formMode === 'create' ? t('budgets.modal.createButton') : t('budgets.modal.updateButton') }}
         </AppButton>
       </template>
     </AppModal>
 
     <ConfirmDialog
       :is-open="confirmDeleteId !== null"
-      title="Delete budget?"
-      message="This budget will be removed. Existing transactions are not affected."
+      :title="t('budgets.deleteDialog.title')"
+      :message="t('budgets.deleteDialog.message')"
       :loading="isDeleting"
       @confirm="confirmDelete"
       @cancel="confirmDeleteId = null"
