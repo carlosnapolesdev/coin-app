@@ -43,4 +43,42 @@ describe('attachmentsApi', () => {
     await attachmentsApi.remove(99)
     expect(del).toHaveBeenCalledWith('/users/me/attachments/99')
   })
+
+  describe('openInNewTab (PDF blob URL flow)', () => {
+    it('fetches with Authorization header and opens a blob URL in a new tab', async () => {
+      vi.spyOn(authSession, 'getAccessToken').mockReturnValue('jwt-abc')
+      const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null)
+      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+        ok: true,
+        blob: async () => new Blob(['pdf-bytes'], { type: 'application/pdf' }),
+      } as Response)
+
+      await attachmentsApi.openInNewTab(99)
+
+      // Authorization must be in the header, NOT in the URL.
+      expect(fetchSpy).toHaveBeenCalledWith(
+        expect.stringContaining('/users/me/attachments/99/download?disposition=inline'),
+        expect.objectContaining({ headers: expect.objectContaining({ Authorization: 'Bearer jwt-abc' }) }),
+      )
+      const fetchUrl = fetchSpy.mock.calls[0]![0] as string
+      expect(fetchUrl).not.toContain('token=')
+      // The new tab is opened with a blob: URL and noopener/noreferrer.
+      expect(openSpy).toHaveBeenCalledWith(
+        expect.stringMatching(/^blob:/),
+        '_blank',
+        'noopener,noreferrer',
+      )
+    })
+
+    it('throws when no auth token is available', async () => {
+      vi.spyOn(authSession, 'getAccessToken').mockReturnValue(null)
+      await expect(attachmentsApi.openInNewTab(99)).rejects.toThrow(/authenticated/)
+    })
+
+    it('throws on non-2xx response', async () => {
+      vi.spyOn(authSession, 'getAccessToken').mockReturnValue('jwt-abc')
+      vi.spyOn(globalThis, 'fetch').mockResolvedValue({ ok: false, status: 404 } as Response)
+      await expect(attachmentsApi.openInNewTab(99)).rejects.toThrow(/404/)
+    })
+  })
 })

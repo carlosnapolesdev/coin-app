@@ -91,6 +91,15 @@ async function confirmRemove() {
   }
   confirmDialogOpen.value = false
 }
+async function openPdf(id: number) {
+  try {
+    await attachmentsApi.openInNewTab(id)
+  } catch (err) {
+    // No es un flujo crítico (token ausente, 5xx transitorio). El usuario verá que
+    // la pestaña no se abre; dejamos al navegador/comunicación del server el detalle.
+    console.error('attachment openInNewTab failed', err)
+  }
+}
 function openLightboxFor(id: number) {
   // El lightbox recibe lightboxImages (sólo imágenes, PDFs excluidos), por eso el
   // índice debe calcularse sobre esa lista filtrada — usar attach.attachments.value
@@ -179,14 +188,13 @@ const atLimit = computed(() => attachmentCount.value >= maxFiles)
           />
         </div>
         <div v-else class="mt-2 flex h-full min-h-[2.5rem] items-center justify-center">
-          <a
-            :href="attachmentsApi.downloadUrl(a.id, 'inline')"
-            target="_blank"
-            rel="noopener noreferrer"
+          <button
+            type="button"
             class="rounded-md border border-border px-3 py-1 text-xs text-content hover:bg-surface-hover"
+            @click="openPdf(a.id)"
           >
             {{ t('transactionAttachments.openPdf') }}
-          </a>
+          </button>
         </div>
       </li>
     </ul>
