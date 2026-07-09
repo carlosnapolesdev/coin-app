@@ -30,6 +30,54 @@ describe('attachmentsApi', () => {
     )
   })
 
+  it('upload clears Content-Type so axios transformRequest does not JSON-stringify FormData', async () => {
+    // Regression test: src/services/api.ts sets the instance default
+    // `Content-Type: application/json`. axios 1.14's default transformRequest
+    // JSON-serializes FormData bodies when the Content-Type includes
+    // 'application/json' (see node_modules/axios/dist/node/axios.cjs:1511-1521
+    // — `return hasJSONContentType ? JSON.stringify(formDataToJSON(data)) : data`).
+    // Without the explicit per-call override, the server receives a JSON body,
+    // multer finds no `file` field, and the controller throws
+    // "Missing file field" — which is exactly what we observed in F10.
+    const post = vi.spyOn(api, 'post').mockResolvedValue({ data: dummyDto })
+    const file = new File(['x'], 'r.pdf', { type: 'application/pdf' })
+    await attachmentsApi.upload(7, file)
+    expect(post).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.any(FormData),
+      expect.objectContaining({
+        headers: expect.objectContaining({ 'Content-Type': undefined }),
+      }),
+    )
+  })
+
+  it('upload sends FormData (not JSON) through real axios + a custom adapter', async () => {
+    // Stronger integration-style regression: run a real axios call (with
+    // transformRequest) by installing a custom adapter that captures the
+    // outbound config. If axios 1.14 JSON-stringifies FormData, this fails;
+    // if multipart is preserved, it passes.
+    let capturedConfig: any
+    const previousAdapter = api.defaults.adapter
+    api.defaults.adapter = (config) => {
+      capturedConfig = config
+      return Promise.resolve({
+        data: dummyDto,
+        status: 201,
+        statusText: 'Created',
+        headers: {},
+        config,
+      })
+    }
+    try {
+      const file = new File(['x'], 'r.pdf', { type: 'application/pdf' })
+      await attachmentsApi.upload(7, file)
+    } finally {
+      api.defaults.adapter = previousAdapter
+    }
+    // After transformRequest: body must still be FormData, not a stringified blob.
+    expect(capturedConfig.data).toBeInstanceOf(FormData)
+  })
+
   it('downloadUrl builds signed url with disposition and token', () => {
     vi.spyOn(authSession, 'getAccessToken').mockReturnValue('jwt-abc')
     const url = attachmentsApi.downloadUrl(99, 'inline')
@@ -44,16 +92,18 @@ describe('attachmentsApi', () => {
     expect(del).toHaveBeenCalledWith('/users/me/attachments/99')
   })
 
-  describe('openInNewTab (PDF blob URL flow)', () => {
-    it('fetches with Authorization header and opens a blob URL in a new tab', async () => {
+  describe('fetchInlineBlobUrl (PDF blob URL flow)', () => {
+    // Nota: el window.open ya NO vive aquí — lo hace el panel síncronamente dentro del
+    // clic para no ser bloqueado por el navegador tras el await. Este servicio solo
+    // obtiene el blob URL vía fetch con Authorization header (sin token en la URL).
+    it('fetches with Authorization header (no token in URL) and returns a blob: URL', async () => {
       vi.spyOn(authSession, 'getAccessToken').mockReturnValue('jwt-abc')
-      const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null)
       const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue({
         ok: true,
         blob: async () => new Blob(['pdf-bytes'], { type: 'application/pdf' }),
       } as Response)
 
-      await attachmentsApi.openInNewTab(99)
+      const blobUrl = await attachmentsApi.fetchInlineBlobUrl(99)
 
       // Authorization must be in the header, NOT in the URL.
       expect(fetchSpy).toHaveBeenCalledWith(
@@ -62,23 +112,18 @@ describe('attachmentsApi', () => {
       )
       const fetchUrl = fetchSpy.mock.calls[0]![0] as string
       expect(fetchUrl).not.toContain('token=')
-      // The new tab is opened with a blob: URL and noopener/noreferrer.
-      expect(openSpy).toHaveBeenCalledWith(
-        expect.stringMatching(/^blob:/),
-        '_blank',
-        'noopener,noreferrer',
-      )
+      expect(blobUrl).toMatch(/^blob:/)
     })
 
     it('throws when no auth token is available', async () => {
       vi.spyOn(authSession, 'getAccessToken').mockReturnValue(null)
-      await expect(attachmentsApi.openInNewTab(99)).rejects.toThrow(/authenticated/)
+      await expect(attachmentsApi.fetchInlineBlobUrl(99)).rejects.toThrow(/authenticated/)
     })
 
     it('throws on non-2xx response', async () => {
       vi.spyOn(authSession, 'getAccessToken').mockReturnValue('jwt-abc')
       vi.spyOn(globalThis, 'fetch').mockResolvedValue({ ok: false, status: 404 } as Response)
-      await expect(attachmentsApi.openInNewTab(99)).rejects.toThrow(/404/)
+      await expect(attachmentsApi.fetchInlineBlobUrl(99)).rejects.toThrow(/404/)
     })
   })
 })
