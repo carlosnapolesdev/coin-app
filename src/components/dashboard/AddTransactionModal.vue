@@ -2,11 +2,12 @@
 import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import api from '../../services/api'
-import { type CreateTransactionPayload, type TransactionDetail, type TransactionStatus, type TransactionType, transactionsApi } from '../../services/transactions'
+import { type CreateTransactionPayload, type SplitDetail, type SplitInput, type TransactionDetail, type TransactionStatus, type TransactionType, transactionsApi } from '../../services/transactions'
 import { type AccountDetail, accountsApi } from '../../services/accounts'
 import { currenciesApi } from '../../services/currencies'
 import TransactionAttachmentsPanel from './TransactionAttachmentsPanel.vue'
-import { AppButton, AppModal, AppSpinner } from '../ui'
+import { formatCurrency } from '../../utils/format'
+import { AppButton, AppIconButton, AppModal, AppSpinner } from '../ui'
 
 const { t } = useI18n()
 
@@ -27,6 +28,13 @@ interface FlatCategory {
   label: string
   type: 'EXPENSE' | 'INCOME'
   indent: boolean
+}
+
+interface SplitRow {
+  uid: number
+  categoryId: number | null
+  amount: string
+  memo: string
 }
 
 const props = defineProps<{
@@ -52,6 +60,13 @@ const status = ref<TransactionStatus>('CLEARED')
 const memo = ref('')
 const tags = ref('')
 const exchangeRate = ref('')
+
+const splitsEnabled = ref(false)
+const splits = ref<SplitRow[]>([])
+// Split count as persisted on the server; when > 0 the backend blocks PATCHes
+// touching amount/category/type, so saving must clear splits before updating.
+const serverSplitCount = ref(0)
+let nextSplitUid = 1
 
 const accounts = ref<AccountDetail[]>([])
 const allCategories = ref<BackendCategory[]>([])
@@ -88,10 +103,38 @@ const needsExchangeRate = computed(() =>
   sourceCurrencyId.value !== destinationCurrencyId.value
 )
 
+const splitsTotal = computed(() =>
+  splits.value.reduce((s, row) => s + (parseFloat(row.amount) || 0), 0)
+)
+
+const splitsRemaining = computed(() => {
+  const total = parseFloat(amount.value) || 0
+  return Math.round((total - splitsTotal.value) * 100) / 100
+})
+
+const splitsValid = computed(() => {
+  if (splits.value.length < 2) return false
+  if (splits.value.some((s) => !s.categoryId || !(parseFloat(s.amount) > 0))) return false
+  return splitsRemaining.value === 0
+})
+
+const splitsStatus = computed<{ tone: 'success' | 'warning' | 'danger'; message: string }>(() => {
+  const remaining = splitsRemaining.value
+  if (remaining === 0) {
+    return { tone: 'success', message: t('transactionSplits.remainingMatch') }
+  }
+  const formatted = formatCurrency(Math.abs(remaining))
+  if (remaining > 0) {
+    return { tone: 'warning', message: t('transactionSplits.remaining', { amount: formatted }) }
+  }
+  return { tone: 'danger', message: t('transactionSplits.overflow', { amount: formatted }) }
+})
+
 const isSaveDisabled = computed(() => {
   if (isSaving.value || !amount.value || !accountId.value || !effectiveDate.value) return true
   if (selectedType.value === 'TRANSFER' && !destinationAccountId.value) return true
   if (needsExchangeRate.value && !exchangeRate.value) return true
+  if (splitsEnabled.value && !splitsValid.value) return true
   return false
 })
 
@@ -108,7 +151,26 @@ const resetForm = () => {
   memo.value = ''
   tags.value = ''
   exchangeRate.value = ''
+  splitsEnabled.value = false
+  splits.value = []
+  serverSplitCount.value = 0
   error.value = ''
+}
+
+const newSplitRow = (): SplitRow => ({
+  uid: nextSplitUid++,
+  categoryId: null,
+  amount: '',
+  memo: '',
+})
+
+const populateSplits = (details: SplitDetail[]) => {
+  splits.value = details.map((d) => ({
+    uid: nextSplitUid++,
+    categoryId: d.categoryId,
+    amount: String(d.amount),
+    memo: d.memo ?? '',
+  }))
 }
 
 const populateFromTransaction = (t: TransactionDetail) => {
@@ -128,9 +190,6 @@ const populateFromTransaction = (t: TransactionDetail) => {
 
 let suppressAutoRate = false
 
-// ID de la transacción sobre la que el panel de adjuntos debe trabajar.
-// En 'edit' toma el id de la transacción en edición; tras crear, se actualiza
-// al id devuelto por POST para que el panel pueda mostrar/adjuntar sin cerrar el modal.
 const localTransactionId = ref<number | null>(props.transaction?.id ?? null)
 
 const loadData = async () => {
@@ -147,6 +206,16 @@ const loadData = async () => {
     if (props.mode === 'edit' && props.transaction) {
       populateFromTransaction(props.transaction)
       localTransactionId.value = props.transaction.id
+      serverSplitCount.value = props.transaction.splitCount
+      if (props.transaction.splitCount > 0) {
+        try {
+          const res = await transactionsApi.getSplits(props.transaction.id)
+          populateSplits(res.data)
+          splitsEnabled.value = true
+        } catch {
+          error.value = t('transactionSplits.loadError')
+        }
+      }
     } else {
       resetForm()
       accountId.value = accounts.value[0]?.id ?? null
@@ -168,7 +237,17 @@ watch(
 
 watch(selectedType, (type) => {
   categoryId.value = null
-  if (type !== 'TRANSFER') destinationAccountId.value = null
+  if (type === 'TRANSFER') {
+    splitsEnabled.value = false
+    splits.value = []
+  } else {
+    // Split categories belong to the previous type; keep the rows but force
+    // re-picking. Skipped during loadData so loaded splits survive populate.
+    if (!isLoading.value) {
+      for (const row of splits.value) row.categoryId = null
+    }
+    destinationAccountId.value = null
+  }
 })
 
 watch([accountId, destinationAccountId, selectedType], async () => {
@@ -190,15 +269,33 @@ const handleClose = () => {
   emit('close')
 }
 
+const addSplitRow = () => {
+  splits.value.push(newSplitRow())
+}
+
+const removeSplitRow = (uid: number) => {
+  splits.value = splits.value.filter((s) => s.uid !== uid)
+}
+
+const buildSplitsPayload = (): SplitInput[] =>
+  splits.value.map((s) => ({
+    categoryId: s.categoryId!,
+    amount: parseFloat(s.amount),
+    memo: s.memo || undefined,
+  }))
+
 const handleSave = async (keepOpen = false) => {
   if (isSaveDisabled.value) return
   isSaving.value = true
   error.value = ''
 
   const isTransfer = selectedType.value === 'TRANSFER'
+  const wantSplits = splitsEnabled.value && !isTransfer
   const payload: CreateTransactionPayload = {
     accountId: accountId.value!,
-    categoryId: isTransfer ? undefined : (categoryId.value ?? undefined),
+    categoryId: isTransfer || wantSplits
+      ? undefined
+      : (categoryId.value ?? undefined),
     destinationAccountId: isTransfer ? destinationAccountId.value! : undefined,
     type: selectedType.value,
     amount: parseFloat(amount.value),
@@ -213,16 +310,30 @@ const handleSave = async (keepOpen = false) => {
 
   try {
     let saved: TransactionDetail
-    if (props.mode === 'edit' && props.transaction) {
-      const res = await transactionsApi.update(props.transaction.id, payload)
-      saved = res.data
-    } else if (localTransactionId.value !== null) {
-      const res = await transactionsApi.update(localTransactionId.value, payload)
+    const targetId =
+      props.mode === 'edit' && props.transaction
+        ? props.transaction.id
+        : localTransactionId.value
+    if (targetId !== null) {
+      // The backend rejects PATCHes touching amount/category/type while splits
+      // exist, and the payload always carries them — clear splits first.
+      if (serverSplitCount.value > 0) {
+        await transactionsApi.setSplits(targetId, [])
+        serverSplitCount.value = 0
+      }
+      const res = await transactionsApi.update(targetId, payload)
       saved = res.data
     } else {
       const res = await transactionsApi.create(payload)
       saved = res.data
     }
+
+    if (wantSplits) {
+      const splitsRes = await transactionsApi.setSplits(saved.id, buildSplitsPayload())
+      saved = splitsRes.data
+    }
+    serverSplitCount.value = saved.splitCount
+
     emit('saved', saved)
     localTransactionId.value = saved.id
     if (props.mode === 'edit') {
@@ -288,7 +399,15 @@ const handleSave = async (keepOpen = false) => {
           <label class="field-label">{{ t('transactionModal.amountLabel') }}</label>
           <div class="relative">
             <span class="material-symbols-outlined pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[20px] text-faint">attach_money</span>
-            <input v-model="amount" type="number" step="0.01" min="0.01" placeholder="0.00" class="field-input pl-11 text-base font-bold" :disabled="isSaving" />
+            <input
+              v-model="amount"
+              type="number"
+              step="0.01"
+              min="0.01"
+              placeholder="0.00"
+              class="field-input pl-11 text-base font-bold"
+              :disabled="isSaving || splitsEnabled"
+            />
           </div>
         </div>
 
@@ -337,7 +456,7 @@ const handleSave = async (keepOpen = false) => {
         <!-- Category -->
         <div v-if="selectedType !== 'TRANSFER'">
           <label class="field-label">{{ t('transactionModal.categoryLabel') }}</label>
-          <select v-model="categoryId" class="field-input" :disabled="isSaving">
+          <select v-model="categoryId" class="field-input" :disabled="isSaving || splitsEnabled">
             <option :value="null">{{ t('transactionModal.noneOption') }}</option>
             <option v-for="cat in filteredCategories" :key="cat.id" :value="cat.id">{{ cat.label }}</option>
           </select>
@@ -373,6 +492,82 @@ const handleSave = async (keepOpen = false) => {
       <div>
         <label class="field-label">{{ t('transactionModal.tagsLabel') }}</label>
         <input v-model="tags" type="text" :placeholder="t('transactionModal.tagsPlaceholder')" class="field-input" :disabled="isSaving" />
+      </div>
+
+      <!-- Splits (not for transfers) -->
+      <div v-if="selectedType !== 'TRANSFER'" class="rounded-xl border border-line bg-surface-2/40 p-4">
+        <label class="flex cursor-pointer items-center gap-3">
+          <input
+            type="checkbox"
+            :checked="splitsEnabled"
+            :disabled="isSaving"
+            class="size-4 accent-primary"
+            @change="(e) => {
+              const enabled = (e.target as HTMLInputElement).checked
+              splitsEnabled = enabled
+              if (enabled && splits.length === 0) {
+                splits.push(newSplitRow())
+                splits.push(newSplitRow())
+              } else if (!enabled) {
+                splits = []
+              }
+            }"
+          />
+          <span class="material-symbols-outlined text-base text-faint">call_split</span>
+          <span class="text-sm font-semibold text-content">{{ t('transactionSplits.toggle') }}</span>
+        </label>
+        <p class="mt-1 pl-7 text-xs text-faint">{{ t('transactionSplits.intro') }}</p>
+
+        <div v-if="splitsEnabled" class="mt-4 space-y-3">
+          <div
+            v-for="row in splits"
+            :key="row.uid"
+            class="grid grid-cols-1 gap-2 md:grid-cols-[1fr_140px_1fr_auto]"
+          >
+            <select v-model="row.categoryId" class="field-input" :disabled="isSaving">
+              <option :value="null" disabled>{{ t('transactionSplits.splitCategoryLabel') }}</option>
+              <option v-for="cat in filteredCategories" :key="cat.id" :value="cat.id">{{ cat.label }}</option>
+            </select>
+            <input
+              v-model="row.amount"
+              type="number"
+              step="0.01"
+              min="0.01"
+              placeholder="0.00"
+              class="field-input"
+              :disabled="isSaving"
+            />
+            <input
+              v-model="row.memo"
+              type="text"
+              :placeholder="t('transactionSplits.splitMemoLabel')"
+              class="field-input"
+              :disabled="isSaving"
+            />
+            <AppIconButton
+              icon="close"
+              :aria-label="t('transactionSplits.removeRow')"
+              :disabled="isSaving || splits.length <= 2"
+              @click="removeSplitRow(row.uid)"
+            />
+          </div>
+
+          <div class="flex items-center justify-between gap-3">
+            <AppButton variant="ghost" size="sm" icon="add" :disabled="isSaving" @click="addSplitRow">
+              {{ t('transactionSplits.addRow') }}
+            </AppButton>
+            <span
+              class="text-xs font-semibold"
+              :class="{
+                'text-success': splitsStatus.tone === 'success',
+                'text-warning': splitsStatus.tone === 'warning',
+                'text-danger': splitsStatus.tone === 'danger',
+              }"
+            >
+              {{ splitsStatus.message }}
+            </span>
+          </div>
+        </div>
       </div>
     </form>
 

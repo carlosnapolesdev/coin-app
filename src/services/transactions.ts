@@ -3,6 +3,20 @@ import api from './api'
 export type TransactionType = 'INCOME' | 'EXPENSE' | 'TRANSFER'
 export type TransactionStatus = 'PENDING' | 'CLEARED' | 'VOID'
 
+export interface SplitDetail {
+  id: number
+  categoryId: number
+  categoryName: string
+  amount: number
+  memo: string | null
+}
+
+export interface SplitInput {
+  categoryId: number
+  amount: number
+  memo?: string
+}
+
 export interface TransactionDetail {
   id: number
   accountId: number
@@ -22,6 +36,7 @@ export interface TransactionDetail {
   exchangeRate: number | null
   balance: number | null
   attachmentCount: number
+  splitCount: number
   createdAt: string
   updatedAt: string | null
 }
@@ -130,4 +145,12 @@ export const transactionsApi = {
 
   importCommit: (rows: ImportRow[]) =>
     api.post<{ created: number }>('/users/me/transactions/import/commit', { rows }),
+
+  getSplits: (transactionId: number) =>
+    api.get<SplitDetail[]>(`/users/me/transactions/${transactionId}/splits`),
+
+  setSplits: (transactionId: number, splits: SplitInput[]) =>
+    api.put<TransactionDetail>(`/users/me/transactions/${transactionId}/splits`, {
+      splits,
+    }),
 }
