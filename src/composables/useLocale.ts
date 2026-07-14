@@ -30,6 +30,11 @@ const locale = ref<LocaleCode>(resolveInitialLocale())
 
 const applyLocale = (value: LocaleCode) => {
   i18n.global.locale.value = value
+  // Keep <html lang> in sync so screen readers, browser translation and
+  // hyphenation treat the page as the language the user actually chose.
+  if (typeof document !== 'undefined') {
+    document.documentElement.lang = value
+  }
 }
 
 applyLocale(locale.value)

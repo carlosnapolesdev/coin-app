@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { resolveInitialLocale } from './useLocale'
+import { resolveInitialLocale, setLocale } from './useLocale'
 import * as authSession from '../services/auth-session'
 
 describe('resolveInitialLocale', () => {
@@ -33,5 +33,19 @@ describe('resolveInitialLocale', () => {
   it('falls back to a matching browser language when nothing is stored', () => {
     vi.spyOn(window.navigator, 'language', 'get').mockReturnValue('es-MX')
     expect(resolveInitialLocale()).toBe('es')
+  })
+})
+
+describe('setLocale', () => {
+  afterEach(() => {
+    window.localStorage.clear()
+    setLocale('en')
+  })
+
+  it('syncs <html lang> with the selected locale', () => {
+    setLocale('es')
+    expect(document.documentElement.lang).toBe('es')
+    setLocale('pt')
+    expect(document.documentElement.lang).toBe('pt')
   })
 })
