@@ -30,7 +30,7 @@ const mobileNavOpen = ref(false)
         <p v-if="subtitle" class="mt-0.5 text-sm text-muted">{{ subtitle }}</p>
       </div>
     </div>
-    <div class="flex items-center lg:justify-end">
+    <div class="flex items-center justify-end">
       <UserMenu />
     </div>
   </header>
