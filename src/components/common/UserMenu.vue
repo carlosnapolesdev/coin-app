@@ -6,10 +6,12 @@ import { logout, useAuthState } from '../../services/auth'
 import { getInitials } from '../../utils/initials'
 import { useI18n } from 'vue-i18n'
 import { LanguageToggle, ThemeToggle } from '../ui'
+import { useOnboarding } from '../../composables/useOnboarding'
 
 const router = useRouter()
 const authState = useAuthState()
 const { t } = useI18n()
+const { resetTour } = useOnboarding()
 
 const open = ref(false)
 const root = ref<HTMLElement | null>(null)
@@ -37,6 +39,12 @@ const handleSignOut = async () => {
   close()
   logout()
   await router.replace('/login')
+}
+
+const replayTour = async () => {
+  resetTour()
+  close()
+  await router.push({ name: 'dashboard' })
 }
 </script>
 
@@ -89,6 +97,16 @@ const handleSignOut = async () => {
             <span class="material-symbols-outlined text-[20px]">settings</span>
             <span class="flex-1 text-left">{{ t('userMenu.settings') }}</span>
           </RouterLink>
+
+          <button
+            type="button"
+            role="menuitem"
+            class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-content transition-colors hover:bg-surface-2"
+            @click="replayTour"
+          >
+            <span class="material-symbols-outlined text-[20px]">help</span>
+            <span class="flex-1 text-left">{{ t('onboarding.help.replayTour') }}</span>
+          </button>
 
           <div class="flex items-center justify-between rounded-lg px-3 py-2">
             <span class="flex items-center gap-3 text-sm font-medium text-content">

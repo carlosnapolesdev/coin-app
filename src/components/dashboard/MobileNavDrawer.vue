@@ -1,15 +1,18 @@
 <script setup lang="ts">
 import { nextTick, onBeforeUnmount, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { BrandMark } from '../ui'
 import { NAV_ITEMS } from '../../navigation/navItems'
+import { useOnboarding } from '../../composables/useOnboarding'
 
 const props = defineProps<{ isOpen: boolean }>()
 const emit = defineEmits<{ close: [] }>()
 
 const route = useRoute()
+const router = useRouter()
 const { t } = useI18n()
+const { resetTour } = useOnboarding()
 const dialog = ref<HTMLElement | null>(null)
 const closeButton = ref<HTMLButtonElement | null>(null)
 // Element focus returns to when the drawer closes (the hamburger trigger).
@@ -81,6 +84,12 @@ onBeforeUnmount(() => {
   document.body.style.overflow = ''
   appRoot()?.removeAttribute('inert')
 })
+
+const replayTour = async () => {
+  resetTour()
+  emit('close')
+  await router.push({ name: 'dashboard' })
+}
 </script>
 
 <template>
@@ -115,6 +124,17 @@ onBeforeUnmount(() => {
               <span>{{ t(item.labelKey) }}</span>
             </RouterLink>
           </nav>
+
+          <div class="border-t border-line p-4">
+            <button
+              type="button"
+              class="nav-link w-full"
+              @click="replayTour"
+            >
+              <span class="material-symbols-outlined text-[22px]">help</span>
+              <span>{{ t('onboarding.help.replayTour') }}</span>
+            </button>
+          </div>
         </div>
       </div>
     </Transition>
