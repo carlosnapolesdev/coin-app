@@ -39,6 +39,9 @@ const en = {
   sidebar: {
     subtitle: 'Personal Finance',
     soon: 'Soon',
+    navigationLabel: 'Main navigation',
+    openMenu: 'Open navigation menu',
+    closeMenu: 'Close navigation menu',
     nav: {
       dashboard: 'Dashboard',
       categories: 'Categories',

@@ -41,6 +41,9 @@ const pt: MessageSchema = {
   sidebar: {
     subtitle: 'Finanças Pessoais',
     soon: 'Em breve',
+    navigationLabel: 'Navegação principal',
+    openMenu: 'Abrir menu de navegação',
+    closeMenu: 'Fechar menu de navegação',
     nav: {
       dashboard: 'Painel',
       categories: 'Categorias',
