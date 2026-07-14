@@ -12,7 +12,7 @@ import { formatCurrency, formatDate as formatDateLocale } from '../../utils/form
 import { useOnboarding } from '../../composables/useOnboarding'
 
 const { t } = useI18n()
-const { notifyTransactionCreated } = useOnboarding()
+const { notifyTransactionCreated, flushCelebration } = useOnboarding()
 
 const PAGE_SIZE = 25
 const SEARCH_DEBOUNCE_MS = 300
@@ -113,6 +113,13 @@ const openEdit = (t: TransactionDetail) => {
 const onSaved = async () => {
   await Promise.all([loadAccounts(), loadTransactions()])
   notifyTransactionCreated()
+}
+
+// El modal de alta queda abierto tras crear (para adjuntos); mostramos la
+// celebración recién al cerrarlo para no apilar dos overlays.
+const closeModal = () => {
+  modalOpen.value = false
+  flushCelebration()
 }
 
 const onImported = async () => {
@@ -432,7 +439,7 @@ const transferLabel = (tx: TransactionDetail) => {
       :is-open="modalOpen"
       :mode="modalMode"
       :transaction="editingTransaction"
-      @close="modalOpen = false"
+      @close="closeModal"
       @saved="onSaved"
     />
 

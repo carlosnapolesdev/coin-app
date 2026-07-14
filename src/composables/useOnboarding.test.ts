@@ -80,4 +80,13 @@ describe('useOnboarding', () => {
     expect(ob.shouldShowCoach('reports')).toBe(true)
     expect(ob.checklistVisible.value).toBe(true)
   })
+
+  it('defers the first-transaction celebration until flushed', () => {
+    const ob = useOnboarding()
+    ob.notifyTransactionCreated()
+    // Pendiente: no se muestra mientras el modal de alta sigue abierto.
+    expect(ob.celebrationVisible.value).toBe(false)
+    ob.flushCelebration()
+    expect(ob.celebrationVisible.value).toBe(true)
+  })
 })

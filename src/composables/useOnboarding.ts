@@ -13,6 +13,10 @@ import { budgetsApi } from '../services/budgets'
 // Singletons a nivel de módulo: todos los consumidores comparten el mismo estado.
 const counts = reactive({ accounts: 0, transactions: 0, budgets: 0, loaded: false })
 const celebrationVisible = ref(false)
+// La primera transacción se detecta al guardar, pero el modal de alta queda
+// abierto (para adjuntos/splits). Para no apilar dos overlays, la celebración se
+// marca pendiente y se muestra recién al cerrar el modal (flushCelebration).
+const celebrationPending = ref(false)
 
 const auth = useAuthState()
 
@@ -84,10 +88,18 @@ export function useOnboarding() {
 
   const notifyTransactionCreated = () => {
     if (!state.value.celebrationShown && counts.transactions === 0) {
-      celebrationVisible.value = true
+      celebrationPending.value = true
       patch({ celebrationShown: true })
     }
     counts.transactions += 1
+  }
+
+  // Muestra la celebración pendiente (llamado al cerrar el modal de alta).
+  const flushCelebration = () => {
+    if (celebrationPending.value) {
+      celebrationPending.value = false
+      celebrationVisible.value = true
+    }
   }
 
   const dismissCelebration = () => {
@@ -116,6 +128,7 @@ export function useOnboarding() {
     markReportsVisited,
     dismissChecklist,
     notifyTransactionCreated,
+    flushCelebration,
     dismissCelebration,
     resetTour,
   }
