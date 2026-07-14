@@ -2,6 +2,7 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Sidebar from './Sidebar.vue'
+import CoachMark from '../onboarding/CoachMark.vue'
 import { AppButton, AppCard, AppInput, AppSpinner, AppTabs, PageContainer, PageHeader } from '../ui'
 import {
   reportsApi,
@@ -11,8 +12,10 @@ import {
 } from '../../services/reports'
 import { chartSeriesColor } from '../../utils/chartColors'
 import { formatCurrency, formatDate } from '../../utils/format'
+import { useOnboarding } from '../../composables/useOnboarding'
 
 const { t } = useI18n()
+const { markReportsVisited } = useOnboarding()
 
 type RangePreset = 'thisMonth' | '3m' | '6m' | '12m' | 'custom'
 
@@ -69,6 +72,7 @@ const loadReports = async () => {
   isLoading.value = false
 }
 
+onMounted(markReportsVisited)
 onMounted(loadReports)
 watch(rangePreset, () => {
   if (rangePreset.value !== 'custom') loadReports()
@@ -227,26 +231,28 @@ const topCategories = computed(() =>
 
       <PageContainer>
         <!-- Range selector -->
-        <AppCard>
-          <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <AppTabs
-              v-model="rangePreset"
-              :tabs="[
-                { value: 'thisMonth', label: t('reports.range.thisMonth') },
-                { value: '3m', label: t('reports.range.threeMonths') },
-                { value: '6m', label: t('reports.range.sixMonths') },
-                { value: '12m', label: t('reports.range.twelveMonths') },
-                { value: 'custom', label: t('reports.range.custom') },
-              ]"
-            />
+        <CoachMark coach-key="reports" :text="t('onboarding.coach.reports')">
+          <AppCard>
+            <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+              <AppTabs
+                v-model="rangePreset"
+                :tabs="[
+                  { value: 'thisMonth', label: t('reports.range.thisMonth') },
+                  { value: '3m', label: t('reports.range.threeMonths') },
+                  { value: '6m', label: t('reports.range.sixMonths') },
+                  { value: '12m', label: t('reports.range.twelveMonths') },
+                  { value: 'custom', label: t('reports.range.custom') },
+                ]"
+              />
 
-            <div v-if="rangePreset === 'custom'" class="flex flex-wrap items-end gap-3">
-              <AppInput :label="t('reports.fromLabel')" type="date" :model-value="customFrom" @update:model-value="(v) => (customFrom = v)" />
-              <AppInput :label="t('reports.toLabel')" type="date" :model-value="customTo" @update:model-value="(v) => (customTo = v)" />
-              <AppButton size="sm" @click="loadReports">{{ t('reports.apply') }}</AppButton>
+              <div v-if="rangePreset === 'custom'" class="flex flex-wrap items-end gap-3">
+                <AppInput :label="t('reports.fromLabel')" type="date" :model-value="customFrom" @update:model-value="(v) => (customFrom = v)" />
+                <AppInput :label="t('reports.toLabel')" type="date" :model-value="customTo" @update:model-value="(v) => (customTo = v)" />
+                <AppButton size="sm" @click="loadReports">{{ t('reports.apply') }}</AppButton>
+              </div>
             </div>
-          </div>
-        </AppCard>
+          </AppCard>
+        </CoachMark>
 
         <div v-if="isLoading" class="flex justify-center py-16 text-primary">
           <AppSpinner size="lg" />

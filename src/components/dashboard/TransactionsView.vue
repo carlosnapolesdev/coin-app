@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import Sidebar from './Sidebar.vue'
 import AddTransactionModal from './AddTransactionModal.vue'
 import ImportModal from './ImportModal.vue'
+import CoachMark from '../onboarding/CoachMark.vue'
 import { AppBadge, AppButton, AppIconButton, AppInput, AppSelect, AppSpinner, ConfirmDialog, PageContainer, PageHeader } from '../ui'
 import { type AccountDetail, accountsApi } from '../../services/accounts'
 import { type TransactionDetail, type TransactionStatus, type TransactionType, transactionsApi } from '../../services/transactions'
@@ -256,7 +257,9 @@ const transferLabel = (tx: TransactionDetail) => {
             <div class="flex flex-wrap items-end gap-2 lg:col-span-2 lg:justify-end">
               <AppButton variant="secondary" icon="upload_file" @click="importModalOpen = true">{{ t('transactions.actions.import') }}</AppButton>
               <AppButton variant="secondary" icon="download" :loading="isExporting" @click="exportTransactions">{{ t('transactions.actions.export') }}</AppButton>
-              <AppButton icon="add" @click="openCreate">{{ t('transactions.actions.add') }}</AppButton>
+              <CoachMark coach-key="transactions" :text="t('onboarding.coach.transactions')" placement="bottom">
+                <AppButton icon="add" @click="openCreate">{{ t('transactions.actions.add') }}</AppButton>
+              </CoachMark>
             </div>
           </div>
         </div>
