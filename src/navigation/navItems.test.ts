@@ -28,4 +28,18 @@ describe('NAV_ITEMS', () => {
       expect(resolveKey(messages, item.labelKey), item.labelKey).toEqual(expect.any(String))
     }
   })
+
+  it('orders items following the natural user flow', () => {
+    expect(NAV_ITEMS.map((i) => i.routeName)).toEqual([
+      'dashboard',
+      'accounts',
+      'transactions',
+      'budgets',
+      'goals',
+      'recurring',
+      'reports',
+      'categories',
+      'settings',
+    ])
+  })
 })

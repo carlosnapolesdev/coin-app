@@ -55,12 +55,6 @@ const router = createRouter({
       meta: { requiresAuth: true, title: 'sidebar.nav.dashboard' },
     },
     {
-      path: '/categories',
-      name: 'categories',
-      component: CategoriesView,
-      meta: { requiresAuth: true, title: 'sidebar.nav.categories' },
-    },
-    {
       path: '/accounts',
       name: 'accounts',
       component: AccountsView,
@@ -95,6 +89,12 @@ const router = createRouter({
       name: 'reports',
       component: ReportsView,
       meta: { requiresAuth: true, title: 'sidebar.nav.reports' },
+    },
+    {
+      path: '/categories',
+      name: 'categories',
+      component: CategoriesView,
+      meta: { requiresAuth: true, title: 'sidebar.nav.categories' },
     },
     {
       path: '/settings',
