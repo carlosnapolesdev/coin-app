@@ -10,42 +10,84 @@ const emit = defineEmits<{ close: [] }>()
 
 const route = useRoute()
 const { t } = useI18n()
+const dialog = ref<HTMLElement | null>(null)
 const closeButton = ref<HTMLButtonElement | null>(null)
+// Element focus returns to when the drawer closes (the hamburger trigger).
+let previouslyFocused: HTMLElement | null = null
 
-// Navigating from inside the drawer must dismiss it.
+// Navigating away must dismiss the drawer. Tapping the already-active link
+// fires no route change, so each RouterLink closes it directly (@click below);
+// this watch covers navigation triggered from elsewhere while it is open.
 watch(
   () => route.fullPath,
   () => emit('close'),
 )
 
+const FOCUSABLE = 'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'
+
 const onKeydown = (e: KeyboardEvent) => {
-  if (e.key === 'Escape') emit('close')
+  if (e.key === 'Escape') {
+    emit('close')
+    return
+  }
+  // Trap Tab focus inside the dialog so it cannot reach the inert page behind.
+  if (e.key !== 'Tab' || !dialog.value) return
+  const focusable = Array.from(dialog.value.querySelectorAll<HTMLElement>(FOCUSABLE))
+  const first = focusable[0]
+  const last = focusable[focusable.length - 1]
+  if (!first || !last) return
+  if (e.shiftKey && document.activeElement === first) {
+    e.preventDefault()
+    last.focus()
+  } else if (!e.shiftKey && document.activeElement === last) {
+    e.preventDefault()
+    first.focus()
+  }
+}
+
+const appRoot = () => document.getElementById('app')
+
+const activate = async () => {
+  previouslyFocused = document.activeElement as HTMLElement | null
+  // Take the rest of the page out of the a11y/interaction tree and lock scroll.
+  appRoot()?.setAttribute('inert', '')
+  document.body.style.overflow = 'hidden'
+  document.addEventListener('keydown', onKeydown)
+  await nextTick()
+  closeButton.value?.focus()
+}
+
+const deactivate = () => {
+  document.removeEventListener('keydown', onKeydown)
+  document.body.style.overflow = ''
+  // Restore interactivity BEFORE returning focus — the trigger lives in #app.
+  appRoot()?.removeAttribute('inert')
+  previouslyFocused?.focus()
+  previouslyFocused = null
 }
 
 watch(
   () => props.isOpen,
-  async (open) => {
+  (open) => {
     if (typeof document === 'undefined') return
-    if (open) {
-      document.addEventListener('keydown', onKeydown)
-      await nextTick()
-      closeButton.value?.focus()
-    } else {
-      document.removeEventListener('keydown', onKeydown)
-    }
+    if (open) activate()
+    else deactivate()
   },
 )
 
 onBeforeUnmount(() => {
-  if (typeof document !== 'undefined') document.removeEventListener('keydown', onKeydown)
+  if (typeof document === 'undefined') return
+  document.removeEventListener('keydown', onKeydown)
+  document.body.style.overflow = ''
+  appRoot()?.removeAttribute('inert')
 })
 </script>
 
 <template>
   <Teleport to="body">
     <Transition name="drawer">
-      <div v-if="isOpen" class="fixed inset-0 z-50 md:hidden" role="dialog" aria-modal="true" :aria-label="t('sidebar.navigationLabel')">
-        <div class="drawer-scrim absolute inset-0 bg-scrim/60" @click="emit('close')" />
+      <div v-if="isOpen" ref="dialog" class="fixed inset-0 z-50 md:hidden" role="dialog" aria-modal="true" :aria-label="t('sidebar.navigationLabel')">
+        <div class="drawer-scrim absolute inset-0 bg-overlay/60" @click="emit('close')" />
         <div class="drawer-panel absolute inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col overflow-y-auto overscroll-contain border-r border-line bg-bg shadow-elevated">
           <div class="flex items-center justify-between px-6 py-6">
             <BrandMark :subtitle="t('sidebar.subtitle')" />
@@ -67,6 +109,7 @@ onBeforeUnmount(() => {
               :to="{ name: item.routeName }"
               class="nav-link w-full"
               :class="item.routeName === route.name ? 'nav-link-active' : ''"
+              @click="emit('close')"
             >
               <span class="material-symbols-outlined text-[22px]">{{ item.icon }}</span>
               <span>{{ t(item.labelKey) }}</span>

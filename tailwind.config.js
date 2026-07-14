@@ -42,7 +42,6 @@ export default {
         danger: token("--color-danger"),
         warning: token("--color-warning"),
         info: token("--color-info"),
-        scrim: token("--color-scrim"),
         // Modal/lightbox overlay — theme-agnostic. Use as bg-overlay/X (X = alpha).
         overlay: token("--color-overlay"),
         // Text/icons that sit ON the overlay surface. Use as text-overlay-fg.

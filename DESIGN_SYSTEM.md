@@ -39,8 +39,7 @@ derived secondary. New sessions with no stored theme preference open in dark
 | `danger`         | `text-danger` `bg-danger/10`           | `#E23F57`    | `#FF5C72`    | Expenses, destructive, errors |
 | `warning`        | `text-warning` `bg-warning/10`         | `#B8790A`    | `#FFC24B`    | Pending / caution |
 | `info`           | `text-info`                            | `#1E74B8`    | `#4FA8E6`    | Neutral information |
-| `scrim`          | `bg-scrim/60`                          | `#090C0A`    | `#090C0A`    | Overlay behind modals and drawers — always used with an alpha modifier, never as a solid fill |
-| `overlay`        | `bg-overlay/50` `bg-overlay/80`        | black        | black        | Modal / lightbox scrim — **theme-agnostic by design** (it sits BETWEEN background and card), used with Tailwind's alpha modifier. Never `bg-slate-950` |
+| `overlay`        | `bg-overlay/50` `bg-overlay/60` `bg-overlay/80` | black    | black    | Modal / lightbox / drawer scrim — **theme-agnostic by design** (it sits BETWEEN background and card), used with Tailwind's alpha modifier. Never `bg-slate-950` |
 | `overlay-fg`     | `text-overlay-fg` `bg-overlay-fg/10`   | white        | white        | Text/icons **on** the overlay surface (lightbox controls) |
 
 **Tinted backgrounds** (badges, soft chips) are always `bg-{status}/10` +
