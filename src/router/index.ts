@@ -2,20 +2,23 @@ import { watch } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router'
 import { i18n } from '../i18n'
 import { documentTitleFor } from './documentTitle'
-import Login from '../components/Login.vue'
-import Register from '../components/Register.vue'
-import Dashboard from '../components/dashboard/Dashboard.vue'
-import CategoriesView from '../components/dashboard/CategoriesView.vue'
-import AccountsView from '../components/dashboard/AccountsView.vue'
-import TransactionsView from '../components/dashboard/TransactionsView.vue'
-import BudgetsView from '../components/dashboard/BudgetsView.vue'
-import GoalsView from '../components/dashboard/GoalsView.vue'
-import RecurringView from '../components/dashboard/RecurringView.vue'
-import ReportsView from '../components/dashboard/ReportsView.vue'
-import SettingsView from '../components/dashboard/SettingsView.vue'
-import ForgotPassword from '../components/ForgotPassword.vue'
-import ResetPassword from '../components/ResetPassword.vue'
 import { initializeAuth, isAuthenticated } from '../services/auth'
+
+// Route components are lazy-loaded so each view lands in its own chunk, keeping
+// the initial bundle small (avoids the >500 kB single-chunk build warning).
+const Login = () => import('../components/Login.vue')
+const Register = () => import('../components/Register.vue')
+const ForgotPassword = () => import('../components/ForgotPassword.vue')
+const ResetPassword = () => import('../components/ResetPassword.vue')
+const Dashboard = () => import('../components/dashboard/Dashboard.vue')
+const CategoriesView = () => import('../components/dashboard/CategoriesView.vue')
+const AccountsView = () => import('../components/dashboard/AccountsView.vue')
+const TransactionsView = () => import('../components/dashboard/TransactionsView.vue')
+const BudgetsView = () => import('../components/dashboard/BudgetsView.vue')
+const GoalsView = () => import('../components/dashboard/GoalsView.vue')
+const RecurringView = () => import('../components/dashboard/RecurringView.vue')
+const ReportsView = () => import('../components/dashboard/ReportsView.vue')
+const SettingsView = () => import('../components/dashboard/SettingsView.vue')
 
 const router = createRouter({
   history: createWebHistory(),
