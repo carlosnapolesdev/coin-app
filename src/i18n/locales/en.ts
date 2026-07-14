@@ -57,7 +57,7 @@ const en = {
   auth: {
     common: {
       emailAddressLabel: 'Email Address',
-      emailPlaceholder: 'name@company.com',
+      emailPlaceholder: "name{'@'}company.com",
       backToSignIn: 'Back to sign in',
     },
     login: {
@@ -65,7 +65,7 @@ const en = {
       subtitle: 'Please enter your details to sign in',
       emailAddressLabel: 'Email Address',
       emailOrUsernameLabel: 'Email or Username',
-      identifierPlaceholder: 'name@company.com or username',
+      identifierPlaceholder: "name{'@'}company.com or username",
       passwordLabel: 'Password',
       forgotPasswordLink: 'Forgot Password?',
       rememberMe: 'Remember me for 7 days',
@@ -132,7 +132,7 @@ const en = {
         subtitle: 'Please enter your personal information to get started. This helps us personalize your experience.',
         fullNameLabel: 'Full Name',
         fullNamePlaceholder: 'John Doe',
-        emailPlaceholder: 'john@example.com',
+        emailPlaceholder: "john{'@'}example.com",
         passwordLabel: 'Password',
         passwordHint: 'Must be at least 8 characters with a mix of letters and numbers.',
         helperSecure: 'Secure, encrypted data storage',

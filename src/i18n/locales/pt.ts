@@ -59,7 +59,7 @@ const pt: MessageSchema = {
   auth: {
     common: {
       emailAddressLabel: 'E-mail',
-      emailPlaceholder: 'nome@empresa.com',
+      emailPlaceholder: "nome{'@'}empresa.com",
       backToSignIn: 'Voltar para o login',
     },
     login: {
@@ -67,7 +67,7 @@ const pt: MessageSchema = {
       subtitle: 'Digite seus dados para entrar',
       emailAddressLabel: 'E-mail',
       emailOrUsernameLabel: 'E-mail ou usuário',
-      identifierPlaceholder: 'nome@empresa.com ou usuário',
+      identifierPlaceholder: "nome{'@'}empresa.com ou usuário",
       passwordLabel: 'Senha',
       forgotPasswordLink: 'Esqueceu a senha?',
       rememberMe: 'Lembrar de mim por 7 dias',
@@ -134,7 +134,7 @@ const pt: MessageSchema = {
         subtitle: 'Digite suas informações pessoais para começar. Isso nos ajuda a personalizar sua experiência.',
         fullNameLabel: 'Nome completo',
         fullNamePlaceholder: 'João da Silva',
-        emailPlaceholder: 'joao@exemplo.com',
+        emailPlaceholder: "joao{'@'}exemplo.com",
         passwordLabel: 'Senha',
         passwordHint: 'Deve ter pelo menos 8 caracteres com uma combinação de letras e números.',
         helperSecure: 'Armazenamento de dados seguro e criptografado',
