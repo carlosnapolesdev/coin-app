@@ -1,9 +1,12 @@
+import type { OnboardingState } from './onboarding'
+
 export type AuthUser = {
   id: number
   fullName: string
   email: string
   username: string | null
   language: string
+  onboardingState?: OnboardingState | null
 }
 
 export type AuthResponse = {
