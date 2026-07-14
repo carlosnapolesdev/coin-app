@@ -735,6 +735,38 @@ const pt: MessageSchema = {
     back: 'Voltar',
     importButton: 'Importar {count} linha | Importar {count} linhas',
   },
+  onboarding: {
+    checklist: {
+      title: 'Primeiros passos',
+      subtitle: 'Configure o CoinFlow em poucos minutos.',
+      progress: '{done} de {total}',
+      dismiss: 'Dispensar',
+      setup: 'Moedas e categorias configuradas',
+      account: 'Crie sua primeira conta',
+      accountDesc: 'Uma conta é onde está o seu dinheiro: banco, dinheiro, cartão.',
+      transaction: 'Registre sua primeira transação',
+      transactionDesc: 'Adicione uma despesa ou receita para começar a controlar.',
+      budget: 'Crie seu primeiro orçamento',
+      budgetDesc: 'Defina um limite mensal para uma categoria.',
+      reports: 'Explore seus relatórios',
+      reportsDesc: 'Veja gráficos das suas receitas e despesas.',
+    },
+    coach: {
+      understood: 'Entendi',
+      dashboard: 'Comece aqui: complete estes passos para configurar o CoinFlow.',
+      transactions: 'Adicione despesas e receitas aqui, e busque-as quando quiser.',
+      reports: 'Filtre seus dados por mês, categoria ou conta.',
+    },
+    celebration: {
+      title: 'Muito bem!',
+      body: 'Você registrou sua primeira transação. Agora verá estatísticas, relatórios e saldos.',
+      cta: 'Ótimo',
+    },
+    help: {
+      menuLabel: 'Ajuda e tour',
+      replayTour: 'Ver o tour novamente',
+    },
+  },
 }
 
 export default pt

@@ -3,6 +3,7 @@ import { computed, ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Sidebar from './Sidebar.vue'
+import GettingStartedChecklist from '../onboarding/GettingStartedChecklist.vue'
 import { AnimatedAmount, AppCard, AppSpinner, AppTabs, PageContainer, PageHeader } from '../ui'
 import { accountsApi, type AccountDetail, type AccountType, type NetWorthSummary } from '../../services/accounts'
 import { transactionsApi, type TransactionDetail } from '../../services/transactions'
@@ -157,6 +158,8 @@ const goToTransactions = () => router.push({ name: 'transactions' })
       <PageHeader :title="t('dashboard.pageTitle')" :subtitle="t('dashboard.pageSubtitle', { month: currentMonthLabel })" />
 
       <PageContainer>
+        <GettingStartedChecklist />
+
         <!-- Summary stats -->
         <section class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           <AppCard>

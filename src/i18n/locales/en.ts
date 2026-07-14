@@ -733,6 +733,38 @@ const en = {
     back: 'Back',
     importButton: 'Import {count} row | Import {count} rows',
   },
+  onboarding: {
+    checklist: {
+      title: 'First steps',
+      subtitle: 'Set up CoinFlow in a few minutes.',
+      progress: '{done} of {total}',
+      dismiss: 'Dismiss',
+      setup: 'Currencies and categories set up',
+      account: 'Create your first account',
+      accountDesc: 'An account is where your money lives — bank, cash, card.',
+      transaction: 'Record your first transaction',
+      transactionDesc: 'Add an expense or income to start tracking.',
+      budget: 'Create your first budget',
+      budgetDesc: 'Set a monthly limit for a category.',
+      reports: 'Explore your reports',
+      reportsDesc: 'See charts of your income and spending.',
+    },
+    coach: {
+      understood: 'Got it',
+      dashboard: 'Start here: complete these steps to set up CoinFlow.',
+      transactions: 'Add expenses and income here, and search them anytime.',
+      reports: 'Filter your data by month, category or account.',
+    },
+    celebration: {
+      title: 'You did it!',
+      body: 'You recorded your first transaction. Now you can see stats, reports and balances.',
+      cta: 'Great',
+    },
+    help: {
+      menuLabel: 'Help & tour',
+      replayTour: 'Replay the tour',
+    },
+  },
 }
 
 export default en
