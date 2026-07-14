@@ -15,7 +15,7 @@ const emit = defineEmits<{ action: [] }>()
 <template>
   <div class="surface-card flex flex-col items-center gap-3 py-16 text-center">
     <div class="icon-tile size-14 bg-surface-2 text-faint">
-      <span class="material-symbols-outlined text-3xl">{{ icon }}</span>
+      <span class="material-symbols-outlined text-3xl" aria-hidden="true">{{ icon }}</span>
     </div>
     <div>
       <p class="text-base font-semibold text-content">{{ title }}</p>

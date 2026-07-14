@@ -28,7 +28,7 @@ const dismiss = () => {
       role="dialog"
     >
       <div class="flex items-start gap-2">
-        <span class="material-symbols-outlined mt-0.5 text-[18px] text-primary">lightbulb</span>
+        <span class="material-symbols-outlined mt-0.5 text-[18px] text-primary" aria-hidden="true">lightbulb</span>
         <p class="flex-1 text-sm text-content">{{ text }}</p>
       </div>
       <div class="mt-2 flex justify-end">

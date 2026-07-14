@@ -54,7 +54,7 @@ const go = (route: string) => router.push({ name: route })
       <ul class="divide-y divide-line">
         <li class="flex items-center gap-3 px-6 py-3">
           <span class="flex size-6 shrink-0 items-center justify-center rounded-full bg-success/15 text-success">
-            <span class="material-symbols-outlined text-[16px]">check</span>
+            <span class="material-symbols-outlined text-[16px]" aria-hidden="true">check</span>
           </span>
           <span class="text-sm font-medium text-muted line-through">{{ t('onboarding.checklist.setup') }}</span>
         </li>
@@ -64,7 +64,7 @@ const go = (route: string) => router.push({ name: route })
             class="flex size-6 shrink-0 items-center justify-center rounded-full"
             :class="step.done ? 'bg-success/15 text-success' : 'border-2 border-line text-transparent'"
           >
-            <span v-if="step.done" class="material-symbols-outlined text-[16px]">check</span>
+            <span v-if="step.done" class="material-symbols-outlined text-[16px]" aria-hidden="true">check</span>
           </span>
           <div class="min-w-0 flex-1">
             <p class="text-sm font-semibold" :class="step.done ? 'text-muted line-through' : 'text-content'">
@@ -75,10 +75,11 @@ const go = (route: string) => router.push({ name: route })
           <button
             v-if="!step.done"
             type="button"
+            :aria-label="t('onboarding.checklist.goToStep', { step: t(`sidebar.nav.${step.route}`) })"
             class="shrink-0 rounded-lg px-3 py-1.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/10"
             @click="go(step.route)"
           >
-            <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+            <span class="material-symbols-outlined text-[20px]" aria-hidden="true">arrow_forward</span>
           </button>
         </li>
       </ul>

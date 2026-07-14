@@ -748,6 +748,7 @@ const en = {
       budgetDesc: 'Set a monthly limit for a category.',
       reports: 'Explore your reports',
       reportsDesc: 'See charts of your income and spending.',
+      goToStep: 'Go to {step}',
     },
     coach: {
       understood: 'Got it',

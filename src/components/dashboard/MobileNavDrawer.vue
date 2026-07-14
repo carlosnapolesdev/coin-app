@@ -131,7 +131,7 @@ const replayTour = async () => {
               class="nav-link w-full"
               @click="replayTour"
             >
-              <span class="material-symbols-outlined text-[22px]">help</span>
+              <span class="material-symbols-outlined text-[22px]" aria-hidden="true">help</span>
               <span>{{ t('onboarding.help.replayTour') }}</span>
             </button>
           </div>

@@ -750,6 +750,7 @@ const pt: MessageSchema = {
       budgetDesc: 'Defina um limite mensal para uma categoria.',
       reports: 'Explore seus relatórios',
       reportsDesc: 'Veja gráficos das suas receitas e despesas.',
+      goToStep: 'Ir para {step}',
     },
     coach: {
       understood: 'Entendi',

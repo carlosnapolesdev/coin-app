@@ -16,7 +16,7 @@ const { celebrationVisible, dismissCelebration } = useOnboarding()
     >
       <div class="w-full max-w-sm rounded-2xl border border-line bg-surface p-8 text-center shadow-elevated">
         <div class="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-primary text-primary-fg">
-          <span class="material-symbols-outlined text-3xl">celebration</span>
+          <span class="material-symbols-outlined text-3xl" aria-hidden="true">celebration</span>
         </div>
         <h2 class="text-xl font-bold text-content">{{ t('onboarding.celebration.title') }}</h2>
         <p class="mt-2 text-sm text-muted">{{ t('onboarding.celebration.body') }}</p>

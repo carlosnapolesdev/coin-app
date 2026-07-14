@@ -104,7 +104,7 @@ const replayTour = async () => {
             class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-content transition-colors hover:bg-surface-2"
             @click="replayTour"
           >
-            <span class="material-symbols-outlined text-[20px]">help</span>
+            <span class="material-symbols-outlined text-[20px]" aria-hidden="true">help</span>
             <span class="flex-1 text-left">{{ t('onboarding.help.replayTour') }}</span>
           </button>
 
