@@ -9,8 +9,10 @@ import { AppBadge, AppButton, AppIconButton, AppInput, AppSelect, AppSpinner, Co
 import { type AccountDetail, accountsApi } from '../../services/accounts'
 import { type TransactionDetail, type TransactionStatus, type TransactionType, transactionsApi } from '../../services/transactions'
 import { formatCurrency, formatDate as formatDateLocale } from '../../utils/format'
+import { useOnboarding } from '../../composables/useOnboarding'
 
 const { t } = useI18n()
+const { notifyTransactionCreated } = useOnboarding()
 
 const PAGE_SIZE = 25
 const SEARCH_DEBOUNCE_MS = 300
@@ -110,6 +112,7 @@ const openEdit = (t: TransactionDetail) => {
 
 const onSaved = async () => {
   await Promise.all([loadAccounts(), loadTransactions()])
+  notifyTransactionCreated()
 }
 
 const onImported = async () => {
