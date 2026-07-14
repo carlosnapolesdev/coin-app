@@ -253,7 +253,7 @@ const transferLabel = (tx: TransactionDetail) => {
               :model-value="toDate"
               @update:model-value="(v) => { toDate = v; applyFilters() }"
             />
-            <div class="flex items-end gap-2 lg:col-span-2 lg:justify-end">
+            <div class="flex flex-wrap items-end gap-2 lg:col-span-2 lg:justify-end">
               <AppButton variant="secondary" icon="upload_file" @click="importModalOpen = true">{{ t('transactions.actions.import') }}</AppButton>
               <AppButton variant="secondary" icon="download" :loading="isExporting" @click="exportTransactions">{{ t('transactions.actions.export') }}</AppButton>
               <AppButton icon="add" @click="openCreate">{{ t('transactions.actions.add') }}</AppButton>
