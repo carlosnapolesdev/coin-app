@@ -19,6 +19,7 @@ import {
   AppSelect,
   AppSpinner,
   ConfirmDialog,
+  EmptyState,
   PageContainer,
   PageHeader,
 } from '../ui'
@@ -226,11 +227,15 @@ onMounted(() => {
           <AppButton variant="secondary" size="sm" @click="loadGoals">{{ t('common.retry') }}</AppButton>
         </div>
 
-        <div v-else-if="goals.length === 0" class="surface-card flex flex-col items-center gap-3 py-16 text-center">
-          <span class="material-symbols-outlined text-4xl text-faint">flag</span>
-          <p class="text-sm text-muted">{{ t('goals.empty') }}</p>
-          <AppButton icon="add" @click="openCreateModal">{{ t('goals.newButton') }}</AppButton>
-        </div>
+        <EmptyState
+          v-else-if="goals.length === 0"
+          icon="flag"
+          :title="t('goals.empty')"
+          :description="t('goals.emptyDesc')"
+          :action-label="t('goals.newButton')"
+          action-icon="add"
+          @action="openCreateModal"
+        />
 
         <div v-else class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           <AppCard v-for="goal in goals" :key="goal.id">

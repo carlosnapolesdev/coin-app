@@ -20,6 +20,7 @@ import {
   AppModal,
   AppSpinner,
   ConfirmDialog,
+  EmptyState,
   PageContainer,
   PageHeader,
 } from '../ui'
@@ -291,11 +292,15 @@ onMounted(() => {
           <AppButton variant="secondary" size="sm" @click="loadTemplates">{{ t('common.retry') }}</AppButton>
         </div>
 
-        <div v-else-if="templates.length === 0" class="surface-card flex flex-col items-center gap-3 py-16 text-center">
-          <span class="material-symbols-outlined text-4xl text-faint">event_repeat</span>
-          <p class="text-sm text-muted">{{ t('recurring.empty') }}</p>
-          <AppButton icon="add" @click="openCreateModal">{{ t('recurring.newButton') }}</AppButton>
-        </div>
+        <EmptyState
+          v-else-if="templates.length === 0"
+          icon="event_repeat"
+          :title="t('recurring.empty')"
+          :description="t('recurring.emptyDesc')"
+          :action-label="t('recurring.newButton')"
+          action-icon="add"
+          @action="openCreateModal"
+        />
 
         <div v-else class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           <AppCard v-for="tpl in templates" :key="tpl.id">

@@ -18,6 +18,7 @@ import {
   AppSelect,
   AppSpinner,
   ConfirmDialog,
+  EmptyState,
   PageContainer,
   PageHeader,
 } from '../ui'
@@ -211,11 +212,15 @@ onMounted(() => {
           <AppButton variant="secondary" size="sm" @click="loadBudgets">{{ t('common.retry') }}</AppButton>
         </div>
 
-        <div v-else-if="budgets.length === 0" class="surface-card flex flex-col items-center gap-3 py-16 text-center">
-          <span class="material-symbols-outlined text-4xl text-faint">pie_chart</span>
-          <p class="text-sm text-muted">{{ t('budgets.empty') }}</p>
-          <AppButton icon="add" @click="openCreateModal">{{ t('budgets.newButton') }}</AppButton>
-        </div>
+        <EmptyState
+          v-else-if="budgets.length === 0"
+          icon="pie_chart"
+          :title="t('budgets.empty')"
+          :description="t('budgets.emptyDesc')"
+          :action-label="t('budgets.newButton')"
+          action-icon="add"
+          @action="openCreateModal"
+        />
 
         <div v-else class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           <AppCard v-for="budget in budgets" :key="budget.id">
