@@ -1,0 +1,107 @@
+<script setup lang="ts">
+import { nextTick, onBeforeUnmount, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
+import { BrandMark } from '../ui'
+import { NAV_ITEMS } from '../../navigation/navItems'
+
+const props = defineProps<{ isOpen: boolean }>()
+const emit = defineEmits<{ close: [] }>()
+
+const route = useRoute()
+const { t } = useI18n()
+const closeButton = ref<HTMLButtonElement | null>(null)
+
+// Navigating from inside the drawer must dismiss it.
+watch(
+  () => route.fullPath,
+  () => emit('close'),
+)
+
+const onKeydown = (e: KeyboardEvent) => {
+  if (e.key === 'Escape') emit('close')
+}
+
+watch(
+  () => props.isOpen,
+  async (open) => {
+    if (typeof document === 'undefined') return
+    if (open) {
+      document.addEventListener('keydown', onKeydown)
+      await nextTick()
+      closeButton.value?.focus()
+    } else {
+      document.removeEventListener('keydown', onKeydown)
+    }
+  },
+)
+
+onBeforeUnmount(() => {
+  if (typeof document !== 'undefined') document.removeEventListener('keydown', onKeydown)
+})
+</script>
+
+<template>
+  <Teleport to="body">
+    <Transition name="drawer">
+      <div v-if="isOpen" class="fixed inset-0 z-50 md:hidden" role="dialog" aria-modal="true" :aria-label="t('sidebar.navigationLabel')">
+        <div class="drawer-scrim absolute inset-0 bg-scrim/60" @click="emit('close')" />
+        <div class="drawer-panel absolute inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col overflow-y-auto overscroll-contain border-r border-line bg-bg shadow-elevated">
+          <div class="flex items-center justify-between px-6 py-6">
+            <BrandMark :subtitle="t('sidebar.subtitle')" />
+            <button
+              ref="closeButton"
+              type="button"
+              :aria-label="t('sidebar.closeMenu')"
+              class="flex size-9 shrink-0 items-center justify-center rounded-lg text-faint transition-colors hover:bg-surface-2 hover:text-content focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+              @click="emit('close')"
+            >
+              <span class="material-symbols-outlined">close</span>
+            </button>
+          </div>
+
+          <nav class="flex-1 space-y-1 px-4 py-2" :aria-label="t('sidebar.navigationLabel')">
+            <RouterLink
+              v-for="item in NAV_ITEMS"
+              :key="item.routeName"
+              :to="{ name: item.routeName }"
+              class="nav-link w-full"
+              :class="item.routeName === route.name ? 'nav-link-active' : ''"
+            >
+              <span class="material-symbols-outlined text-[22px]">{{ item.icon }}</span>
+              <span>{{ t(item.labelKey) }}</span>
+            </RouterLink>
+          </nav>
+        </div>
+      </div>
+    </Transition>
+  </Teleport>
+</template>
+
+<style scoped>
+/* Compositor-friendly only: opacity on the scrim, transform on the panel. */
+.drawer-enter-active .drawer-scrim,
+.drawer-leave-active .drawer-scrim {
+  transition: opacity 0.2s ease;
+}
+.drawer-enter-active .drawer-panel,
+.drawer-leave-active .drawer-panel {
+  transition: transform 0.2s ease;
+}
+.drawer-enter-from .drawer-scrim,
+.drawer-leave-to .drawer-scrim {
+  opacity: 0;
+}
+.drawer-enter-from .drawer-panel,
+.drawer-leave-to .drawer-panel {
+  transform: translateX(-100%);
+}
+@media (prefers-reduced-motion: reduce) {
+  .drawer-enter-active .drawer-scrim,
+  .drawer-leave-active .drawer-scrim,
+  .drawer-enter-active .drawer-panel,
+  .drawer-leave-active .drawer-panel {
+    transition: none;
+  }
+}
+</style>
