@@ -128,6 +128,7 @@ const pt: MessageSchema = {
         genericSubmit: 'Não foi possível criar sua conta agora.',
         unexpected: 'Erro inesperado ao criar sua conta.',
         categoriesLoadFailed: 'Falha ao carregar as categorias',
+        consentRequired: 'Você deve aceitar os Termos de Uso e a Política de Privacidade',
       },
       step1: {
         title: 'Crie sua conta',
@@ -188,6 +189,12 @@ const pt: MessageSchema = {
         loadingCurrencies: 'Carregando...',
         nextStep: 'Próxima etapa',
       },
+      consent: {
+        prefix: 'Li e aceito os',
+        terms: 'Termos de Uso',
+        and: 'e a',
+        privacy: 'Política de Privacidade',
+      },
     },
   },
   settings: {
@@ -221,6 +228,21 @@ const pt: MessageSchema = {
       errorFallback: 'Não foi possível carregar suas moedas agora.',
       saveErrorFallback: 'Não foi possível atualizar a taxa de câmbio agora.',
     },
+    legal: {
+      title: 'Legal',
+      subtitle: 'Privacidade, termos e políticas',
+    },
+  },
+  legal: {
+    privacy: { title: 'Política de Privacidade' },
+    terms: { title: 'Termos de Uso' },
+    cookies: { title: 'Política de Cookies e Armazenamento' },
+    legalNotice: { title: 'Aviso Legal' },
+    updatedAt: 'Última atualização: {date}',
+    tableOfContents: 'Conteúdo',
+    authoritativeNote: 'Em caso de divergência entre versões, prevalece a versão em espanhol.',
+    noticeLabel: 'Aviso',
+    footerHeading: 'Legal',
   },
   dashboard: {
     pageTitle: 'Painel',
