@@ -32,3 +32,15 @@ describe('english translations', () => {
     }
   })
 })
+
+describe('portuguese translations', () => {
+  it('mirror the Spanish section ids for every slug', () => {
+    for (const slug of LEGAL_SLUGS) {
+      const es = getLegalDocument(slug, 'es')
+      const pt = getLegalDocument(slug, 'pt')
+      expect(pt).not.toBe(es)
+      expect(pt.sections.map((s) => s.id)).toEqual(es.sections.map((s) => s.id))
+      expect(pt.updatedAt).toBe(es.updatedAt)
+    }
+  })
+})
