@@ -278,7 +278,7 @@ const saveExchangeRate = async (currencyId: number) => {
                 class="flex items-center justify-between py-3 text-sm font-medium text-content hover:text-primary"
               >
                 <span>{{ t(LEGAL_TITLE_KEYS[slug]) }}</span>
-                <span class="material-symbols-outlined text-faint">chevron_right</span>
+                <span class="material-symbols-outlined text-faint" aria-hidden="true">chevron_right</span>
               </RouterLink>
             </div>
           </AppCard>

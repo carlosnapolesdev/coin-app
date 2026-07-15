@@ -57,3 +57,8 @@ export const isLegalSlug = (value: string): value is LegalSlug =>
 
 export const getLegalDocument = (slug: LegalSlug, locale: LocaleCode): LegalDocument =>
   registry[locale]?.[slug] ?? registry.es![slug]!
+
+const LEGAL_LOCALES: ReadonlySet<LocaleCode> = new Set<LocaleCode>(['es', 'en', 'pt'])
+
+export const resolveLegalLocale = (value: string): LocaleCode =>
+  (LEGAL_LOCALES as ReadonlySet<string>).has(value) ? (value as LocaleCode) : 'es'

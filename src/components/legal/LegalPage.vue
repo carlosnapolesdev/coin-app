@@ -4,13 +4,12 @@ import { useI18n } from 'vue-i18n'
 import TopHeader from '../common/TopHeader.vue'
 import LegalBlocks from './LegalBlocks.vue'
 import LegalFooter from './LegalFooter.vue'
-import { getLegalDocument, type LegalSlug } from '../../content/legal'
-import type { LocaleCode } from '../../composables/useLocale'
+import { getLegalDocument, resolveLegalLocale, type LegalSlug } from '../../content/legal'
 
 const props = defineProps<{ slug: LegalSlug; titleKey: string }>()
 const { t, locale } = useI18n()
 
-const doc = computed(() => getLegalDocument(props.slug, locale.value as LocaleCode))
+const doc = computed(() => getLegalDocument(props.slug, resolveLegalLocale(locale.value)))
 const title = computed(() => t(props.titleKey))
 const updatedLabel = computed(() =>
   t('legal.updatedAt', { date: new Date(doc.value.updatedAt).toLocaleDateString(locale.value) }),

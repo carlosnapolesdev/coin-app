@@ -450,9 +450,9 @@ const steps = computed(() => [
                     />
                     <span class="text-sm text-muted">
                       {{ t('auth.register.consent.prefix') }}
-                      <RouterLink :to="LEGAL_ROUTE_PATHS.terms" target="_blank" class="font-semibold text-primary hover:underline">{{ t('auth.register.consent.terms') }}</RouterLink>
+                      <RouterLink :to="LEGAL_ROUTE_PATHS.terms" target="_blank" rel="noopener noreferrer" class="font-semibold text-primary hover:underline">{{ t('auth.register.consent.terms') }}</RouterLink>
                       {{ t('auth.register.consent.and') }}
-                      <RouterLink :to="LEGAL_ROUTE_PATHS.privacy" target="_blank" class="font-semibold text-primary hover:underline">{{ t('auth.register.consent.privacy') }}</RouterLink>.
+                      <RouterLink :to="LEGAL_ROUTE_PATHS.privacy" target="_blank" rel="noopener noreferrer" class="font-semibold text-primary hover:underline">{{ t('auth.register.consent.privacy') }}</RouterLink>.
                     </span>
                   </label>
                   <p v-if="fieldErrors.acceptedLegal" class="mt-2 text-sm text-danger">{{ fieldErrors.acceptedLegal }}</p>

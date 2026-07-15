@@ -14,12 +14,12 @@ defineProps<{ blocks: LegalBlock[] }>()
       </ul>
 
       <div v-else-if="block.kind === 'note'" class="flex items-start gap-3 rounded-xl border border-primary/20 bg-primary/5 p-4">
-        <span class="material-symbols-outlined mt-0.5 text-primary">info</span>
+        <span class="material-symbols-outlined mt-0.5 text-primary" aria-hidden="true">info</span>
         <p class="leading-relaxed text-content">{{ block.text }}</p>
       </div>
 
       <div v-else-if="block.kind === 'placeholder'" class="flex items-start gap-3 rounded-xl border border-dashed border-line-strong bg-surface-2 p-4">
-        <span class="material-symbols-outlined mt-0.5 text-faint">edit_note</span>
+        <span class="material-symbols-outlined mt-0.5 text-faint" aria-hidden="true">edit_note</span>
         <p class="font-medium leading-relaxed text-faint">{{ block.text }}</p>
       </div>
     </template>

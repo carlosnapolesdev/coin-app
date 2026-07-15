@@ -239,8 +239,6 @@ const en = {
     updatedAt: 'Last updated: {date}',
     tableOfContents: 'Contents',
     authoritativeNote: 'In case of discrepancy between versions, the Spanish version prevails.',
-    noticeLabel: 'Notice',
-    footerHeading: 'Legal',
   },
   dashboard: {
     pageTitle: 'Dashboard',

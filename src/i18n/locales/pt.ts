@@ -241,8 +241,6 @@ const pt: MessageSchema = {
     updatedAt: 'Última atualização: {date}',
     tableOfContents: 'Conteúdo',
     authoritativeNote: 'Em caso de divergência entre versões, prevalece a versão em espanhol.',
-    noticeLabel: 'Aviso',
-    footerHeading: 'Legal',
   },
   dashboard: {
     pageTitle: 'Painel',
