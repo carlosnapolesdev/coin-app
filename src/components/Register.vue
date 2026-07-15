@@ -8,6 +8,8 @@ import CurrencyModal from './dashboard/CurrencyModal.vue'
 import { AppButton } from './ui'
 import api from '../services/api'
 import { useLocale } from '../composables/useLocale'
+import { LEGAL_ROUTE_PATHS } from '../content/legal'
+import { validateRegisterStep1 } from '../utils/registerValidation'
 
 const router = useRouter()
 const { t } = useI18n()
@@ -17,6 +19,7 @@ const isSubmitting = ref(false)
 const isPasswordVisible = ref(false)
 const registrationCompleted = ref(false)
 const submissionError = ref('')
+const acceptedLegal = ref(false)
 
 // Step 2: Currencies
 interface Currency {
@@ -190,29 +193,25 @@ const resetFieldErrors = () => {
   }
 }
 
-const clearFieldError = (field: 'fullName' | 'email' | 'password') => {
+const clearFieldError = (field: 'fullName' | 'email' | 'password' | 'acceptedLegal') => {
   delete fieldErrors[field]
   submissionError.value = ''
 }
 
 const registerAccount = () => {
-  // Validates form data before proceeding to step 2
-  // Actual API call happens in completeRegistration() after all steps are completed
   resetFieldErrors()
 
-  // Basic validation
-  if (!form.fullName) {
-    fieldErrors.fullName = t('auth.register.errors.fullNameRequired')
-    return false
-  }
-  if (!form.email) {
-    fieldErrors.email = t('auth.register.errors.emailRequired')
-    return false
-  }
-  if (!form.password || form.password.length < 8) {
-    fieldErrors.password = t('auth.register.errors.passwordTooShort')
-    return false
-  }
+  const errors = validateRegisterStep1(
+    { fullName: form.fullName, email: form.email, password: form.password, acceptedLegal: acceptedLegal.value },
+    {
+      fullNameRequired: t('auth.register.errors.fullNameRequired'),
+      emailRequired: t('auth.register.errors.emailRequired'),
+      passwordTooShort: t('auth.register.errors.passwordTooShort'),
+      consentRequired: t('auth.register.errors.consentRequired'),
+    },
+  )
+  Object.assign(fieldErrors, errors)
+  if (Object.keys(errors).length > 0) return false
 
   registrationCompleted.value = true
   currentStep.value = 2
@@ -440,6 +439,23 @@ const steps = computed(() => [
                   </div>
                   <p class="mt-3 text-xs italic text-muted">{{ t('auth.register.step1.passwordHint') }}</p>
                   <p v-if="fieldErrors.password" class="mt-2 text-sm text-danger">{{ fieldErrors.password }}</p>
+                </div>
+                <div>
+                  <label class="flex cursor-pointer items-start gap-3">
+                    <input
+                      v-model="acceptedLegal"
+                      type="checkbox"
+                      class="mt-0.5 size-5 rounded border-line"
+                      @change="clearFieldError('acceptedLegal')"
+                    />
+                    <span class="text-sm text-muted">
+                      {{ t('auth.register.consent.prefix') }}
+                      <RouterLink :to="LEGAL_ROUTE_PATHS.terms" target="_blank" class="font-semibold text-primary hover:underline">{{ t('auth.register.consent.terms') }}</RouterLink>
+                      {{ t('auth.register.consent.and') }}
+                      <RouterLink :to="LEGAL_ROUTE_PATHS.privacy" target="_blank" class="font-semibold text-primary hover:underline">{{ t('auth.register.consent.privacy') }}</RouterLink>.
+                    </span>
+                  </label>
+                  <p v-if="fieldErrors.acceptedLegal" class="mt-2 text-sm text-danger">{{ fieldErrors.acceptedLegal }}</p>
                 </div>
                 <p v-if="submissionError" class="rounded-xl border border-danger/30 bg-danger/10 px-4 py-3 text-sm font-medium text-danger">
                   {{ submissionError }}
