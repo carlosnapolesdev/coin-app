@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import TopHeader from './common/TopHeader.vue'
+import LegalFooter from './legal/LegalFooter.vue'
 import { AppButton } from './ui'
 import { forgotPassword } from '../services/auth'
 
@@ -65,5 +66,6 @@ const handleSubmit = async () => {
         </div>
       </div>
     </main>
+    <LegalFooter />
   </div>
 </template>

@@ -126,6 +126,7 @@ const en = {
         genericSubmit: 'Unable to create your account right now.',
         unexpected: 'Unexpected error while creating your account.',
         categoriesLoadFailed: 'Failed to load categories',
+        consentRequired: 'You must accept the Terms of Use and Privacy Policy',
       },
       step1: {
         title: 'Create Your Account',
@@ -186,6 +187,12 @@ const en = {
         loadingCurrencies: 'Loading...',
         nextStep: 'Next Step',
       },
+      consent: {
+        prefix: 'I have read and accept the',
+        terms: 'Terms of Use',
+        and: 'and the',
+        privacy: 'Privacy Policy',
+      },
     },
   },
   settings: {
@@ -219,6 +226,19 @@ const en = {
       errorFallback: 'Unable to load your currencies right now.',
       saveErrorFallback: 'Unable to update the exchange rate right now.',
     },
+    legal: {
+      title: 'Legal',
+      subtitle: 'Privacy, terms and policies',
+    },
+  },
+  legal: {
+    privacy: { title: 'Privacy Policy' },
+    terms: { title: 'Terms of Use' },
+    cookies: { title: 'Cookies & Storage Policy' },
+    legalNotice: { title: 'Legal Notice' },
+    updatedAt: 'Last updated: {date}',
+    tableOfContents: 'Contents',
+    authoritativeNote: 'In case of discrepancy between versions, the Spanish version prevails.',
   },
   dashboard: {
     pageTitle: 'Dashboard',

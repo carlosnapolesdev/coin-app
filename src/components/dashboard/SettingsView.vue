@@ -14,6 +14,7 @@ import {
   PageContainer,
   PageHeader,
 } from '../ui'
+import { LEGAL_SLUGS, LEGAL_ROUTE_PATHS, LEGAL_TITLE_KEYS } from '../../content/legal'
 
 const authState = useAuthState()
 const { t } = useI18n()
@@ -263,6 +264,22 @@ const saveExchangeRate = async (currencyId: number) => {
                   </AppButton>
                 </template>
               </div>
+            </div>
+          </AppCard>
+
+          <AppCard class="lg:col-span-2">
+            <h3 class="text-lg font-bold text-content">{{ t('settings.legal.title') }}</h3>
+            <p class="mt-1 text-sm text-muted">{{ t('settings.legal.subtitle') }}</p>
+            <div class="mt-4 flex flex-col divide-y divide-line">
+              <RouterLink
+                v-for="slug in LEGAL_SLUGS"
+                :key="slug"
+                :to="LEGAL_ROUTE_PATHS[slug]"
+                class="flex items-center justify-between py-3 text-sm font-medium text-content hover:text-primary"
+              >
+                <span>{{ t(LEGAL_TITLE_KEYS[slug]) }}</span>
+                <span class="material-symbols-outlined text-faint" aria-hidden="true">chevron_right</span>
+              </RouterLink>
             </div>
           </AppCard>
         </div>

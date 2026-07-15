@@ -19,6 +19,7 @@ const GoalsView = () => import('../components/dashboard/GoalsView.vue')
 const RecurringView = () => import('../components/dashboard/RecurringView.vue')
 const ReportsView = () => import('../components/dashboard/ReportsView.vue')
 const SettingsView = () => import('../components/dashboard/SettingsView.vue')
+const LegalPage = () => import('../components/legal/LegalPage.vue')
 
 const router = createRouter({
   history: createWebHistory(),
@@ -50,6 +51,34 @@ const router = createRouter({
       name: 'reset-password',
       component: ResetPassword,
       meta: { publicOnly: true, title: 'auth.resetPassword.title' },
+    },
+    {
+      path: '/legal/privacy',
+      name: 'legal-privacy',
+      component: LegalPage,
+      props: { slug: 'privacy', titleKey: 'legal.privacy.title' },
+      meta: { title: 'legal.privacy.title' },
+    },
+    {
+      path: '/legal/terms',
+      name: 'legal-terms',
+      component: LegalPage,
+      props: { slug: 'terms', titleKey: 'legal.terms.title' },
+      meta: { title: 'legal.terms.title' },
+    },
+    {
+      path: '/legal/cookies',
+      name: 'legal-cookies',
+      component: LegalPage,
+      props: { slug: 'cookies', titleKey: 'legal.cookies.title' },
+      meta: { title: 'legal.cookies.title' },
+    },
+    {
+      path: '/legal/legal-notice',
+      name: 'legal-legal-notice',
+      component: LegalPage,
+      props: { slug: 'legal-notice', titleKey: 'legal.legalNotice.title' },
+      meta: { title: 'legal.legalNotice.title' },
     },
     {
       path: '/dashboard',
