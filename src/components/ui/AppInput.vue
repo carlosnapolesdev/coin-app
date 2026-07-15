@@ -8,6 +8,8 @@ defineProps<{
   error?: string
   disabled?: boolean
   id?: string
+  name?: string
+  autocomplete?: string
 }>()
 
 defineEmits<{ 'update:modelValue': [value: string] }>()
@@ -24,9 +26,11 @@ defineEmits<{ 'update:modelValue': [value: string] }>()
       >
       <input
         :id="id"
+        :name="name"
         :type="type ?? 'text'"
         :value="modelValue"
         :placeholder="placeholder"
+        :autocomplete="autocomplete"
         :disabled="disabled"
         class="field-input"
         :class="[icon ? 'pl-11' : '', error ? '!border-danger focus:!ring-danger/20' : '']"
