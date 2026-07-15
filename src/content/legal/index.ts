@@ -4,6 +4,10 @@ import privacyEs from './es/privacy'
 import termsEs from './es/terms'
 import cookiesEs from './es/cookies'
 import legalNoticeEs from './es/legal-notice'
+import privacyEn from './en/privacy'
+import termsEn from './en/terms'
+import cookiesEn from './en/cookies'
+import legalNoticeEn from './en/legal-notice'
 
 export type { LegalDocument, LegalSlug, LegalSection, LegalBlock } from './types'
 
@@ -29,6 +33,12 @@ const registry: Partial<Record<LocaleCode, Partial<Record<LegalSlug, LegalDocume
     terms: termsEs,
     cookies: cookiesEs,
     'legal-notice': legalNoticeEs,
+  },
+  en: {
+    privacy: privacyEn,
+    terms: termsEn,
+    cookies: cookiesEn,
+    'legal-notice': legalNoticeEn,
   },
 }
 

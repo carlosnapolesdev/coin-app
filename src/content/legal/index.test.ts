@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest'
 import { LEGAL_SLUGS, getLegalDocument, isLegalSlug } from './index'
-import type { LegalSlug } from './types'
 
 describe('legal content loader', () => {
   it('exposes exactly the four legal slugs', () => {
@@ -20,9 +19,16 @@ describe('legal content loader', () => {
       expect(doc.sections.every((s) => s.id && s.heading && s.blocks.length > 0)).toBe(true)
     }
   })
+})
 
-  it('falls back to Spanish for locales without a translation yet', () => {
-    const slug: LegalSlug = 'privacy'
-    expect(getLegalDocument(slug, 'en')).toBe(getLegalDocument(slug, 'es'))
+describe('english translations', () => {
+  it('mirror the Spanish section ids for every slug', () => {
+    for (const slug of LEGAL_SLUGS) {
+      const es = getLegalDocument(slug, 'es')
+      const en = getLegalDocument(slug, 'en')
+      expect(en).not.toBe(es)
+      expect(en.sections.map((s) => s.id)).toEqual(es.sections.map((s) => s.id))
+      expect(en.updatedAt).toBe(es.updatedAt)
+    }
   })
 })
