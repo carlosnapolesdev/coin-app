@@ -15,6 +15,7 @@ import ReportsView from '../components/dashboard/ReportsView.vue'
 import SettingsView from '../components/dashboard/SettingsView.vue'
 import ForgotPassword from '../components/ForgotPassword.vue'
 import ResetPassword from '../components/ResetPassword.vue'
+import LegalPage from '../components/legal/LegalPage.vue'
 import { initializeAuth, isAuthenticated } from '../services/auth'
 
 const router = createRouter({
@@ -47,6 +48,34 @@ const router = createRouter({
       name: 'reset-password',
       component: ResetPassword,
       meta: { publicOnly: true, title: 'auth.resetPassword.title' },
+    },
+    {
+      path: '/legal/privacy',
+      name: 'legal-privacy',
+      component: LegalPage,
+      props: { slug: 'privacy', titleKey: 'legal.privacy.title' },
+      meta: { title: 'legal.privacy.title' },
+    },
+    {
+      path: '/legal/terms',
+      name: 'legal-terms',
+      component: LegalPage,
+      props: { slug: 'terms', titleKey: 'legal.terms.title' },
+      meta: { title: 'legal.terms.title' },
+    },
+    {
+      path: '/legal/cookies',
+      name: 'legal-cookies',
+      component: LegalPage,
+      props: { slug: 'cookies', titleKey: 'legal.cookies.title' },
+      meta: { title: 'legal.cookies.title' },
+    },
+    {
+      path: '/legal/legal-notice',
+      name: 'legal-legal-notice',
+      component: LegalPage,
+      props: { slug: 'legal-notice', titleKey: 'legal.legalNotice.title' },
+      meta: { title: 'legal.legalNotice.title' },
     },
     {
       path: '/dashboard',
