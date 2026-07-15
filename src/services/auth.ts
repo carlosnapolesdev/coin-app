@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { reactive, readonly } from 'vue'
+import type { Router } from 'vue-router'
 import api from './api'
 import {
   clearAuthSession,
@@ -106,6 +107,18 @@ export const clearSession = () => {
   authState.token = null
   authState.user = null
   authState.initialized = true
+}
+
+export const handleUnauthorizedSession = (router: Router) => {
+  const currentRoute = router.currentRoute.value
+  clearSession()
+
+  if (!currentRoute.meta.requiresAuth) return
+
+  void router.replace({
+    name: 'login',
+    query: { redirect: currentRoute.fullPath },
+  })
 }
 
 export const logout = () => {

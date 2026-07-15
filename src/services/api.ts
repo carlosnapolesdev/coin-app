@@ -2,6 +2,18 @@ import axios from 'axios'
 
 import { clearAuthSession, getAccessToken } from './auth-session'
 
+type UnauthorizedHandler = () => void
+
+const defaultUnauthorizedHandler: UnauthorizedHandler = () => {
+  clearAuthSession()
+}
+
+let unauthorizedHandler = defaultUnauthorizedHandler
+
+export const setUnauthorizedHandler = (handler: UnauthorizedHandler | null) => {
+  unauthorizedHandler = handler ?? defaultUnauthorizedHandler
+}
+
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL ?? '/api',
   headers: {
@@ -22,8 +34,12 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      clearAuthSession()
+    const isRejectedLogin =
+      error.config?.url === '/auth/login' &&
+      error.config?.method?.toLowerCase() === 'post'
+
+    if (error.response?.status === 401 && !isRejectedLogin) {
+      unauthorizedHandler()
     }
 
     return Promise.reject(error)
