@@ -12,7 +12,11 @@ const { t, locale } = useI18n()
 const doc = computed(() => getLegalDocument(props.slug, resolveLegalLocale(locale.value)))
 const title = computed(() => t(props.titleKey))
 const updatedLabel = computed(() =>
-  t('legal.updatedAt', { date: new Date(doc.value.updatedAt).toLocaleDateString(locale.value) }),
+  t('legal.updatedAt', {
+    // Format in UTC so the stored calendar date (e.g. 2026-07-14, parsed as UTC
+    // midnight) is not shown a day earlier for viewers in negative-offset zones.
+    date: new Date(doc.value.updatedAt).toLocaleDateString(locale.value, { timeZone: 'UTC' }),
+  }),
 )
 </script>
 
