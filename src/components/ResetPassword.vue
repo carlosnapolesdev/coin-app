@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import TopHeader from './common/TopHeader.vue'
+import LegalFooter from './legal/LegalFooter.vue'
 import { AppButton } from './ui'
 import { getApiErrorMessage, resetPassword } from '../services/auth'
 
@@ -87,5 +88,6 @@ const handleSubmit = async () => {
         </div>
       </div>
     </main>
+    <LegalFooter />
   </div>
 </template>

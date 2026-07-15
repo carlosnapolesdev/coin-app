@@ -5,6 +5,7 @@ import { useRouter } from 'vue-router'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import TopHeader from './common/TopHeader.vue'
+import LegalFooter from './legal/LegalFooter.vue'
 import { AppButton } from './ui'
 import { getApiErrorMessage, login } from '../services/auth'
 import { getSavedIdentifier } from '../services/auth-session'
@@ -227,5 +228,6 @@ onMounted(() => {
         {{ t('auth.login.footer') }}
       </p>
     </footer>
+    <LegalFooter />
   </div>
 </template>
