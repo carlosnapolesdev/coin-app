@@ -2,7 +2,7 @@ import type { LegalDocument } from '../types'
 
 const cookiesEn: LegalDocument = {
   slug: 'cookies',
-  updatedAt: '2026-07-14',
+  updatedAt: '2026-07-16',
   intro:
     'This policy explains the storage CoinFlow uses in your browser. We do not use advertising or tracking cookies, nor third-party analytics.',
   sections: [
@@ -30,7 +30,7 @@ const cookiesEn: LegalDocument = {
       id: 'terceros',
       heading: 'Third-party resources',
       blocks: [
-        { kind: 'paragraph', text: 'The site loads fonts from Google Fonts. When it does, your IP address may be received by Google. See the Privacy Policy for details.' },
+        { kind: 'paragraph', text: 'The typography on this site (Inter, Space Grotesk and Material Symbols) is served from this same domain and is not transmitted to external services. No IP address or other personal data is shared with third parties to render the fonts. These fonts are distributed under the SIL Open Font License 1.1 by their respective authors.' },
       ],
     },
     {

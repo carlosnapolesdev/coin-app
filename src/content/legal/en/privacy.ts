@@ -2,7 +2,7 @@ import type { LegalDocument } from '../types'
 
 const privacyEn: LegalDocument = {
   slug: 'privacy',
-  updatedAt: '2026-07-14',
+  updatedAt: '2026-07-16',
   intro:
     'This Privacy Policy describes how CoinFlow handles the personal data of its users, in accordance with Uruguayan Law No. 18.331 on the Protection of Personal Data and Habeas Data Action, and its regulatory Decree 414/009.',
   sections: [
@@ -59,10 +59,17 @@ const privacyEn: LegalDocument = {
       blocks: [
         { kind: 'paragraph', text: 'We do not sell your data. We may rely on providers acting on our behalf:' },
         { kind: 'list', items: [
-          'Google Fonts (Google LLC): when the site loads its fonts, your IP address may be received by Google.',
           'Hosting provider where the application runs and the database is stored.',
         ] },
         { kind: 'placeholder', text: 'Hosting provider: [PROVIDER NAME AND COUNTRY]' },
+      ],
+    },
+    {
+      id: 'tipografias',
+      heading: 'Typography',
+      blocks: [
+        { kind: 'paragraph', text: 'The typography on this site (Inter, Space Grotesk and Material Symbols) is served from this same domain. No IP address or other personal data is shared with third parties to render the fonts.' },
+        { kind: 'paragraph', text: 'These fonts are distributed under the SIL Open Font License 1.1 by their respective authors. The licence text is available at https://openfontlicense.org/open-font-license-official-text/.' },
       ],
     },
     {

@@ -1,0 +1,60 @@
+/*
+ * Local font declarations. Inter, Space Grotesk and Material Symbols Outlined
+ * are served from /fonts/ (public/fonts) on the same origin as the app.
+ * Replaces the previous <link href="https://fonts.googleapis.com/..."> tags.
+ *
+ * All three families are distributed under the SIL Open Font License 1.1
+ * by their respective authors:
+ *   - Inter — © Rasmus Andersson, https://github.com/rsms/inter
+ *   - Space Grotesk — © Florian Karsten, https://github.com/floriankarsten/space-grotesk
+ *   - Material Symbols Outlined — © Google LLC, https://github.com/google/fonts (ofl/materialsymbolsoutlined)
+ */
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url('/fonts/Inter-Variable.woff2') format('woff2-variations');
+}
+
+@font-face {
+  font-family: 'Space Grotesk';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 300 700;
+  src: url('/fonts/SpaceGrotesk-Variable.woff2') format('woff2-variations');
+}
+
+@font-face {
+  font-family: 'Material Symbols Outlined';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 700;
+  src: url('/fonts/MaterialSymbolsOutlined-Variable.woff2') format('woff2-variations');
+}
+
+/*
+ * Material Symbols normalization. The Google Fonts stylesheet used to inject
+ * these properties; we now own them locally so the variable font renders as
+ * icon glyphs (not the underlying ligature text).
+ */
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+.material-symbols-outlined.is-filled {
+  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}

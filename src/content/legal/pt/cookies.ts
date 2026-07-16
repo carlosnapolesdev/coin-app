@@ -2,7 +2,7 @@ import type { LegalDocument } from '../types'
 
 const cookiesPt: LegalDocument = {
   slug: 'cookies',
-  updatedAt: '2026-07-14',
+  updatedAt: '2026-07-16',
   intro:
     'Esta política explica o armazenamento que o CoinFlow usa no seu navegador. Não usamos cookies de publicidade ou rastreamento, nem ferramentas de análise de terceiros.',
   sections: [
@@ -30,7 +30,7 @@ const cookiesPt: LegalDocument = {
       id: 'terceros',
       heading: 'Recursos de terceiros',
       blocks: [
-        { kind: 'paragraph', text: 'O site carrega fontes do Google Fonts. Ao fazê-lo, seu endereço IP pode ser recebido pelo Google. Consulte a Política de Privacidade para mais detalhes.' },
+        { kind: 'paragraph', text: 'A tipografia deste site (Inter, Space Grotesk e Material Symbols) é servida a partir deste mesmo domínio e não é transmitida a serviços externos. Para exibir as fontes, nenhum endereço IP ou outro dado pessoal é compartilhado com terceiros. Essas fontes são distribuídas sob a SIL Open Font License 1.1 por seus respectivos autores.' },
       ],
     },
     {

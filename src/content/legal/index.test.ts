@@ -44,3 +44,41 @@ describe('portuguese translations', () => {
     }
   })
 })
+
+describe('self-hosted fonts legal copy', () => {
+  const flatten = (doc: { sections: { blocks: { text?: string; items?: string[] }[] }[] }): string => {
+    const parts: string[] = []
+    for (const section of doc.sections) {
+      for (const block of section.blocks) {
+        if (block.text) parts.push(block.text)
+        if (block.items) parts.push(...block.items)
+      }
+    }
+    return parts.join('\n')
+  }
+
+  it('adds a typography section to privacy in every locale', () => {
+    for (const locale of ['es', 'en', 'pt'] as const) {
+      const privacy = getLegalDocument('privacy', locale)
+      expect(privacy.sections.some((s) => s.id === 'tipografias')).toBe(true)
+    }
+  })
+
+  it('removes Google Fonts from the privacy third-party list in every locale', () => {
+    for (const locale of ['es', 'en', 'pt'] as const) {
+      const privacy = getLegalDocument('privacy', locale)
+      const terceros = privacy.sections.find((s) => s.id === 'terceros')
+      expect(terceros, `privacy/${locale} is missing the terceros section`).toBeDefined()
+      const items = (terceros!.blocks.flatMap((b) => ('items' in b ? b.items : []))).join('\n')
+      expect(items).not.toContain('Google Fonts')
+    }
+  })
+
+  it('removes Google Fonts from the cookies third-party paragraph in every locale', () => {
+    for (const locale of ['es', 'en', 'pt'] as const) {
+      const cookies = getLegalDocument('cookies', locale)
+      const all = flatten(cookies)
+      expect(all).not.toContain('Google Fonts')
+    }
+  })
+})

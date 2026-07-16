@@ -80,7 +80,8 @@ Rules:
 
 ### 1.2 Typography
 
-- Two font roles, both loaded via Google Fonts in `index.html`:
+- Two font roles, locally hosted in `coin-app/public/fonts/` and declared via
+  `@font-face` in `src/fonts.css`:
   - **`font-display`** → **Space Grotesk** (weights 500/700). Used sparingly for
     page titles, section/card titles, and large monetary figures — the one place
     this app is allowed to look designed rather than default.

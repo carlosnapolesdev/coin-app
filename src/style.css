@@ -108,13 +108,7 @@
   }
 }
 
-.material-symbols-outlined {
-  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-}
-.material-symbols-outlined.is-filled {
-  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-}
-
+/* .material-symbols-outlined rules moved to src/fonts.css */
 /* ============================================================
    Component utilities — the canonical building blocks.
    Prefer the Vue components in src/components/ui; these classes
