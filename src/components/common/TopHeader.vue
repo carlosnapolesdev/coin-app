@@ -7,7 +7,7 @@ const { t } = useI18n()
 
 <template>
   <header
-    class="flex items-center justify-between whitespace-nowrap border-b border-line px-6 py-4 lg:px-20"
+    class="surface-panel flex items-center justify-between whitespace-nowrap border-b border-line px-6 py-4 lg:px-20"
   >
     <BrandMark :wordmark="true" />
     <div class="flex items-center gap-3">

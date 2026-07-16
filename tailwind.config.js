@@ -44,6 +44,9 @@ export default {
         info: token("--color-info"),
         // Modal/lightbox overlay — theme-agnostic. Use as bg-overlay/X (X = alpha).
         overlay: token("--color-overlay"),
+        // Scrim de capas de cristal — theme-dependent (blanco en light, negro en dark).
+        // Modal y drawer lo usan; el lightbox se queda en overlay.
+        scrim: token("--color-scrim"),
         // Text/icons that sit ON the overlay surface. Use as text-overlay-fg.
         "overlay-fg": token("--color-overlay-fg"),
       },

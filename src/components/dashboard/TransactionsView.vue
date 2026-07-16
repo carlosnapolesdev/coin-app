@@ -203,7 +203,7 @@ const transferLabel = (tx: TransactionDetail) => {
   <div class="flex h-screen overflow-hidden bg-ambient">
     <Sidebar />
 
-    <main class="flex-1 overflow-y-auto">
+    <main class="wm-logo-main flex-1 overflow-y-auto">
       <PageHeader :title="t('transactions.pageTitle')" :subtitle="t('transactions.pageSubtitle')" />
 
       <!-- Content -->

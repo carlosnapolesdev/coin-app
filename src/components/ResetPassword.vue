@@ -47,7 +47,7 @@ const handleSubmit = async () => {
   <div class="flex min-h-screen flex-col bg-ambient bg-ambient--strong font-display">
     <TopHeader />
 
-    <main class="flex flex-1 items-center justify-center p-6">
+    <main class="wm-logo-auth flex flex-1 items-center justify-center p-6">
       <div class="surface-glass rounded-2xl mx-auto w-full max-w-md p-8 lg:p-10">
         <div class="mb-8">
           <h2 class="text-3xl font-bold text-content">{{ t('auth.resetPassword.title') }}</h2>

@@ -144,7 +144,7 @@ const saveExchangeRate = async (currencyId: number) => {
   <div class="flex h-screen overflow-hidden bg-ambient">
     <Sidebar />
 
-    <main class="flex-1 overflow-y-auto">
+    <main class="wm-logo-main flex-1 overflow-y-auto">
       <PageHeader :title="t('settings.pageTitle')" :subtitle="t('settings.pageSubtitle')" />
 
       <PageContainer>

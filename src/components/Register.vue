@@ -353,7 +353,7 @@ const steps = computed(() => [
 
     <div class="relative flex flex-1 overflow-hidden">
       <!-- Sidebar Navigation -->
-      <aside class="z-40 hidden w-80 flex-col border-r border-line bg-surface p-8 lg:flex">
+      <aside class="surface-panel wm-logo-side z-40 hidden w-80 flex-col border-r border-line p-8 lg:flex">
         <!-- Progress Header -->
         <div class="mb-12">
           <p class="mb-2 text-xs font-bold uppercase tracking-widest text-primary">{{ t('auth.register.progressLabel') }}</p>
@@ -397,7 +397,7 @@ const steps = computed(() => [
       </aside>
 
       <!-- Main Content Area -->
-      <main class="relative flex min-h-screen flex-1 flex-col overflow-y-auto">
+      <main class="wm-logo-auth relative flex min-h-screen flex-1 flex-col overflow-y-auto">
         <!-- Step 1 -->
         <template v-if="currentStep === 1">
           <header class="mx-auto w-full max-w-4xl p-8 pt-12 text-center lg:px-16 lg:text-left">
@@ -757,7 +757,7 @@ const steps = computed(() => [
         <!-- Bottom Navigation -->
         <footer
           v-if="currentStep < 4"
-          class="fixed bottom-0 left-0 right-0 z-30 border-t border-line bg-bg/80 p-6 backdrop-blur-md lg:left-80"
+          class="fixed bottom-0 left-0 right-0 z-30 border-t border-line bg-bg/65 p-6 backdrop-blur-md lg:left-80"
         >
           <div class="mx-auto flex max-w-4xl items-center justify-between">
             <AppButton variant="ghost" :disabled="isSubmitting" @click="handleBack">{{ t('common.cancel') }}</AppButton>

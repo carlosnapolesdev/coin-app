@@ -41,6 +41,12 @@
     --color-overlay: 0 0 0;            /* rgba(0,0,0,0.5) gives a black scrim */
     --color-overlay-fg: 255 255 255;   /* text/icons that sit ON the overlay */
 
+    /* Scrim de capas de cristal — SÍ depende del tema (velo blanco en light,
+       negro en dark): un scrim negro tras un vidrio claro lo vuelve gris turbio
+       y hunde el contraste del texto muted del modal. El lightbox NO lo usa:
+       sigue en --color-overlay (oscuro en ambos temas, correcto para fotos). */
+    --color-scrim: 255 255 255;
+
     /* Categorical chart palette — validated for CVD separation and contrast
        on the light surface. Slot order is load-bearing; see DESIGN_SYSTEM.md. */
     --chart-1: #5C7A14;
@@ -52,13 +58,25 @@
     --chart-7: #E87BA4;
     --chart-8: #EB6834;
 
-    /* Glass (ver DESIGN_SYSTEM.md §1.4) — relleno y blur de superficies flotantes */
-    --glass-alpha: 0.88;
+    /* Glass (ver DESIGN_SYSTEM.md §1.4) — dos tiers: capas flotantes
+       (--glass-alpha/--glass-blur) y tarjetas de datos (--card-alpha/--card-blur,
+       más opacas y con blur menor porque cargan texto denso). */
+    --glass-alpha: 0.82;
     --glass-blur: 14px;
+    --card-alpha: 0.90;
+    --card-blur: 8px;
 
     /* Ambient canvas — glows radiales estáticos de marca (light: oliva + teal) */
-    --ambient-1: rgba(92, 122, 20, 0.04);
-    --ambient-2: rgba(21, 158, 148, 0.04);
+    --ambient-1: rgba(92, 122, 20, 0.07);
+    --ambient-2: rgba(21, 158, 148, 0.06);
+
+    /* Watermark — el logo de CoinFlow (arco en C + anillo central, el mismo
+       SVG de BrandMark) embebido como data-URI, color/intensidad por modo.
+       Cada área (sidebar | main | auth) pinta el suyo vía .wm-logo-*. */
+    --wm-logo: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%2314170F'%20stroke-opacity='.04'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M18.9%206.2%20A%209%209%200%201%200%2018.9%2017.8'/%3E%3Ccircle%20cx='12'%20cy='12'%20r='2.4'/%3E%3C/svg%3E");
+
+    /* Paneles translúcidos (Sidebar, TopHeader) — tinte leve de surface */
+    --panel-alpha: 0.5;
   }
 
   .dark {
@@ -91,6 +109,9 @@
     --color-overlay: 0 0 0;
     --color-overlay-fg: 255 255 255;
 
+    /* Scrim de cristal: negro en dark (idéntico al comportamiento previo) */
+    --color-scrim: 0 0 0;
+
     /* Same eight hues re-stepped for the dark surface — not an automatic flip */
     --chart-1: #75A226;
     --chart-2: #3987E5;
@@ -103,10 +124,16 @@
 
     /* Glass — dark es más translúcido; el scrim del modal compensa la separación */
     --glass-alpha: 0.75;
+    --card-alpha: 0.85;
 
     /* Ambient canvas — lima + teal sobre el negro-verdoso */
     --ambient-1: rgba(200, 255, 77, 0.05);
     --ambient-2: rgba(23, 160, 145, 0.04);
+
+    /* Watermark — el logo en trazo salvia claro sobre el negro-verdoso */
+    --wm-logo: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23EDF1EC'%20stroke-opacity='.05'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M18.9%206.2%20A%209%209%200%201%200%2018.9%2017.8'/%3E%3Ccircle%20cx='12'%20cy='12'%20r='2.4'/%3E%3C/svg%3E");
+
+    --panel-alpha: 0.35;
   }
 
   body {
@@ -131,8 +158,13 @@
    written HTML stays on-system. See DESIGN_SYSTEM.md.
    ============================================================ */
 @layer components {
+  /* Tarjeta estándar — translúcida con blur ligero para que el lienzo (glows +
+     anillos) se perciba a través, sobre todo donde un anillo cruza su borde.
+     Más opaca que .surface-glass porque carga texto denso. Fallbacks abajo. */
   .surface-card {
-    @apply rounded-2xl border border-line bg-surface shadow-card;
+    @apply rounded-2xl border border-line shadow-card;
+    background-color: rgb(var(--color-surface) / var(--card-alpha));
+    backdrop-filter: blur(var(--card-blur));
   }
 
   .field-label {
@@ -174,8 +206,9 @@
            before:absolute before:inset-y-1 before:left-0 before:w-[3px] before:rounded-full before:bg-primary;
   }
 
-  /* Superficie de cristal — SOLO capas flotantes (modal, menú, drawer, toast,
-     tarjeta de formulario auth). Nunca una tarjeta de datos. Reemplaza al trío
+  /* Superficie de cristal — capas flotantes (modal, menú, drawer, toast,
+     tarjeta de formulario auth). Las tarjetas de datos usan el tier más opaco
+     de .surface-card, nunca este. Reemplaza al trío
      `border border-line bg-surface shadow-elevated`; NO define radio (cada
      componente conserva el suyo). Ver DESIGN_SYSTEM.md §1.4. */
   .surface-glass {
@@ -187,14 +220,16 @@
 
   /* Sin soporte de backdrop-filter → superficie sólida idéntica a la actual */
   @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-    .surface-glass {
+    .surface-glass,
+    .surface-card {
       background-color: rgb(var(--color-surface));
     }
   }
 
   /* Preferencia de accesibilidad → opaco y sin blur */
   @media (prefers-reduced-transparency: reduce) {
-    .surface-glass {
+    .surface-glass,
+    .surface-card {
       background-color: rgb(var(--color-surface));
       backdrop-filter: none;
     }
@@ -212,8 +247,8 @@
 
   /* Variante para pantallas auth: mismos glows, más presentes y más grandes */
   .bg-ambient--strong {
-    --ambient-1: rgba(92, 122, 20, 0.07);
-    --ambient-2: rgba(21, 158, 148, 0.06);
+    --ambient-1: rgba(92, 122, 20, 0.11);
+    --ambient-2: rgba(21, 158, 148, 0.09);
     background-image:
       radial-gradient(72rem 48rem at 85% -10%, var(--ambient-1), transparent 65%),
       radial-gradient(60rem 44rem at -10% 95%, var(--ambient-2), transparent 65%);
@@ -221,6 +256,46 @@
   .dark .bg-ambient--strong {
     --ambient-1: rgba(200, 255, 77, 0.10);
     --ambient-2: rgba(23, 160, 145, 0.08);
+  }
+
+  /* Panel translúcido — Sidebar y TopHeader: tinte leve de surface para que
+     lean como paneles distintos del lienzo. Sin blur a propósito: asientan
+     directo sobre el canvas y un backdrop-filter ahí solo gastaría GPU. */
+  .surface-panel {
+    background-color: rgb(var(--color-surface) / var(--panel-alpha));
+  }
+
+  /* Watermark de logo — cada área pinta el suyo y lo recorta en sus PROPIOS
+     bordes (sidebar | main | auth): la figura pertenece al área, no a una capa
+     sobre la vista completa. Tamaños/offsets distintos para que los dos logos
+     del cuadrante inferior-izquierdo se corten en la división sidebar/body. */
+  .wm-logo-side {
+    background-image: var(--wm-logo);
+    background-repeat: no-repeat;
+    background-size: 17rem 17rem;
+    background-position: right -7rem bottom 6rem;
+  }
+  .wm-logo-main {
+    /* Tres instancias: la grande se corta en la división con el sidebar; la de
+       arriba-derecha replica la geometría de los círculos originales (~23.4rem
+       de diámetro, centro a ~20rem del borde derecho y ~8rem del tope, recortada
+       arriba — asoma tenue bajo el velo del PageHeader sticky); la pequeña se
+       corta en el borde inferior. */
+    background-image: var(--wm-logo), var(--wm-logo), var(--wm-logo);
+    background-repeat: no-repeat;
+    background-size: 26rem 26rem, 28rem 28rem, 11rem 11rem;
+    background-position:
+      left -11rem bottom 12rem,
+      right 6rem top -6rem,
+      right 3rem bottom -3rem;
+  }
+  .wm-logo-auth {
+    background-image: var(--wm-logo), var(--wm-logo);
+    background-repeat: no-repeat;
+    background-size: 30rem 30rem, 16rem 16rem;
+    background-position:
+      right -9rem top 6rem,
+      left -6rem bottom -5rem;
   }
 }
 

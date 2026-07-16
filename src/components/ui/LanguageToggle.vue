@@ -54,7 +54,7 @@ onBeforeUnmount(() => {
       <div
         v-if="open"
         role="menu"
-        class="absolute right-0 z-40 mt-2 w-40 overflow-hidden rounded-xl border border-line bg-surface shadow-elevated"
+        class="surface-glass absolute right-0 z-40 mt-2 w-40 overflow-hidden rounded-xl"
       >
         <button
           v-for="code in SUPPORTED_LOCALES"

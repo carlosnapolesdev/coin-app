@@ -96,8 +96,11 @@ const replayTour = async () => {
   <Teleport to="body">
     <Transition name="drawer">
       <div v-if="isOpen" ref="dialog" class="fixed inset-0 z-50 md:hidden" role="dialog" aria-modal="true" :aria-label="t('sidebar.navigationLabel')">
-        <div class="drawer-scrim absolute inset-0 bg-overlay/60" @click="emit('close')" />
-        <div class="drawer-panel surface-glass absolute inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col overflow-y-auto overscroll-contain">
+        <!-- El scrim solo cubre el área fuera del panel: si tapara también la zona
+             del panel, aplanaría el fondo y el blur del cristal no tendría nada
+             que revelar. left = w-72 (18rem) acotado por max-w-[85vw] del panel. -->
+        <div class="drawer-scrim absolute inset-y-0 right-0 left-[min(18rem,85vw)] bg-scrim/60" @click="emit('close')" />
+        <div class="drawer-panel surface-glass wm-logo-side absolute inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col overflow-y-auto overscroll-contain">
           <div class="flex items-center justify-between px-6 py-6">
             <BrandMark :subtitle="t('sidebar.subtitle')" />
             <button
@@ -166,5 +169,15 @@ const replayTour = async () => {
   .drawer-leave-active .drawer-panel {
     transition: none;
   }
+}
+
+/* El panel es cristal SIN scrim detrás: en el peor caso (relleno primary
+   difuminado bajo el panel) el texto muted cae a ~2.9:1. Los ítems de nav
+   suben a content (≥7.7:1 en ese peor caso); el activo sigue en primary. */
+.drawer-panel .nav-link {
+  color: rgb(var(--color-content));
+}
+.drawer-panel .nav-link-active {
+  color: rgb(var(--color-primary));
 }
 </style>

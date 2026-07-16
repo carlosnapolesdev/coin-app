@@ -15,7 +15,7 @@ const mobileNavOpen = ref(false)
 
 <template>
   <header
-    class="flex flex-col gap-4 border-b border-line bg-bg/80 px-6 py-5 backdrop-blur-md lg:flex-row lg:items-center lg:justify-between lg:px-8"
+    class="flex flex-col gap-4 border-b border-line bg-bg/65 px-6 py-5 backdrop-blur-md lg:flex-row lg:items-center lg:justify-between lg:px-8"
     :class="sticky ? 'sticky top-0 z-30' : ''"
   >
     <div class="flex min-w-0 items-center gap-3">

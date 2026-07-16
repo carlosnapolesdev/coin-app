@@ -41,6 +41,7 @@ derived secondary. New sessions with no stored theme preference open in dark
 | `info`           | `text-info`                            | `#1E74B8`    | `#4FA8E6`    | Neutral information |
 | `overlay`        | `bg-overlay/50` `bg-overlay/60` `bg-overlay/80` | black    | black    | Modal / lightbox / drawer scrim — **theme-agnostic by design** (it sits BETWEEN background and card), used with Tailwind's alpha modifier. Never `bg-slate-950` |
 | `overlay-fg`     | `text-overlay-fg` `bg-overlay-fg/10`   | white        | white        | Text/icons **on** the overlay surface (lightbox controls) |
+| `scrim`          | `bg-scrim/50` `bg-scrim/60`            | white        | black        | Glass-layer scrim (modal, drawer, celebration) — **theme-dependent on purpose**: a black scrim behind light glass turns it muddy gray and sinks muted-text contrast. The lightbox keeps `overlay` (photos read over dark in both themes) |
 
 **Tinted backgrounds** (badges, soft chips) are always `bg-{status}/10` +
 `text-{status}` — never a hard-coded `bg-emerald-100`. The alpha approach is the
@@ -114,32 +115,54 @@ Rules:
 
 ### 1.4 Glass surfaces & ambient canvas
 
-Floating layers — surfaces that open **over** the content (modals, menus, the
-mobile drawer, toasts, and the auth form cards) — use the **`.surface-glass`**
-utility instead of `border border-line bg-surface shadow-elevated`:
+Glass comes in exactly **two tiers**, both with centralized fallbacks
+(browsers without `backdrop-filter` and `prefers-reduced-transparency: reduce`
+get the solid surface):
 
-- Translucent fill `rgb(var(--color-surface) / var(--glass-alpha))` —
-  `--glass-alpha` is `0.88` light / `0.75` dark — plus
-  `backdrop-filter: blur(var(--glass-blur))` (`14px`, both modes).
-- Fallbacks live inside the class: browsers without `backdrop-filter` and
-  users with `prefers-reduced-transparency: reduce` get the solid surface.
-- `.surface-glass` does **not** set a radius — keep the component's own
-  (`rounded-2xl` for modals/menus/auth cards, `rounded-xl` for toasts).
-- Modal/drawer scrims (`bg-overlay/50`–`/60`) stay — they are the second
-  guarantee of separation behind large glass panels.
+- **Floating tier — `.surface-glass`** for surfaces that open **over** content:
+  modals, menus (user + language), the mobile drawer, toasts, auth form cards.
+  Fill `rgb(var(--color-surface) / var(--glass-alpha))` (`0.82` light / `0.75`
+  dark) + `blur(var(--glass-blur))` (`14px`). Replaces the
+  `border border-line bg-surface shadow-elevated` trio; does **not** set a
+  radius — keep the component's own (`rounded-2xl`; toasts `rounded-xl`).
+- **Card tier — `.surface-card`** (and therefore `AppCard`): data cards are
+  translucent too, but deliberately more opaque and with a lighter blur —
+  `--card-alpha` (`0.90` light / `0.85` dark) + `blur(var(--card-blur))`
+  (`8px`) — because they carry dense text. Never give a data card the floating
+  tier, and never stack one glass tier inside the other expecting extra depth.
 
-**The golden rule of glass:** floating layers only. A data card, table, input,
-stat tile — anything that *carries* content — never uses it; data stays on
-solid `surface`. Treat this like the `primary` accent budget: a view wanting a
-glass data card is a signal to stop, not a yes.
+Scrim rule: glass-layer scrims use the theme-dependent `scrim` token
+(`bg-scrim/50` modal, `/60` drawer — white veil in light, black in dark). The
+modal scrim stays full-screen, but the drawer scrim covers **only the area
+beside the panel** — a scrim behind a glass panel flattens its backdrop and
+kills the effect. On unscrimmed glass (drawer panel), secondary text steps up
+from `muted` to `content` (see the drawer's scoped override).
 
-The authenticated shell root uses **`.bg-ambient`** instead of `bg-bg`: the
-canvas color plus two static radial brand glows (lime top-right, teal
-bottom-left, ~4–5% alpha) that give glass something to blur. Auth screens use
-`.bg-ambient bg-ambient--strong` (~7–10% alpha, larger ellipses). Glows are
-static by design — no animation, no continuous GPU cost. If text on glass ever
-fails WCAG contrast against the brightest glow, raise `--glass-alpha` (caps:
-`0.85` dark / `0.92` light) — never lower the blur or stack extra shadows.
+The canvas is what makes glass legible *and* visible: shell roots use
+**`.bg-ambient`** (auth screens add `--strong`) — the `bg` color plus two
+static radial brand glows. The **logo watermark** (`--wm-logo`: the BrandMark
+C-arc + center ring as an inline SVG, stroke at ~4–5% alpha per mode) is
+painted **per area, never on the shell**: each region owns its watermark and
+clips it at its own edges, so the figure reads as belonging to that pane
+rather than to a layer floating over the whole view — `.wm-logo-side`
+(Sidebar and mobile drawer, clipped at their right edge), `.wm-logo-main`
+(each view's `<main>`: three instances — a large one clipped at the left edge,
+offset higher than the sidebar's so the two logos visibly cut at the
+sidebar/body divide, plus a top-right one below the sticky `PageHeader` and a
+small bottom-right one, each clipped at `<main>`'s own edges) and
+`.wm-logo-auth` (auth `<main>`: a large top-right one below the TopHeader and
+a small bottom-left one).
+
+Structural bars read as their own translucent panes: Sidebar and TopHeader
+use **`.surface-panel`** (`surface` at `--panel-alpha`: `0.50` light / `0.35`
+dark, no blur — they sit directly on the canvas), and the sticky `PageHeader`
+keeps its `backdrop-blur-md` with a `bg-bg/65` veil.
+
+Everything is static — no animation, no continuous GPU cost. The canvas must
+stay *quiet*: no images, no high-contrast decoration — that guarantee is what
+makes translucent data cards safe. If text on glass ever fails WCAG contrast,
+raise the tier's alpha (caps: `--glass-alpha` `0.85` dark / `0.92` light;
+`--card-alpha` `0.92` both) — never lower the blur or stack extra shadows.
 
 ---
 
@@ -257,9 +280,11 @@ For hand-written markup (tables, bespoke layouts) so it stays on-system:
 
 | Class             | What it is |
 |-------------------|------------|
-| `.surface-card`   | `rounded-2xl border border-line bg-surface shadow-card` |
+| `.surface-card`   | `rounded-2xl border border-line shadow-card` + translucent `surface` fill (`--card-alpha`) with 8px backdrop blur — the card glass tier (see §1.4) |
 | `.surface-glass`  | floating-layer surface: `line/60` border + translucent `surface` fill + backdrop blur + `shadow-elevated` (no radius — see §1.4) |
 | `.bg-ambient` (+ `.bg-ambient--strong`) | canvas with static brand glows; shell roots use the base class, auth screens add `--strong` |
+| `.surface-panel`  | translucent structural pane (`surface` × `--panel-alpha`, no blur) — Sidebar, TopHeader |
+| `.wm-logo-side` / `.wm-logo-main` / `.wm-logo-auth` | per-area logo watermark, clipped by the area's own edges (see §1.4) |
 | `.field-label`    | uppercase micro-label above a field |
 | `.field-input`    | shared look for `input`, `select`, `textarea` (add `pl-11` when prefixing an icon) |
 | `.badge` + `.badge-{success\|danger\|warning\|primary\|muted}` | status pills |
@@ -324,9 +349,9 @@ Every authenticated screen follows the same skeleton:
   </main>
 </div>
 ```
-- The **Sidebar** has no background of its own — it sits transparent on the
-  shell's ambient canvas so it recedes into the page rather than reading as a
-  separate panel — only the `border-r` separates it.
+- The **Sidebar** is a translucent pane (`.surface-panel .wm-logo-side`) over
+  the shell's ambient canvas: a light `surface` tint plus its own clipped logo
+  watermark give it identity as a distinct pane, separated by the `border-r`.
 - The **Sidebar** owns primary navigation, the brand, Sign Out and the theme toggle.
   Do **not** add page-specific action buttons to the sidebar — they belong in the
   `PageHeader` actions slot of the relevant view.
@@ -379,4 +404,4 @@ Every authenticated screen follows the same skeleton:
 9. Titles/section headers use `font-display`; everything else inherits `font-body`.
 10. Totals use `AnimatedAmount`; row/list-level money stays plain text with `tabular-nums`.
 11. `npm run build` must pass with zero type errors.
-12. Floating layers (modals, menus, drawer, toasts) use `.surface-glass`; data surfaces never do.
+12. Floating layers (modals, menus, drawer, toasts) use `.surface-glass`; data cards stay on `.surface-card` (the more-opaque card tier) — never swap tiers (§1.4).

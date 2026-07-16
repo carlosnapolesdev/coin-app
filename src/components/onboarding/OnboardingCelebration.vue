@@ -11,10 +11,10 @@ const { celebrationVisible, dismissCelebration } = useOnboarding()
   <Transition name="celebrate">
     <div
       v-if="celebrationVisible"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-overlay/50 p-4 backdrop-blur-sm"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-scrim/50 p-4 backdrop-blur-sm"
       @click.self="dismissCelebration"
     >
-      <div class="w-full max-w-sm rounded-2xl border border-line bg-surface p-8 text-center shadow-elevated">
+      <div class="surface-glass w-full max-w-sm rounded-2xl p-8 text-center">
         <div class="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-primary text-primary-fg">
           <span class="material-symbols-outlined text-3xl" aria-hidden="true">celebration</span>
         </div>

@@ -115,7 +115,7 @@ onMounted(() => {
   <div class="flex min-h-screen flex-col bg-ambient bg-ambient--strong font-display">
     <TopHeader />
 
-    <main class="flex flex-1 items-center justify-center p-6 lg:p-12">
+    <main class="wm-logo-auth flex flex-1 items-center justify-center p-6 lg:p-12">
       <div class="grid w-full max-w-5xl items-center gap-12 lg:grid-cols-2">
         <!-- Left: context -->
         <div class="hidden flex-col gap-8 lg:flex">
