@@ -213,7 +213,7 @@ const transferLabel = (tx: TransactionDetail) => {
         </div>
 
         <!-- Filters -->
-        <div class="surface-card mb-6 flex flex-col gap-4 p-4">
+        <div class="surface-card relative z-10 mb-6 flex flex-col gap-4 p-4">
           <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <AppSelect
               :label="t('transactions.filters.accountLabel')"

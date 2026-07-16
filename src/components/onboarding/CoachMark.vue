@@ -23,7 +23,7 @@ const dismiss = () => {
     <slot />
     <div
       v-if="visible"
-      class="absolute left-0 z-40 w-64 max-w-[80vw] rounded-xl border border-primary/30 bg-surface p-3 shadow-elevated"
+      class="absolute left-0 z-20 w-64 max-w-[80vw] rounded-xl border border-primary/30 bg-surface p-3 shadow-elevated"
       :class="placement === 'bottom' ? 'top-full mt-2' : 'bottom-full mb-2'"
       role="dialog"
     >
