@@ -16,7 +16,7 @@ const { toasts, dismiss } = useToast()
       <div
         v-for="item in toasts"
         :key="item.id"
-        class="pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-xl border border-line bg-surface p-4 shadow-elevated"
+        class="surface-glass pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-xl p-4"
       >
         <span
           class="material-symbols-outlined text-xl"

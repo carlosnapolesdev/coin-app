@@ -112,7 +112,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex min-h-screen flex-col bg-bg font-display">
+  <div class="flex min-h-screen flex-col bg-ambient bg-ambient--strong font-display">
     <TopHeader />
 
     <main class="flex flex-1 items-center justify-center p-6 lg:p-12">
@@ -128,7 +128,7 @@ onMounted(() => {
             </p>
           </div>
 
-          <div class="surface-card space-y-5 p-8">
+          <div class="surface-glass rounded-2xl space-y-5 p-8">
             <div v-for="item in highlights" :key="item.title" class="flex items-start gap-4">
               <div class="icon-tile size-11 shrink-0 bg-primary/10 text-primary">
                 <span class="material-symbols-outlined">{{ item.icon }}</span>
@@ -142,7 +142,7 @@ onMounted(() => {
         </div>
 
         <!-- Right: login card -->
-        <div class="surface-card mx-auto w-full max-w-md p-8 lg:p-10">
+        <div class="surface-glass rounded-2xl mx-auto w-full max-w-md p-8 lg:p-10">
           <div class="mb-8">
             <h2 class="text-3xl font-bold text-content">{{ t('auth.login.title') }}</h2>
             <p class="mt-2 text-muted">{{ t('auth.login.subtitle') }}</p>

@@ -97,7 +97,7 @@ const replayTour = async () => {
     <Transition name="drawer">
       <div v-if="isOpen" ref="dialog" class="fixed inset-0 z-50 md:hidden" role="dialog" aria-modal="true" :aria-label="t('sidebar.navigationLabel')">
         <div class="drawer-scrim absolute inset-0 bg-overlay/60" @click="emit('close')" />
-        <div class="drawer-panel absolute inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col overflow-y-auto overscroll-contain border-r border-line bg-bg shadow-elevated">
+        <div class="drawer-panel surface-glass absolute inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col overflow-y-auto overscroll-contain">
           <div class="flex items-center justify-between px-6 py-6">
             <BrandMark :subtitle="t('sidebar.subtitle')" />
             <button

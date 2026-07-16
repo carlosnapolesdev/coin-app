@@ -51,6 +51,14 @@
     --chart-6: #D14B3A;
     --chart-7: #E87BA4;
     --chart-8: #EB6834;
+
+    /* Glass (ver DESIGN_SYSTEM.md §1.4) — relleno y blur de superficies flotantes */
+    --glass-alpha: 0.88;
+    --glass-blur: 14px;
+
+    /* Ambient canvas — glows radiales estáticos de marca (light: oliva + teal) */
+    --ambient-1: rgba(92, 122, 20, 0.04);
+    --ambient-2: rgba(21, 158, 148, 0.04);
   }
 
   .dark {
@@ -92,6 +100,13 @@
     --chart-6: #E0654F;
     --chart-7: #D55181;
     --chart-8: #D95926;
+
+    /* Glass — dark es más translúcido; el scrim del modal compensa la separación */
+    --glass-alpha: 0.75;
+
+    /* Ambient canvas — lima + teal sobre el negro-verdoso */
+    --ambient-1: rgba(200, 255, 77, 0.05);
+    --ambient-2: rgba(23, 160, 145, 0.04);
   }
 
   body {
@@ -157,6 +172,55 @@
   .nav-link-active {
     @apply bg-transparent text-primary hover:bg-transparent hover:text-primary
            before:absolute before:inset-y-1 before:left-0 before:w-[3px] before:rounded-full before:bg-primary;
+  }
+
+  /* Superficie de cristal — SOLO capas flotantes (modal, menú, drawer, toast,
+     tarjeta de formulario auth). Nunca una tarjeta de datos. Reemplaza al trío
+     `border border-line bg-surface shadow-elevated`; NO define radio (cada
+     componente conserva el suyo). Ver DESIGN_SYSTEM.md §1.4. */
+  .surface-glass {
+    @apply shadow-elevated;
+    border: 1px solid rgb(var(--color-line) / 0.6);
+    background-color: rgb(var(--color-surface) / var(--glass-alpha));
+    backdrop-filter: blur(var(--glass-blur));
+  }
+
+  /* Sin soporte de backdrop-filter → superficie sólida idéntica a la actual */
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .surface-glass {
+      background-color: rgb(var(--color-surface));
+    }
+  }
+
+  /* Preferencia de accesibilidad → opaco y sin blur */
+  @media (prefers-reduced-transparency: reduce) {
+    .surface-glass {
+      background-color: rgb(var(--color-surface));
+      backdrop-filter: none;
+    }
+  }
+
+  /* Lienzo ambiental — reemplaza a `bg-bg` en el root del shell autenticado.
+     Glows estáticos: cero costo continuo de GPU. */
+  .bg-ambient {
+    background-color: rgb(var(--color-bg));
+    background-image:
+      radial-gradient(60rem 40rem at 85% -10%, var(--ambient-1), transparent 60%),
+      radial-gradient(50rem 36rem at -10% 95%, var(--ambient-2), transparent 60%);
+    background-repeat: no-repeat;
+  }
+
+  /* Variante para pantallas auth: mismos glows, más presentes y más grandes */
+  .bg-ambient--strong {
+    --ambient-1: rgba(92, 122, 20, 0.07);
+    --ambient-2: rgba(21, 158, 148, 0.06);
+    background-image:
+      radial-gradient(72rem 48rem at 85% -10%, var(--ambient-1), transparent 65%),
+      radial-gradient(60rem 44rem at -10% 95%, var(--ambient-2), transparent 65%);
+  }
+  .dark .bg-ambient--strong {
+    --ambient-1: rgba(200, 255, 77, 0.10);
+    --ambient-2: rgba(23, 160, 145, 0.08);
   }
 }
 

@@ -24,7 +24,7 @@ const { t } = useI18n()
       @click.self="emit('close')"
     >
       <div
-        class="flex max-h-[90vh] w-full flex-col overflow-hidden rounded-2xl border border-line bg-surface shadow-elevated"
+        class="surface-glass flex max-h-[90vh] w-full flex-col overflow-hidden rounded-2xl"
         :class="{
           'max-w-md': size === 'sm',
           'max-w-2xl': size === 'md',

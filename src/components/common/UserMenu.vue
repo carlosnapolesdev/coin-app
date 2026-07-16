@@ -75,7 +75,7 @@ const replayTour = async () => {
       <div
         v-if="open"
         role="menu"
-        class="absolute right-0 z-40 mt-2 w-64 overflow-hidden rounded-2xl border border-line bg-surface shadow-elevated"
+        class="surface-glass absolute right-0 z-40 mt-2 w-64 overflow-hidden rounded-2xl"
       >
         <div class="flex items-center gap-3 border-b border-line px-4 py-3">
           <span class="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">

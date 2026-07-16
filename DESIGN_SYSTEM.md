@@ -112,6 +112,35 @@ Rules:
 - Page padding: `p-6 lg:p-8`. Card padding: `p-6` (use `AppCard`’s `padding` prop).
 - Gaps between sections: `gap-6` / `space-y-6`.
 
+### 1.4 Glass surfaces & ambient canvas
+
+Floating layers — surfaces that open **over** the content (modals, menus, the
+mobile drawer, toasts, and the auth form cards) — use the **`.surface-glass`**
+utility instead of `border border-line bg-surface shadow-elevated`:
+
+- Translucent fill `rgb(var(--color-surface) / var(--glass-alpha))` —
+  `--glass-alpha` is `0.88` light / `0.75` dark — plus
+  `backdrop-filter: blur(var(--glass-blur))` (`14px`, both modes).
+- Fallbacks live inside the class: browsers without `backdrop-filter` and
+  users with `prefers-reduced-transparency: reduce` get the solid surface.
+- `.surface-glass` does **not** set a radius — keep the component's own
+  (`rounded-2xl` for modals/menus/auth cards, `rounded-xl` for toasts).
+- Modal/drawer scrims (`bg-overlay/50`–`/60`) stay — they are the second
+  guarantee of separation behind large glass panels.
+
+**The golden rule of glass:** floating layers only. A data card, table, input,
+stat tile — anything that *carries* content — never uses it; data stays on
+solid `surface`. Treat this like the `primary` accent budget: a view wanting a
+glass data card is a signal to stop, not a yes.
+
+The authenticated shell root uses **`.bg-ambient`** instead of `bg-bg`: the
+canvas color plus two static radial brand glows (lime top-right, teal
+bottom-left, ~4–5% alpha) that give glass something to blur. Auth screens use
+`.bg-ambient bg-ambient--strong` (~7–10% alpha, larger ellipses). Glows are
+static by design — no animation, no continuous GPU cost. If text on glass ever
+fails WCAG contrast against the brightest glow, raise `--glass-alpha` (caps:
+`0.85` dark / `0.92` light) — never lower the blur or stack extra shadows.
+
 ---
 
 ## 2. Component library (`src/components/ui`)
@@ -229,6 +258,8 @@ For hand-written markup (tables, bespoke layouts) so it stays on-system:
 | Class             | What it is |
 |-------------------|------------|
 | `.surface-card`   | `rounded-2xl border border-line bg-surface shadow-card` |
+| `.surface-glass`  | floating-layer surface: `line/60` border + translucent `surface` fill + backdrop blur + `shadow-elevated` (no radius — see §1.4) |
+| `.bg-ambient` (+ `.bg-ambient--strong`) | canvas with static brand glows; shell roots use the base class, auth screens add `--strong` |
 | `.field-label`    | uppercase micro-label above a field |
 | `.field-input`    | shared look for `input`, `select`, `textarea` (add `pl-11` when prefixing an icon) |
 | `.badge` + `.badge-{success\|danger\|warning\|primary\|muted}` | status pills |
@@ -293,9 +324,9 @@ Every authenticated screen follows the same skeleton:
   </main>
 </div>
 ```
-- The **Sidebar** background matches `bg` (not `surface`) so it recedes into the
-  page canvas rather than reading as a separate panel — only the `border-r`
-  separates it.
+- The **Sidebar** has no background of its own — it sits transparent on the
+  shell's ambient canvas so it recedes into the page rather than reading as a
+  separate panel — only the `border-r` separates it.
 - The **Sidebar** owns primary navigation, the brand, Sign Out and the theme toggle.
   Do **not** add page-specific action buttons to the sidebar — they belong in the
   `PageHeader` actions slot of the relevant view.
@@ -337,7 +368,7 @@ Every authenticated screen follows the same skeleton:
 
 ## 7. Checklist for a new view
 
-1. `bg-bg` root, `Sidebar`, scrollable `<main>`.
+1. `bg-ambient` root (`bg-ambient bg-ambient--strong` on auth screens), `Sidebar`, scrollable `<main>`.
 2. Start with `PageHeader` (title + subtitle, actions in the slot).
 3. Group content in `AppCard` / `.surface-card`; cards are `rounded-2xl`.
 4. All controls via `AppButton` / `AppIconButton`; the add action uses `icon="add"`.
@@ -348,3 +379,4 @@ Every authenticated screen follows the same skeleton:
 9. Titles/section headers use `font-display`; everything else inherits `font-body`.
 10. Totals use `AnimatedAmount`; row/list-level money stays plain text with `tabular-nums`.
 11. `npm run build` must pass with zero type errors.
+12. Floating layers (modals, menus, drawer, toasts) use `.surface-glass`; data surfaces never do.

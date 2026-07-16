@@ -223,7 +223,7 @@ const topCategories = computed(() =>
 </script>
 
 <template>
-  <div class="flex h-screen overflow-hidden bg-bg">
+  <div class="flex h-screen overflow-hidden bg-ambient">
     <Sidebar />
 
     <main class="flex-1 overflow-y-auto">

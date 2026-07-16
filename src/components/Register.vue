@@ -348,7 +348,7 @@ const steps = computed(() => [
 </script>
 
 <template>
-  <div class="flex min-h-screen flex-col bg-bg font-display">
+  <div class="flex min-h-screen flex-col bg-ambient bg-ambient--strong font-display">
     <TopHeader />
 
     <div class="relative flex flex-1 overflow-hidden">
@@ -410,7 +410,7 @@ const steps = computed(() => [
           </header>
 
           <section class="mx-auto w-full max-w-4xl space-y-8 px-8 pb-32 lg:px-16">
-            <div class="surface-card mx-auto max-w-2xl p-8 lg:mx-0">
+            <div class="surface-glass rounded-2xl mx-auto max-w-2xl p-8 lg:mx-0">
               <form class="space-y-6" @submit.prevent="handleNext">
                 <div>
                   <label class="mb-2 block text-sm font-semibold text-content" for="full_name">{{ t('auth.register.step1.fullNameLabel') }}</label>
