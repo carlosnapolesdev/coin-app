@@ -7,8 +7,10 @@ import api from '../../services/api'
 import { accountsApi, type AccountDetail, type AccountType, type AccountTemplate } from '../../services/accounts'
 import iconVersions from '@material-symbols/metadata/versions.json'
 import { formatDate } from '../../utils/format'
+import { useToast } from '../../composables/useToast'
 
 const { t } = useI18n()
+const toast = useToast()
 
 interface AccountSummary {
   id: number
@@ -248,8 +250,10 @@ const saveChanges = async () => {
       }
       lastUpdatedAt.value = data.updatedAt
     }
+    toast.success(t('accounts.saved'))
   } catch (e) {
     console.error('Failed to save account', e)
+    toast.error(t('accounts.saveError'))
   } finally {
     isSaving.value = false
   }
@@ -270,8 +274,10 @@ const confirmDeleteAccount = async () => {
       if (next) selectAccount(next.id)
       else startCreating()
     }
+    toast.success(t('accounts.deleted'))
   } catch (e) {
     console.error('Failed to delete account', e)
+    toast.error(t('accounts.deleteError'))
   } finally {
     confirmDeleteId.value = null
   }

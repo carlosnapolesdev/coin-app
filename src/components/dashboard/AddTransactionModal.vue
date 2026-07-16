@@ -8,8 +8,10 @@ import { currenciesApi } from '../../services/currencies'
 import TransactionAttachmentsPanel from './TransactionAttachmentsPanel.vue'
 import { formatCurrency } from '../../utils/format'
 import { AppButton, AppIconButton, AppModal, AppSpinner } from '../ui'
+import { useToast } from '../../composables/useToast'
 
 const { t } = useI18n()
+const toast = useToast()
 
 type FormMode = 'create' | 'edit'
 
@@ -335,6 +337,7 @@ const handleSave = async (keepOpen = false) => {
     serverSplitCount.value = saved.splitCount
 
     emit('saved', saved)
+    toast.success(t('transactionModal.saved'))
     localTransactionId.value = saved.id
     if (props.mode === 'edit') {
       if (!keepOpen) handleClose()

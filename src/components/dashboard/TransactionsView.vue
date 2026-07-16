@@ -10,9 +10,11 @@ import { type AccountDetail, accountsApi } from '../../services/accounts'
 import { type TransactionDetail, type TransactionStatus, type TransactionType, transactionsApi } from '../../services/transactions'
 import { formatCurrency, formatDate as formatDateLocale } from '../../utils/format'
 import { useOnboarding } from '../../composables/useOnboarding'
+import { useToast } from '../../composables/useToast'
 
 const { t } = useI18n()
 const { notifyTransactionCreated, flushCelebration } = useOnboarding()
+const toast = useToast()
 
 const PAGE_SIZE = 25
 const SEARCH_DEBOUNCE_MS = 300
@@ -144,8 +146,9 @@ const exportTransactions = async () => {
     link.download = 'transactions.csv'
     link.click()
     URL.revokeObjectURL(url)
+    toast.success(t('transactions.exported'))
   } catch {
-    error.value = t('transactions.exportError')
+    toast.error(t('transactions.exportError'))
   } finally {
     isExporting.value = false
   }
@@ -162,8 +165,9 @@ const confirmDelete = async () => {
     await transactionsApi.remove(confirmDeleteId.value)
     await Promise.all([loadAccounts(), loadTransactions()])
     confirmDeleteId.value = null
+    toast.success(t('transactions.deleted'))
   } catch {
-    error.value = t('transactions.deleteError')
+    toast.error(t('transactions.deleteError'))
   } finally {
     isDeleting.value = false
   }

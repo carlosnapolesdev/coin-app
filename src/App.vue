@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import OnboardingCelebration from './components/onboarding/OnboardingCelebration.vue'
+import ToastContainer from './components/ToastContainer.vue'
 </script>
 
 <template>
   <RouterView />
   <OnboardingCelebration />
+  <ToastContainer />
 </template>
 
 <style>

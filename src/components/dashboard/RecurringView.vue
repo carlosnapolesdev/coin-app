@@ -24,6 +24,7 @@ import {
   PageContainer,
   PageHeader,
 } from '../ui'
+import { useToast } from '../../composables/useToast'
 
 interface BackendCategory {
   id: number
@@ -43,6 +44,7 @@ interface FlatCategory {
 type FormMode = 'create' | 'edit'
 
 const { t } = useI18n()
+const toast = useToast()
 
 const templates = ref<RecurringDetail[]>([])
 const accounts = ref<AccountDetail[]>([])
@@ -215,6 +217,7 @@ const saveTemplate = async () => {
       if (idx !== -1) templates.value[idx] = data
     }
     closeModal()
+    toast.success(t('recurring.saved'))
   } catch (e) {
     formError.value = t('recurring.saveError')
     console.error(e)
@@ -223,23 +226,26 @@ const saveTemplate = async () => {
   }
 }
 
-const toggleActive = async (t: RecurringDetail) => {
+const toggleActive = async (tpl: RecurringDetail) => {
   try {
-    const { data } = await recurringApi.update(t.id, { active: !t.active })
+    const { data } = await recurringApi.update(tpl.id, { active: !tpl.active })
     const idx = templates.value.findIndex((r) => r.id === data.id)
     if (idx !== -1) templates.value[idx] = data
   } catch (e) {
     console.error('Failed to toggle recurring transaction', e)
+    toast.error(t('recurring.toggleError'))
   }
 }
 
-const runNow = async (t: RecurringDetail) => {
-  runningId.value = t.id
+const runNow = async (tpl: RecurringDetail) => {
+  runningId.value = tpl.id
   try {
-    await recurringApi.runNow(t.id)
+    await recurringApi.runNow(tpl.id)
     await loadTemplates()
+    toast.success(t('recurring.runSuccess'))
   } catch (e) {
     console.error('Failed to run recurring transaction now', e)
+    toast.error(t('recurring.runError'))
   } finally {
     runningId.value = null
   }
@@ -255,9 +261,11 @@ const confirmDelete = async () => {
   isDeleting.value = true
   try {
     await recurringApi.remove(id)
-    templates.value = templates.value.filter((t) => t.id !== id)
+    templates.value = templates.value.filter((tpl) => tpl.id !== id)
+    toast.success(t('recurring.deleted'))
   } catch (e) {
     console.error('Failed to delete recurring transaction', e)
+    toast.error(t('recurring.deleteError'))
   } finally {
     isDeleting.value = false
     confirmDeleteId.value = null

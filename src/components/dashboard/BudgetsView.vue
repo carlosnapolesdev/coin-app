@@ -22,6 +22,7 @@ import {
   PageContainer,
   PageHeader,
 } from '../ui'
+import { useToast } from '../../composables/useToast'
 
 interface BackendCategory {
   id: number
@@ -41,6 +42,7 @@ interface FlatCategory {
 type FormMode = 'create' | 'edit'
 
 const { t } = useI18n()
+const toast = useToast()
 
 const budgets = ref<BudgetDetail[]>([])
 const allCategories = ref<BackendCategory[]>([])
@@ -157,6 +159,7 @@ const saveBudget = async () => {
       if (idx !== -1) budgets.value[idx] = data
     }
     closeModal()
+    toast.success(t('budgets.saved'))
   } catch (e) {
     formError.value = t('budgets.saveError')
     console.error(e)
@@ -176,8 +179,10 @@ const confirmDelete = async () => {
   try {
     await budgetsApi.remove(id)
     budgets.value = budgets.value.filter((b) => b.id !== id)
+    toast.success(t('budgets.deleted'))
   } catch (e) {
     console.error('Failed to delete budget', e)
+    toast.error(t('budgets.deleteError'))
   } finally {
     isDeleting.value = false
     confirmDeleteId.value = null

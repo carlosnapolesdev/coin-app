@@ -4,8 +4,10 @@ import { useI18n } from 'vue-i18n'
 import api from '../../services/api'
 import iconVersions from '@material-symbols/metadata/versions.json'
 import { AppButton, AppModal } from '../ui'
+import { useToast } from '../../composables/useToast'
 
 const { t } = useI18n()
+const toast = useToast()
 
 type FlowType = 'expense' | 'income'
 type FormMode = 'create' | 'edit'
@@ -141,6 +143,7 @@ const handleSave = async () => {
       })
     }
 
+    toast.success(isCreateMode.value ? t('categoryModal.created') : t('categoryModal.updated'))
     handleClose()
   } catch (e) {
     error.value = isCreateMode.value

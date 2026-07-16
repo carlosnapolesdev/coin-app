@@ -5,8 +5,10 @@ import Sidebar from './Sidebar.vue'
 import EditCategoryModal from './EditCategoryModal.vue'
 import { AppBadge, AppButton, AppIconButton, AppSpinner, AppTabs, ConfirmDialog, PageContainer, PageHeader } from '../ui'
 import api from '../../services/api'
+import { useToast } from '../../composables/useToast'
 
 const { t } = useI18n()
+const toast = useToast()
 
 type FlowType = 'expense' | 'income'
 type FilterType = FlowType | 'deleted'
@@ -167,8 +169,10 @@ const restoreCategory = async (id: number) => {
   try {
     await api.patch(`/users/me/categories/${id}`, { active: true })
     await Promise.all([fetchCategories(true), fetchDeletedCategories(true)])
+    toast.success(t('categories.restored'))
   } catch (e) {
     console.error('Failed to restore category', e)
+    toast.error(t('categories.restoreError'))
   }
 }
 
@@ -181,8 +185,10 @@ const confirmDeleteCategory = async () => {
   try {
     await api.delete(`/users/me/categories/${confirmDeleteId.value}`)
     await Promise.all([fetchCategories(true), fetchDeletedCategories(true)])
+    toast.success(t('categories.deleted'))
   } catch (e) {
     console.error('Failed to delete category', e)
+    toast.error(t('categories.deleteError'))
   } finally {
     confirmDeleteId.value = null
   }
@@ -454,7 +460,7 @@ onMounted(() => {
                       <div class="min-w-0">
                         <p class="truncate text-sm font-semibold text-muted line-through">{{ category.name }}</p>
                         <p class="text-xs text-faint">
-                          {{ category.orphan ? t('categories.deleted.subcategory') : t('categories.subcategoriesCount', category.children.length) }}
+                          {{ category.orphan ? t('categories.deletedSection.subcategory') : t('categories.subcategoriesCount', category.children.length) }}
                         </p>
                       </div>
                     </div>
@@ -472,7 +478,7 @@ onMounted(() => {
                         @click="restoreCategory(category.id)"
                       >
                         <span class="material-symbols-outlined text-[16px]">restore</span>
-                        {{ t('categories.deleted.restore') }}
+                        {{ t('categories.deletedSection.restore') }}
                       </button>
                     </div>
                   </div>
@@ -500,8 +506,8 @@ onMounted(() => {
                 <div class="icon-tile mx-auto size-14 bg-surface-2 text-faint">
                   <span class="material-symbols-outlined">delete_sweep</span>
                 </div>
-                <h3 class="mt-4 text-lg font-semibold text-content">{{ t('categories.deleted.emptyTitle') }}</h3>
-                <p class="mt-2 text-sm text-muted">{{ t('categories.deleted.emptyHint') }}</p>
+                <h3 class="mt-4 text-lg font-semibold text-content">{{ t('categories.deletedSection.emptyTitle') }}</h3>
+                <p class="mt-2 text-sm text-muted">{{ t('categories.deletedSection.emptyHint') }}</p>
               </div>
             </template>
 

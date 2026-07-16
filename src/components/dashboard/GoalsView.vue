@@ -23,10 +23,12 @@ import {
   PageContainer,
   PageHeader,
 } from '../ui'
+import { useToast } from '../../composables/useToast'
 
 type FormMode = 'create' | 'edit'
 
 const { t } = useI18n()
+const toast = useToast()
 
 const goals = ref<GoalDetail[]>([])
 const accounts = ref<AccountDetail[]>([])
@@ -136,6 +138,7 @@ const saveGoal = async () => {
       if (idx !== -1) goals.value[idx] = data
     }
     closeModal()
+    toast.success(t('goals.saved'))
   } catch (e) {
     formError.value = t('goals.saveError')
     console.error(e)
@@ -155,8 +158,10 @@ const confirmDelete = async () => {
   try {
     await goalsApi.remove(id)
     goals.value = goals.value.filter((g) => g.id !== id)
+    toast.success(t('goals.deleted'))
   } catch (e) {
     console.error('Failed to delete goal', e)
+    toast.error(t('goals.deleteError'))
   } finally {
     isDeleting.value = false
     confirmDeleteId.value = null
@@ -191,6 +196,7 @@ const saveContribution = async () => {
     const idx = goals.value.findIndex((g) => g.id === data.id)
     if (idx !== -1) goals.value[idx] = data
     closeContributeModal()
+    toast.success(t('goals.contribute.success'))
   } catch (e) {
     contributionError.value = t('goals.contribute.error')
     console.error(e)
