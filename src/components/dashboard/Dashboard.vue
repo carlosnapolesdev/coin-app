@@ -408,38 +408,67 @@ const goToTransactions = () => router.push({ name: 'transactions' })
             <p class="text-sm text-muted">{{ t('dashboard.recentTransactions.empty') }}</p>
           </div>
 
-          <div v-else class="overflow-x-auto">
-            <table class="w-full min-w-[640px] text-left">
-              <thead class="border-b border-line">
-                <tr>
-                  <th class="data-th w-12"></th>
-                  <th class="data-th">{{ t('dashboard.recentTransactions.columns.payee') }}</th>
-                  <th class="data-th">{{ t('dashboard.recentTransactions.columns.category') }}</th>
-                  <th class="data-th">{{ t('dashboard.recentTransactions.columns.account') }}</th>
-                  <th class="data-th">{{ t('dashboard.recentTransactions.columns.date') }}</th>
-                  <th class="data-th text-right">{{ t('dashboard.recentTransactions.columns.amount') }}</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-line">
-                <tr v-for="tx in recentTransactions" :key="tx.id" class="transition-colors hover:bg-surface-2">
-                  <td class="px-6 py-3">
-                    <div
-                      class="icon-tile size-9"
-                      :class="tx.type === 'INCOME' ? 'bg-success/10 text-success' : 'bg-danger/10 text-danger'"
-                    >
-                      <span class="material-symbols-outlined text-[18px]">{{ tx.type === 'INCOME' ? 'call_received' : 'call_made' }}</span>
-                    </div>
-                  </td>
-                  <td class="px-6 py-3 text-sm font-semibold text-content">{{ tx.payee || tx.categoryName || t('common.transactionFallback') }}</td>
-                  <td class="px-6 py-3 text-sm text-muted">{{ tx.categoryName || '—' }}</td>
-                  <td class="px-6 py-3 text-sm text-muted">{{ tx.accountName }}</td>
-                  <td class="px-6 py-3 text-sm text-faint">{{ formatDate(tx.effectiveDate) }}</td>
-                  <td class="px-6 py-3 text-right text-sm font-bold tabular-nums" :class="tx.type === 'INCOME' ? 'text-success' : 'text-danger'">
-                    {{ tx.type === 'INCOME' ? '+' : '-' }}{{ formatMoney(tx.amount) }}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+          <div v-else>
+            <!-- Mobile cards (< sm) -->
+            <ul class="divide-y divide-line sm:hidden">
+              <li
+                v-for="tx in recentTransactions"
+                :key="tx.id"
+                class="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-surface-2"
+              >
+                <div
+                  class="icon-tile size-9 shrink-0"
+                  :class="tx.type === 'INCOME' ? 'bg-success/10 text-success' : 'bg-danger/10 text-danger'"
+                >
+                  <span class="material-symbols-outlined text-[18px]">{{ tx.type === 'INCOME' ? 'call_received' : 'call_made' }}</span>
+                </div>
+                <div class="min-w-0 flex-1">
+                  <p class="truncate text-sm font-semibold text-content">{{ tx.payee || tx.categoryName || t('common.transactionFallback') }}</p>
+                  <p class="truncate text-xs text-muted">
+                    <span>{{ formatDate(tx.effectiveDate) }}</span>
+                    <span v-if="tx.accountName"> · {{ tx.accountName }}</span>
+                  </p>
+                </div>
+                <span class="shrink-0 text-sm font-bold tabular-nums" :class="tx.type === 'INCOME' ? 'text-success' : 'text-danger'">
+                  {{ tx.type === 'INCOME' ? '+' : '-' }}{{ formatMoney(tx.amount) }}
+                </span>
+              </li>
+            </ul>
+
+            <!-- Desktop table (sm+) -->
+            <div class="hidden overflow-x-auto sm:block">
+              <table class="w-full min-w-[640px] text-left">
+                <thead class="border-b border-line">
+                  <tr>
+                    <th class="data-th w-12"></th>
+                    <th class="data-th">{{ t('dashboard.recentTransactions.columns.payee') }}</th>
+                    <th class="data-th">{{ t('dashboard.recentTransactions.columns.category') }}</th>
+                    <th class="data-th">{{ t('dashboard.recentTransactions.columns.account') }}</th>
+                    <th class="data-th">{{ t('dashboard.recentTransactions.columns.date') }}</th>
+                    <th class="data-th text-right">{{ t('dashboard.recentTransactions.columns.amount') }}</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-line">
+                  <tr v-for="tx in recentTransactions" :key="tx.id" class="transition-colors hover:bg-surface-2">
+                    <td class="px-6 py-3">
+                      <div
+                        class="icon-tile size-9"
+                        :class="tx.type === 'INCOME' ? 'bg-success/10 text-success' : 'bg-danger/10 text-danger'"
+                      >
+                        <span class="material-symbols-outlined text-[18px]">{{ tx.type === 'INCOME' ? 'call_received' : 'call_made' }}</span>
+                      </div>
+                    </td>
+                    <td class="px-6 py-3 text-sm font-semibold text-content">{{ tx.payee || tx.categoryName || t('common.transactionFallback') }}</td>
+                    <td class="px-6 py-3 text-sm text-muted">{{ tx.categoryName || '—' }}</td>
+                    <td class="px-6 py-3 text-sm text-muted">{{ tx.accountName }}</td>
+                    <td class="px-6 py-3 text-sm text-faint">{{ formatDate(tx.effectiveDate) }}</td>
+                    <td class="px-6 py-3 text-right text-sm font-bold tabular-nums" :class="tx.type === 'INCOME' ? 'text-success' : 'text-danger'">
+                      {{ tx.type === 'INCOME' ? '+' : '-' }}{{ formatMoney(tx.amount) }}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </AppCard>
       </PageContainer>

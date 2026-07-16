@@ -16,7 +16,7 @@ const { t } = useI18n()
 const { notifyTransactionCreated, flushCelebration } = useOnboarding()
 const toast = useToast()
 
-const PAGE_SIZE = 25
+const PAGE_SIZE = 15
 const SEARCH_DEBOUNCE_MS = 300
 
 const transactions = ref<TransactionDetail[]>([])
@@ -177,6 +177,18 @@ const formatDate = (dateStr: string) => formatDateLocale(dateStr, { month: 'shor
 
 const formatAmount = formatCurrency
 
+const amountClass = (tx: TransactionDetail): string => {
+  if (tx.type === 'EXPENSE') return 'text-danger'
+  if (tx.type === 'INCOME') return 'text-success'
+  return 'text-muted'
+}
+
+const formattedAmount = (tx: TransactionDetail): string => {
+  if (tx.type === 'EXPENSE') return `-${formatAmount(tx.amount)}`
+  if (tx.type === 'INCOME') return `+${formatAmount(tx.amount)}`
+  return formatAmount(tx.amount)
+}
+
 const statusConfig = computed<Record<TransactionStatus, { label: string; variant: 'success' | 'warning' | 'muted'; icon: string }>>(() => ({
   CLEARED: { label: t('transactions.status.cleared'), variant: 'success', icon: 'check_circle' },
   PENDING: { label: t('transactions.status.pending'), variant: 'warning', icon: 'pending' },
@@ -268,12 +280,23 @@ const transferLabel = (tx: TransactionDetail) => {
               :model-value="toDate"
               @update:model-value="(v) => { toDate = v; applyFilters() }"
             />
-            <div class="flex flex-wrap items-end gap-2 lg:col-span-2 lg:justify-end">
-              <AppButton variant="secondary" icon="upload_file" @click="importModalOpen = true">{{ t('transactions.actions.import') }}</AppButton>
-              <AppButton variant="secondary" icon="download" :loading="isExporting" @click="exportTransactions">{{ t('transactions.actions.export') }}</AppButton>
-              <CoachMark coach-key="transactions" :text="t('onboarding.coach.transactions')" placement="bottom">
-                <AppButton icon="add" @click="openCreate">{{ t('transactions.actions.add') }}</AppButton>
-              </CoachMark>
+            <div class="lg:col-span-2">
+              <div class="flex flex-col gap-2 lg:hidden">
+                <div class="grid grid-cols-2 gap-2">
+                  <AppButton size="sm" variant="secondary" icon="upload_file" @click="importModalOpen = true">{{ t('transactions.actions.import') }}</AppButton>
+                  <AppButton size="sm" variant="secondary" icon="download" :loading="isExporting" @click="exportTransactions">{{ t('transactions.actions.export') }}</AppButton>
+                </div>
+                <CoachMark coach-key="transactions" :text="t('onboarding.coach.transactions')" placement="bottom">
+                  <AppButton block icon="add" @click="openCreate">{{ t('transactions.actions.add') }}</AppButton>
+                </CoachMark>
+              </div>
+              <div class="hidden h-full items-end justify-end gap-2 lg:flex">
+                <AppButton variant="secondary" icon="upload_file" @click="importModalOpen = true">{{ t('transactions.actions.import') }}</AppButton>
+                <AppButton variant="secondary" icon="download" :loading="isExporting" @click="exportTransactions">{{ t('transactions.actions.export') }}</AppButton>
+                <CoachMark coach-key="transactions" :text="t('onboarding.coach.transactions')" placement="bottom">
+                  <AppButton icon="add" @click="openCreate">{{ t('transactions.actions.add') }}</AppButton>
+                </CoachMark>
+              </div>
             </div>
           </div>
         </div>
@@ -296,113 +319,186 @@ const transferLabel = (tx: TransactionDetail) => {
           <AppButton v-if="!hasActiveFilters" class="mt-6" icon="add" @click="openCreate">{{ t('transactions.actions.add') }}</AppButton>
         </div>
 
-        <!-- Table -->
+        <!-- Table / cards -->
         <div v-else class="surface-card overflow-hidden">
-          <div class="overflow-x-auto">
-            <table class="w-full min-w-[900px] text-sm">
-              <thead>
-                <tr class="border-b border-line bg-surface-2/50">
-                  <th class="data-th">{{ t('transactions.columns.date') }}</th>
-                  <th class="data-th">{{ t('transactions.columns.account') }}</th>
-                  <th class="data-th">{{ t('transactions.columns.payee') }}</th>
-                  <th class="data-th">{{ t('transactions.columns.category') }}</th>
-                  <th class="data-th">{{ t('transactions.columns.tags') }}</th>
-                  <th class="data-th">{{ t('transactions.columns.status') }}</th>
-                  <th class="data-th text-right text-danger">{{ t('transactions.columns.expense') }}</th>
-                  <th class="data-th text-right text-success">{{ t('transactions.columns.income') }}</th>
-                  <th class="data-th">{{ t('transactions.columns.memo') }}</th>
-                  <th class="data-th"></th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-line">
-                <tr
-                  v-for="tx in transactions"
-                  :key="tx.id"
-                  class="group transition-colors hover:bg-surface-2"
-                >
-                  <td class="whitespace-nowrap px-4 py-3 font-semibold text-content">
-                    {{ formatDate(tx.effectiveDate) }}
-                  </td>
-
-                  <td class="px-4 py-3">
-                    <div class="flex items-center gap-2">
-                      <span class="material-symbols-outlined text-base text-faint">account_balance_wallet</span>
-                      <span class="font-medium text-muted">{{ tx.accountName }}</span>
-                    </div>
-                    <div v-if="tx.paymentMethod" class="mt-0.5 text-[11px] text-faint">{{ tx.paymentMethod }}</div>
-                  </td>
-
-                  <td class="px-4 py-3 font-semibold text-content">
-                    <span class="inline-flex items-center gap-2">
-                      <span>{{ tx.type === 'TRANSFER' ? transferLabel(tx) : (tx.payee || '—') }}</span>
-                      <svg
-                        v-if="tx.attachmentCount > 0"
-                        width="14"
-                        height="14"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        class="text-muted"
-                        :aria-label="t('transactionAttachments.paperclipAriaLabel')"
-                        :title="t('transactionAttachments.paperclipAriaLabel')"
-                      >
-                        <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
-                      </svg>
-                      <span
-                        v-if="tx.splitCount > 0"
-                        class="material-symbols-outlined text-[16px] text-muted"
-                        :aria-label="t('transactionSplits.indicatorAriaLabel')"
-                        :title="t('transactionSplits.indicatorAriaLabel')"
-                      >call_split</span>
+          <!-- Mobile cards (< lg) -->
+          <ul class="divide-y divide-line lg:hidden">
+            <li
+              v-for="tx in transactions"
+              :key="tx.id"
+              class="flex flex-col gap-2 p-4 transition-colors hover:bg-surface-2"
+            >
+              <div class="flex items-start justify-between gap-3">
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-center gap-2 text-xs text-faint">
+                    <span class="font-semibold text-content">{{ formatDate(tx.effectiveDate) }}</span>
+                    <span v-if="tx.accountName" class="truncate">· {{ tx.accountName }}</span>
+                  </div>
+                  <div class="mt-1 flex items-center gap-2">
+                    <span class="truncate font-semibold text-content">
+                      {{ tx.type === 'TRANSFER' ? transferLabel(tx) : (tx.payee || '—') }}
                     </span>
-                  </td>
+                    <svg
+                      v-if="tx.attachmentCount > 0"
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      class="shrink-0 text-muted"
+                      :aria-label="t('transactionAttachments.paperclipAriaLabel')"
+                      :title="t('transactionAttachments.paperclipAriaLabel')"
+                    >
+                      <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
+                    </svg>
+                    <span
+                      v-if="tx.splitCount > 0"
+                      class="material-symbols-outlined text-[16px] text-muted"
+                      :aria-label="t('transactionSplits.indicatorAriaLabel')"
+                      :title="t('transactionSplits.indicatorAriaLabel')"
+                    >call_split</span>
+                  </div>
+                </div>
+                <div class="shrink-0 text-right">
+                  <div class="text-base font-bold tabular-nums" :class="amountClass(tx)">
+                    {{ formattedAmount(tx) }}
+                  </div>
+                </div>
+              </div>
 
-                  <td class="px-4 py-3 text-muted">
-                    <AppBadge v-if="tx.type === 'TRANSFER'" variant="muted" icon="swap_horiz">{{ t('transactions.transferBadge') }}</AppBadge>
-                    <template v-else>{{ tx.categoryName || '—' }}</template>
-                  </td>
+              <div class="flex items-center justify-between gap-2">
+                <div class="flex min-w-0 flex-1 items-center gap-2">
+                  <AppBadge v-if="tx.type === 'TRANSFER'" variant="muted" icon="swap_horiz">{{ t('transactions.transferBadge') }}</AppBadge>
+                  <span v-else class="truncate text-xs text-muted">{{ tx.categoryName || '—' }}</span>
+                  <span v-if="parseTags(tx.tags).length" class="truncate text-xs text-faint">
+                    · {{ parseTags(tx.tags).join(', ') }}
+                  </span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <AppBadge :variant="statusConfig[tx.status].variant" :icon="statusConfig[tx.status].icon">
+                    {{ statusConfig[tx.status].label }}
+                  </AppBadge>
+                  <div class="flex items-center gap-1">
+                    <AppIconButton icon="edit" :aria-label="t('common.edit')" @click="openEdit(tx)" />
+                    <AppIconButton icon="delete" variant="danger" :aria-label="t('common.delete')" @click="requestDeleteTransaction(tx.id)" />
+                  </div>
+                </div>
+              </div>
+            </li>
+          </ul>
 
-                  <td class="px-4 py-3">
-                    <div class="flex flex-wrap gap-1">
-                      <span v-for="tag in parseTags(tx.tags)" :key="tag" class="badge badge-muted">{{ tag }}</span>
-                    </div>
-                  </td>
+          <!-- Desktop table (lg+) -->
+          <div class="hidden lg:block">
+            <div class="max-h-[70vh] overflow-auto">
+              <table class="w-full min-w-[900px] text-sm">
+                <thead>
+                  <!-- border-collapse deja atrás los bordes del tr al fijar las th; la línea inferior va como sombra inset en cada celda -->
+                  <tr>
+                    <th class="data-th sticky top-0 z-10 bg-surface-2/95 shadow-[inset_0_-1px_0_rgb(var(--color-line))] backdrop-blur-sm">{{ t('transactions.columns.date') }}</th>
+                    <th class="data-th sticky top-0 z-10 bg-surface-2/95 shadow-[inset_0_-1px_0_rgb(var(--color-line))] backdrop-blur-sm">{{ t('transactions.columns.account') }}</th>
+                    <th class="data-th sticky top-0 z-10 bg-surface-2/95 shadow-[inset_0_-1px_0_rgb(var(--color-line))] backdrop-blur-sm">{{ t('transactions.columns.payee') }}</th>
+                    <th class="data-th sticky top-0 z-10 bg-surface-2/95 shadow-[inset_0_-1px_0_rgb(var(--color-line))] backdrop-blur-sm">{{ t('transactions.columns.category') }}</th>
+                    <th class="data-th sticky top-0 z-10 bg-surface-2/95 shadow-[inset_0_-1px_0_rgb(var(--color-line))] backdrop-blur-sm">{{ t('transactions.columns.tags') }}</th>
+                    <th class="data-th sticky top-0 z-10 bg-surface-2/95 shadow-[inset_0_-1px_0_rgb(var(--color-line))] backdrop-blur-sm">{{ t('transactions.columns.status') }}</th>
+                    <th class="data-th sticky top-0 z-10 bg-surface-2/95 text-right text-danger shadow-[inset_0_-1px_0_rgb(var(--color-line))] backdrop-blur-sm">{{ t('transactions.columns.expense') }}</th>
+                    <th class="data-th sticky top-0 z-10 bg-surface-2/95 text-right text-success shadow-[inset_0_-1px_0_rgb(var(--color-line))] backdrop-blur-sm">{{ t('transactions.columns.income') }}</th>
+                    <th class="data-th sticky top-0 z-10 bg-surface-2/95 shadow-[inset_0_-1px_0_rgb(var(--color-line))] backdrop-blur-sm">{{ t('transactions.columns.memo') }}</th>
+                    <th class="data-th sticky top-0 z-10 bg-surface-2/95 shadow-[inset_0_-1px_0_rgb(var(--color-line))] backdrop-blur-sm"></th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-line">
+                  <tr
+                    v-for="tx in transactions"
+                    :key="tx.id"
+                    class="group transition-colors hover:bg-surface-2"
+                  >
+                    <td class="whitespace-nowrap px-4 py-3 font-semibold text-content">
+                      {{ formatDate(tx.effectiveDate) }}
+                    </td>
 
-                  <td class="px-4 py-3">
-                    <AppBadge :variant="statusConfig[tx.status].variant" :icon="statusConfig[tx.status].icon">
-                      {{ statusConfig[tx.status].label }}
-                    </AppBadge>
-                  </td>
+                    <td class="px-4 py-3">
+                      <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-base text-faint">account_balance_wallet</span>
+                        <span class="font-medium text-muted">{{ tx.accountName }}</span>
+                      </div>
+                      <div v-if="tx.paymentMethod" class="mt-0.5 text-[11px] text-faint">{{ tx.paymentMethod }}</div>
+                    </td>
 
-                  <td class="px-4 py-3 text-right font-bold tabular-nums">
-                    <span v-if="tx.type === 'EXPENSE'" class="text-danger">{{ formatAmount(tx.amount) }}</span>
-                    <span v-else-if="tx.type === 'TRANSFER' && !tx.transferIn" class="text-muted">{{ formatAmount(tx.amount) }}</span>
-                  </td>
+                    <td class="px-4 py-3 font-semibold text-content">
+                      <span class="inline-flex items-center gap-2">
+                        <span>{{ tx.type === 'TRANSFER' ? transferLabel(tx) : (tx.payee || '—') }}</span>
+                        <svg
+                          v-if="tx.attachmentCount > 0"
+                          width="14"
+                          height="14"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          class="text-muted"
+                          :aria-label="t('transactionAttachments.paperclipAriaLabel')"
+                          :title="t('transactionAttachments.paperclipAriaLabel')"
+                        >
+                          <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
+                        </svg>
+                        <span
+                          v-if="tx.splitCount > 0"
+                          class="material-symbols-outlined text-[16px] text-muted"
+                          :aria-label="t('transactionSplits.indicatorAriaLabel')"
+                          :title="t('transactionSplits.indicatorAriaLabel')"
+                        >call_split</span>
+                      </span>
+                    </td>
 
-                  <td class="px-4 py-3 text-right font-bold tabular-nums">
-                    <span v-if="tx.type === 'INCOME'" class="text-success">{{ formatAmount(tx.amount) }}</span>
-                    <span v-else-if="tx.type === 'TRANSFER' && tx.transferIn" class="text-muted">{{ formatAmount(tx.amount) }}</span>
-                  </td>
+                    <td class="px-4 py-3 text-muted">
+                      <AppBadge v-if="tx.type === 'TRANSFER'" variant="muted" icon="swap_horiz">{{ t('transactions.transferBadge') }}</AppBadge>
+                      <template v-else>{{ tx.categoryName || '—' }}</template>
+                    </td>
 
-                  <td class="max-w-[180px] truncate px-4 py-3 text-faint" :title="tx.memo ?? ''">
-                    {{ tx.memo || '' }}
-                  </td>
+                    <td class="px-4 py-3">
+                      <div class="flex flex-wrap gap-1">
+                        <span v-for="tag in parseTags(tx.tags)" :key="tag" class="badge badge-muted">{{ tag }}</span>
+                      </div>
+                    </td>
 
-                  <td class="px-4 py-3">
-                    <div class="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                      <AppIconButton icon="edit" :aria-label="t('common.edit')" @click="openEdit(tx)" />
-                      <AppIconButton icon="delete" variant="danger" :aria-label="t('common.delete')" @click="requestDeleteTransaction(tx.id)" />
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+                    <td class="px-4 py-3">
+                      <AppBadge :variant="statusConfig[tx.status].variant" :icon="statusConfig[tx.status].icon">
+                        {{ statusConfig[tx.status].label }}
+                      </AppBadge>
+                    </td>
+
+                    <td class="px-4 py-3 text-right font-bold tabular-nums">
+                      <span v-if="tx.type === 'EXPENSE'" class="text-danger">{{ formatAmount(tx.amount) }}</span>
+                      <span v-else-if="tx.type === 'TRANSFER' && !tx.transferIn" class="text-muted">{{ formatAmount(tx.amount) }}</span>
+                    </td>
+
+                    <td class="px-4 py-3 text-right font-bold tabular-nums">
+                      <span v-if="tx.type === 'INCOME'" class="text-success">{{ formatAmount(tx.amount) }}</span>
+                      <span v-else-if="tx.type === 'TRANSFER' && tx.transferIn" class="text-muted">{{ formatAmount(tx.amount) }}</span>
+                    </td>
+
+                    <td class="max-w-[180px] truncate px-4 py-3 text-faint" :title="tx.memo ?? ''">
+                      {{ tx.memo || '' }}
+                    </td>
+
+                    <td class="px-4 py-3">
+                      <div class="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                        <AppIconButton icon="edit" :aria-label="t('common.edit')" @click="openEdit(tx)" />
+                        <AppIconButton icon="delete" variant="danger" :aria-label="t('common.delete')" @click="requestDeleteTransaction(tx.id)" />
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
 
-          <div class="flex items-center justify-between border-t border-line px-6 py-4">
+          <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 border-t border-line px-4 py-4 sm:px-6">
             <span class="text-sm text-muted">{{ t('transactions.totalCount', total) }}</span>
             <div class="flex items-center gap-3">
               <AppButton
