@@ -78,14 +78,6 @@ describe('attachmentsApi', () => {
     expect(capturedConfig.data).toBeInstanceOf(FormData)
   })
 
-  it('downloadUrl builds signed url with disposition and token', () => {
-    vi.spyOn(authSession, 'getAccessToken').mockReturnValue('jwt-abc')
-    const url = attachmentsApi.downloadUrl(99, 'inline')
-    expect(url).toContain('/users/me/attachments/99/download')
-    expect(url).toContain('disposition=inline')
-    expect(url).toContain('token=jwt-abc')
-  })
-
   it('remove deletes', async () => {
     const del = vi.spyOn(api, 'delete').mockResolvedValue({ data: undefined })
     await attachmentsApi.remove(99)

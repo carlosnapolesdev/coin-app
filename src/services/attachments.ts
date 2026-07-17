@@ -9,8 +9,6 @@ export interface AttachmentDto {
   createdAt: string;
 }
 
-export type Disposition = 'attachment' | 'inline';
-
 export const attachmentsApi = {
   async list(transactionId: number): Promise<AttachmentDto[]> {
     const res = await api.get<AttachmentDto[]>(`/users/me/transactions/${transactionId}/attachments`);
@@ -51,19 +49,13 @@ export const attachmentsApi = {
     return res.data;
   },
 
-  downloadUrl(attachmentId: number, disposition: Disposition): string {
-    const token = getAccessToken(); // de ../services/auth-session; síncrono, lee del storage
-    const base = (api.defaults.baseURL ?? '').replace(/\/$/, ''); // '/api' por defecto (relativo, mismo origen)
-    const params = new URLSearchParams({ disposition });
-    if (token) params.set('token', token);
-    return `${base}/users/me/attachments/${attachmentId}/download?${params.toString()}`;
-  },
-
   /**
    * Descarga un attachment vía `fetch` con header `Authorization` (en lugar de
-   * inyectar el JWT como `?token=` en la URL) y devuelve un `blob:` URL. Esto evita
-   * que el JWT quede en la URL que el navegador guarda en historial, en logs del
-   * servidor, y en el Referer al navegar a sitios externos.
+   * inyectar el JWT como `?token=` en la URL, que el backend ya no acepta) y
+   * devuelve un `blob:` URL. Esto evita que el JWT quede en la URL que el
+   * navegador guarda en historial, en logs del servidor, y en el Referer al
+   * navegar a sitios externos. Lo usan tanto los PDFs (pestaña top-level) como
+   * los thumbnails de imagen (vía useAttachmentBlobUrls).
    *
    * El `window.open` NO se hace aquí: debe ejecutarse síncronamente dentro del
    * gesto del usuario (el clic), porque tras cruzar los `await` de esta función la
@@ -71,10 +63,6 @@ export const attachmentsApi = {
    * abre la pestaña síncrono y luego le asigna esta URL. El caller es responsable de
    * `URL.revokeObjectURL` tras un margen suficiente (revocar antes hace fallar la
    * carga en algunos navegadores).
-   *
-   * Reservado a PDFs (donde el riesgo de URL en historial es real, porque se abre
-   * en pestaña top-level). Los thumbnails usan `downloadUrl` con `?token=` porque
-   * van por `<img src>` same-origin sin historial.
    */
   async fetchInlineBlobUrl(attachmentId: number): Promise<string> {
     const token = getAccessToken()

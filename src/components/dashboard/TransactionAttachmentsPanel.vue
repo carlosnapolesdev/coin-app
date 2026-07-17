@@ -3,6 +3,7 @@ import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { attachmentsApi } from '../../services/attachments'
 import { useAttachments } from '../../composables/useAttachments'
+import { useAttachmentBlobUrls } from '../../composables/useAttachmentBlobUrls'
 import AttachmentLightbox from '../common/AttachmentLightbox.vue'
 import { lightboxIndexFor } from '../common/lightboxIndex'
 import { ConfirmDialog } from '../ui'
@@ -14,6 +15,9 @@ const props = defineProps<{
 
 const { t } = useI18n()
 const attach = useAttachments()
+// Thumbnails como blob: URLs obtenidos con Authorization header — el JWT nunca
+// va en la URL del <img src> y el backend ya no acepta ?token=.
+const { urlById: thumbUrls } = useAttachmentBlobUrls(attach.attachments)
 const lightboxOpen = ref(false)
 const lightboxIndex = ref(0)
 const filePicker = ref<HTMLInputElement | null>(null)
@@ -126,7 +130,7 @@ const lightboxImages = computed(() =>
       id: a.id,
       fileName: a.fileName,
       mimeType: a.mimeType,
-      url: attachmentsApi.downloadUrl(a.id, 'inline'),
+      url: thumbUrls.value.get(a.id) ?? '',
     })),
 )
 const attachmentCount = computed(() => attach.attachments.value.length)
@@ -190,7 +194,8 @@ const atLimit = computed(() => attachmentCount.value >= maxFiles)
           class="mt-2 aspect-square w-full overflow-hidden rounded-md bg-surface-2"
         >
           <img
-            :src="attachmentsApi.downloadUrl(a.id, 'inline')"
+            v-if="thumbUrls.get(a.id)"
+            :src="thumbUrls.get(a.id)"
             :alt="a.fileName"
             class="h-full w-full cursor-zoom-in object-cover"
             @click="openLightboxFor(a.id)"
