@@ -18,7 +18,7 @@
   },
   "dependencies": {
     "@material-symbols/metadata": "^0.44.0",
-    "axios": "1.14.0",
+    "axios": "^1.18.1",
     "vue": "^3.5.25",
     "vue-i18n": "^9.14.5",
     "vue-router": "^4.5.1"
