@@ -2,6 +2,13 @@
   "name": "coin-app",
   "private": true,
   "version": "0.11.0",
+  "description": "Web client for CoinFlow, a personal finance management app — Vue 3, Vite, Tailwind CSS",
+  "author": "Carlos Nápoles Avila",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/carlosnapolesdev/coin-app.git"
+  },
   "type": "module",
   "scripts": {
     "dev": "vite",
