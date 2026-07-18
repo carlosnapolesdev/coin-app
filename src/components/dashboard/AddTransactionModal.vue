@@ -7,7 +7,7 @@ import { type AccountDetail, accountsApi } from '../../services/accounts'
 import { currenciesApi } from '../../services/currencies'
 import TransactionAttachmentsPanel from './TransactionAttachmentsPanel.vue'
 import { formatCurrency } from '../../utils/format'
-import { AppButton, AppIconButton, AppModal, AppSpinner } from '../ui'
+import { AppButton, AppIconButton, AppModal, AppSpinner, TagInput } from '../ui'
 import { useToast } from '../../composables/useToast'
 
 const { t } = useI18n()
@@ -60,7 +60,7 @@ const payee = ref('')
 const categoryId = ref<number | null>(null)
 const status = ref<TransactionStatus>('CLEARED')
 const memo = ref('')
-const tags = ref('')
+const tagList = ref<string[]>([])
 const exchangeRate = ref('')
 
 const splitsEnabled = ref(false)
@@ -77,6 +77,9 @@ const isSaving = ref(false)
 const error = ref('')
 
 const today = new Date().toISOString().slice(0, 10)
+
+const parseTagsList = (csv: string | null | undefined): string[] =>
+  [...new Set((csv ?? '').split(',').map((tag) => tag.trim()).filter((tag) => tag.length > 0))]
 
 const filteredCategories = computed<FlatCategory[]>(() => {
   if (selectedType.value === 'TRANSFER') return []
@@ -151,7 +154,7 @@ const resetForm = () => {
   categoryId.value = null
   status.value = 'CLEARED'
   memo.value = ''
-  tags.value = ''
+  tagList.value = []
   exchangeRate.value = ''
   splitsEnabled.value = false
   splits.value = []
@@ -186,7 +189,7 @@ const populateFromTransaction = (t: TransactionDetail) => {
   categoryId.value = t.categoryId ?? null
   status.value = t.status
   memo.value = t.memo ?? ''
-  tags.value = t.tags ?? ''
+  tagList.value = parseTagsList(t.tags)
   exchangeRate.value = t.exchangeRate !== null ? String(t.exchangeRate) : ''
 }
 
@@ -307,7 +310,7 @@ const handleSave = async (keepOpen = false) => {
     paymentMethod: paymentMethod.value || undefined,
     memo: memo.value || undefined,
     status: status.value,
-    tags: tags.value || undefined,
+    tags: tagList.value.length > 0 ? tagList.value.join(', ') : undefined,
   }
 
   try {
@@ -494,7 +497,11 @@ const handleSave = async (keepOpen = false) => {
       </div>
       <div>
         <label class="field-label">{{ t('transactionModal.tagsLabel') }}</label>
-        <input v-model="tags" type="text" :placeholder="t('transactionModal.tagsPlaceholder')" class="field-input" :disabled="isSaving" />
+        <TagInput
+          v-model="tagList"
+          :placeholder="t('transactionModal.tagsPlaceholder')"
+          :disabled="isSaving"
+        />
       </div>
 
       <!-- Splits (not for transfers) -->

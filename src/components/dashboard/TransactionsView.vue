@@ -8,6 +8,7 @@ import CoachMark from '../onboarding/CoachMark.vue'
 import { AppBadge, AppButton, AppIconButton, AppInput, AppModal, AppSelect, AppSpinner, ConfirmDialog, PageContainer, PageHeader } from '../ui'
 import { type AccountDetail, accountsApi } from '../../services/accounts'
 import { type TransactionDetail, type TransactionStatus, type TransactionType, transactionsApi } from '../../services/transactions'
+import { tagsApi, type TagDto } from '../../services/tags'
 import { type ReconciliationSummary, reconciliationsApi } from '../../services/reconciliations'
 import { formatCurrency, formatDate as formatDateLocale } from '../../utils/format'
 import { useOnboarding } from '../../composables/useOnboarding'
@@ -22,8 +23,10 @@ const SEARCH_DEBOUNCE_MS = 300
 
 const transactions = ref<TransactionDetail[]>([])
 const accounts = ref<AccountDetail[]>([])
+const availableTags = ref<TagDto[]>([])
 const selectedAccountId = ref<number | null>(null)
 const searchQuery = ref('')
+const tagFilter = ref('')
 const typeFilter = ref<TransactionType | ''>('')
 const statusFilter = ref<TransactionStatus | ''>('')
 const fromDate = ref('')
@@ -52,7 +55,7 @@ let searchDebounceTimer: ReturnType<typeof setTimeout> | undefined
 
 const totalPages = computed(() => Math.max(1, Math.ceil(total.value / PAGE_SIZE)))
 const hasActiveFilters = computed(() =>
-  Boolean(searchQuery.value || typeFilter.value || statusFilter.value || fromDate.value || toDate.value || selectedAccountId.value),
+  Boolean(searchQuery.value || tagFilter.value || typeFilter.value || statusFilter.value || fromDate.value || toDate.value || selectedAccountId.value),
 )
 
 const loadTransactions = async () => {
@@ -61,7 +64,7 @@ const loadTransactions = async () => {
   try {
     const res = await transactionsApi.search({
       accountId: selectedAccountId.value ?? undefined,
-      q: searchQuery.value || undefined,
+      q: tagFilter.value || searchQuery.value || undefined,
       type: typeFilter.value || undefined,
       status: statusFilter.value || undefined,
       from: fromDate.value || undefined,
@@ -87,8 +90,16 @@ const loadAccounts = async () => {
   }
 }
 
+const loadTags = async () => {
+  try {
+    availableTags.value = await tagsApi.list()
+  } catch {
+    availableTags.value = []
+  }
+}
+
 onMounted(async () => {
-  await loadAccounts()
+  await Promise.all([loadAccounts(), loadTags()])
   await loadTransactions()
 })
 
@@ -97,8 +108,20 @@ const applyFilters = () => {
   loadTransactions()
 }
 
+const setTagFilter = (value: string) => {
+  tagFilter.value = value
+  if (value) searchQuery.value = ''
+  applyFilters()
+}
+
+const clearTagFilter = () => {
+  tagFilter.value = ''
+  applyFilters()
+}
+
 const onSearchInput = (value: string) => {
   searchQuery.value = value
+  if (value) tagFilter.value = ''
   if (searchDebounceTimer) clearTimeout(searchDebounceTimer)
   searchDebounceTimer = setTimeout(applyFilters, SEARCH_DEBOUNCE_MS)
 }
@@ -122,7 +145,7 @@ const openEdit = (t: TransactionDetail) => {
 }
 
 const onSaved = async () => {
-  await Promise.all([loadAccounts(), loadTransactions()])
+  await Promise.all([loadAccounts(), loadTransactions(), loadTags()])
   notifyTransactionCreated()
 }
 
@@ -134,7 +157,7 @@ const closeModal = () => {
 }
 
 const onImported = async () => {
-  await Promise.all([loadAccounts(), loadTransactions()])
+  await Promise.all([loadAccounts(), loadTransactions(), loadTags()])
 }
 
 const openReconciliationModal = () => {
@@ -243,7 +266,7 @@ const exportTransactions = async () => {
   try {
     const res = await transactionsApi.exportCsv({
       accountId: selectedAccountId.value ?? undefined,
-      q: searchQuery.value || undefined,
+      q: tagFilter.value || searchQuery.value || undefined,
       type: typeFilter.value || undefined,
       status: statusFilter.value || undefined,
       from: fromDate.value || undefined,
@@ -272,7 +295,7 @@ const confirmDelete = async () => {
   isDeleting.value = true
   try {
     await transactionsApi.remove(confirmDeleteId.value)
-    await Promise.all([loadAccounts(), loadTransactions()])
+    await Promise.all([loadAccounts(), loadTransactions(), loadTags()])
     confirmDeleteId.value = null
     toast.success(t('transactions.deleted'))
   } catch {
@@ -335,7 +358,7 @@ const transferLabel = (tx: TransactionDetail) => {
 
         <!-- Filters -->
         <div class="surface-card relative z-10 mb-6 flex flex-col gap-4 p-4">
-          <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
             <AppSelect
               :label="t('transactions.filters.accountLabel')"
               :model-value="selectedAccountId ?? ''"
@@ -365,6 +388,15 @@ const transferLabel = (tx: TransactionDetail) => {
               <option value="CLEARED">{{ t('transactions.status.cleared') }}</option>
               <option value="PENDING">{{ t('transactions.status.pending') }}</option>
               <option value="VOID">{{ t('transactions.status.void') }}</option>
+            </AppSelect>
+
+            <AppSelect
+              :label="t('transactions.filters.tagLabel')"
+              :model-value="tagFilter"
+              @update:model-value="setTagFilter"
+            >
+              <option value="">{{ t('transactions.filters.allTags') }}</option>
+              <option v-for="tag in availableTags" :key="tag.id" :value="tag.name">{{ tag.name }}</option>
             </AppSelect>
 
             <AppInput
@@ -422,6 +454,18 @@ const transferLabel = (tx: TransactionDetail) => {
                 </CoachMark>
               </div>
             </div>
+          </div>
+
+          <div v-if="tagFilter" class="flex items-center">
+            <AppButton
+              variant="subtle"
+              size="sm"
+              trailing-icon="close"
+              :aria-label="t('transactions.clearTagFilter')"
+              @click="clearTagFilter"
+            >
+              {{ t('transactions.activeTagFilter', { tag: tagFilter }) }}
+            </AppButton>
           </div>
         </div>
 
