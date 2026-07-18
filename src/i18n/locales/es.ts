@@ -439,6 +439,31 @@ const es: MessageSchema = {
       message: 'Esta transacción se eliminará de forma permanente. Esta acción no se puede deshacer.',
     },
   },
+  reconciliation: {
+    actions: {
+      start: 'Conciliar',
+      finish: 'Finalizar',
+      cancel: 'Cancelar',
+    },
+    openDialog: {
+      title: 'Iniciar conciliación',
+      statementDateLabel: 'Fecha del extracto',
+      statementBalanceLabel: 'Saldo del extracto',
+      hint: 'Ingresa el saldo de cierre de tu extracto bancario para empezar a emparejar transacciones.',
+    },
+    summary: {
+      cleared: 'Saldo conciliado',
+      statement: 'Saldo del extracto',
+      difference: 'Diferencia',
+      clearedCount: '{count} conciliadas',
+      pendingCount: '{count} pendientes',
+      balanced: 'Cuadra',
+      unbalanced: 'Diferencia de {amount}',
+    },
+    finished: 'Conciliación completada',
+    notBalanced: 'La conciliación no cuadra',
+    loadError: 'No se pudo cargar el resumen de conciliación',
+  },
   transactionModal: {
     titleCreate: 'Agregar transacción',
     titleEdit: 'Editar transacción',

@@ -5,9 +5,10 @@ import Sidebar from './Sidebar.vue'
 import AddTransactionModal from './AddTransactionModal.vue'
 import ImportModal from './ImportModal.vue'
 import CoachMark from '../onboarding/CoachMark.vue'
-import { AppBadge, AppButton, AppIconButton, AppInput, AppSelect, AppSpinner, ConfirmDialog, PageContainer, PageHeader } from '../ui'
+import { AppBadge, AppButton, AppIconButton, AppInput, AppModal, AppSelect, AppSpinner, ConfirmDialog, PageContainer, PageHeader } from '../ui'
 import { type AccountDetail, accountsApi } from '../../services/accounts'
 import { type TransactionDetail, type TransactionStatus, type TransactionType, transactionsApi } from '../../services/transactions'
+import { type ReconciliationSummary, reconciliationsApi } from '../../services/reconciliations'
 import { formatCurrency, formatDate as formatDateLocale } from '../../utils/format'
 import { useOnboarding } from '../../composables/useOnboarding'
 import { useToast } from '../../composables/useToast'
@@ -38,6 +39,14 @@ const confirmDeleteId = ref<number | null>(null)
 const isDeleting = ref(false)
 const importModalOpen = ref(false)
 const isExporting = ref(false)
+
+const reconciliationOpen = ref(false)
+const reconciliation = ref<ReconciliationSummary | null>(null)
+const openReconciliationDate = ref(new Date().toISOString().slice(0, 10))
+const openReconciliationBalance = ref('0.00')
+const isOpeningReconciliation = ref(false)
+const isFinishingReconciliation = ref(false)
+const reconcilingTransactionId = ref<number | null>(null)
 
 let searchDebounceTimer: ReturnType<typeof setTimeout> | undefined
 
@@ -127,6 +136,106 @@ const closeModal = () => {
 const onImported = async () => {
   await Promise.all([loadAccounts(), loadTransactions()])
 }
+
+const openReconciliationModal = () => {
+  if (selectedAccountId.value === null) return
+  openReconciliationDate.value = new Date().toISOString().slice(0, 10)
+  const account = accounts.value.find(a => a.id === selectedAccountId.value)
+  openReconciliationBalance.value = account ? String(account.currentBalance) : '0.00'
+  reconciliation.value = null
+  reconciliationOpen.value = true
+}
+
+const closeReconciliation = () => {
+  reconciliationOpen.value = false
+  reconciliation.value = null
+}
+
+const startReconciliation = async () => {
+  if (selectedAccountId.value === null) return
+  isOpeningReconciliation.value = true
+  try {
+    const { data } = await reconciliationsApi.open(selectedAccountId.value, {
+      statementDate: openReconciliationDate.value,
+      statementBalance: parseFloat(openReconciliationBalance.value) || 0,
+    })
+    await loadSummary(data.id)
+    await Promise.all([loadAccounts(), loadTransactions()])
+  } catch {
+    toast.error(t('reconciliation.loadError'))
+  } finally {
+    isOpeningReconciliation.value = false
+  }
+}
+
+const loadSummary = async (reconciliationId: number) => {
+  if (selectedAccountId.value === null) return
+  try {
+    const { data } = await reconciliationsApi.getSummary(
+      selectedAccountId.value,
+      reconciliationId,
+    )
+    reconciliation.value = data
+  } catch {
+    toast.error(t('reconciliation.loadError'))
+  }
+}
+
+const toggleTransactionCleared = async (tx: TransactionDetail) => {
+  if (!reconciliation.value) return
+  const target: TransactionStatus = tx.status === 'CLEARED' ? 'PENDING' : 'CLEARED'
+  reconcilingTransactionId.value = tx.id
+  try {
+    await transactionsApi.update(tx.id, { status: target })
+    const idx = transactions.value.findIndex(t => t.id === tx.id)
+    if (idx !== -1) {
+      transactions.value[idx] = { ...transactions.value[idx]!, status: target }
+    }
+    await loadSummary(reconciliation.value.id)
+  } catch {
+    toast.error(t('transactions.saveError'))
+  } finally {
+    reconcilingTransactionId.value = null
+  }
+}
+
+const finishReconciliation = async () => {
+  if (!reconciliation.value || selectedAccountId.value === null) return
+  if (reconciliation.value.difference !== 0) {
+    toast.error(t('reconciliation.notBalanced'))
+    return
+  }
+  isFinishingReconciliation.value = true
+  try {
+    await reconciliationsApi.complete(selectedAccountId.value, reconciliation.value.id)
+    reconciliation.value = { ...reconciliation.value, isCompleted: true }
+    toast.success(t('reconciliation.finished'))
+  } catch (e: any) {
+    const message = e?.response?.data?.message ?? t('reconciliation.notBalanced')
+    toast.error(message)
+  } finally {
+    isFinishingReconciliation.value = false
+  }
+}
+
+const reconciliationDifferenceClass = computed(() => {
+  if (!reconciliation.value) return ''
+  return reconciliation.value.difference === 0 ? 'text-success' : 'text-danger'
+})
+
+const reconciliationDifferenceLabel = computed(() => {
+  if (!reconciliation.value) return ''
+  if (reconciliation.value.difference === 0) return t('reconciliation.summary.balanced')
+  return t('reconciliation.summary.unbalanced', {
+    amount: formatCurrency(reconciliation.value.difference),
+  })
+})
+
+const canFinishReconciliation = computed(() => {
+  return reconciliation.value !== null
+    && !reconciliation.value.isCompleted
+    && reconciliation.value.difference === 0
+})
 
 const exportTransactions = async () => {
   isExporting.value = true
@@ -286,13 +395,28 @@ const transferLabel = (tx: TransactionDetail) => {
                   <AppButton size="sm" variant="secondary" icon="upload_file" @click="importModalOpen = true">{{ t('transactions.actions.import') }}</AppButton>
                   <AppButton size="sm" variant="secondary" icon="download" :loading="isExporting" @click="exportTransactions">{{ t('transactions.actions.export') }}</AppButton>
                 </div>
-                <CoachMark coach-key="transactions" :text="t('onboarding.coach.transactions')" placement="bottom">
-                  <AppButton block icon="add" @click="openCreate">{{ t('transactions.actions.add') }}</AppButton>
-                </CoachMark>
+                <div class="grid grid-cols-2 gap-2">
+                  <AppButton
+                    size="sm"
+                    variant="secondary"
+                    icon="fact_check"
+                    :disabled="selectedAccountId === null"
+                    @click="openReconciliationModal"
+                  >{{ t('reconciliation.actions.start') }}</AppButton>
+                  <CoachMark coach-key="transactions" :text="t('onboarding.coach.transactions')" placement="bottom">
+                    <AppButton block icon="add" @click="openCreate">{{ t('transactions.actions.add') }}</AppButton>
+                  </CoachMark>
+                </div>
               </div>
               <div class="hidden h-full items-end justify-end gap-2 lg:flex">
                 <AppButton variant="secondary" icon="upload_file" @click="importModalOpen = true">{{ t('transactions.actions.import') }}</AppButton>
                 <AppButton variant="secondary" icon="download" :loading="isExporting" @click="exportTransactions">{{ t('transactions.actions.export') }}</AppButton>
+                <AppButton
+                  variant="secondary"
+                  icon="fact_check"
+                  :disabled="selectedAccountId === null"
+                  @click="openReconciliationModal"
+                >{{ t('reconciliation.actions.start') }}</AppButton>
                 <CoachMark coach-key="transactions" :text="t('onboarding.coach.transactions')" placement="bottom">
                   <AppButton icon="add" @click="openCreate">{{ t('transactions.actions.add') }}</AppButton>
                 </CoachMark>
@@ -328,6 +452,17 @@ const transferLabel = (tx: TransactionDetail) => {
               :key="tx.id"
               class="flex flex-col gap-2 p-4 transition-colors hover:bg-surface-2"
             >
+              <div v-if="reconciliation" class="flex items-center gap-2 pb-1">
+                <input
+                  type="checkbox"
+                  class="h-4 w-4 cursor-pointer accent-primary disabled:cursor-not-allowed disabled:opacity-50"
+                  :checked="tx.status === 'CLEARED'"
+                  :disabled="reconcilingTransactionId === tx.id"
+                  :aria-label="t('reconciliation.summary.cleared')"
+                  @change="toggleTransactionCleared(tx)"
+                />
+                <span class="text-xs font-medium text-muted">{{ t('reconciliation.summary.cleared') }}</span>
+              </div>
               <div class="flex items-start justify-between gap-3">
                 <div class="min-w-0 flex-1">
                   <div class="flex items-center gap-2 text-xs text-faint">
@@ -397,6 +532,13 @@ const transferLabel = (tx: TransactionDetail) => {
                 <thead>
                   <!-- border-collapse deja atrás los bordes del tr al fijar las th; la línea inferior va como sombra inset en cada celda -->
                   <tr>
+                    <th
+                      v-if="reconciliation"
+                      class="data-th sticky top-0 z-10 w-12 bg-surface-2/95 text-center shadow-[inset_0_-1px_0_rgb(var(--color-line))] backdrop-blur-sm"
+                      :aria-label="t('reconciliation.summary.cleared')"
+                    >
+                      <span class="material-symbols-outlined text-base text-muted">check_circle</span>
+                    </th>
                     <th class="data-th sticky top-0 z-10 bg-surface-2/95 shadow-[inset_0_-1px_0_rgb(var(--color-line))] backdrop-blur-sm">{{ t('transactions.columns.date') }}</th>
                     <th class="data-th sticky top-0 z-10 bg-surface-2/95 shadow-[inset_0_-1px_0_rgb(var(--color-line))] backdrop-blur-sm">{{ t('transactions.columns.account') }}</th>
                     <th class="data-th sticky top-0 z-10 bg-surface-2/95 shadow-[inset_0_-1px_0_rgb(var(--color-line))] backdrop-blur-sm">{{ t('transactions.columns.payee') }}</th>
@@ -415,6 +557,16 @@ const transferLabel = (tx: TransactionDetail) => {
                     :key="tx.id"
                     class="group transition-colors hover:bg-surface-2"
                   >
+                    <td v-if="reconciliation" class="w-12 px-4 py-3 text-center">
+                      <input
+                        type="checkbox"
+                        class="h-4 w-4 cursor-pointer accent-primary disabled:cursor-not-allowed disabled:opacity-50"
+                        :checked="tx.status === 'CLEARED'"
+                        :disabled="reconcilingTransactionId === tx.id"
+                        :aria-label="t('reconciliation.summary.cleared')"
+                        @change="toggleTransactionCleared(tx)"
+                      />
+                    </td>
                     <td class="whitespace-nowrap px-4 py-3 font-semibold text-content">
                       {{ formatDate(tx.effectiveDate) }}
                     </td>
@@ -524,7 +676,77 @@ const transferLabel = (tx: TransactionDetail) => {
           </div>
         </div>
       </PageContainer>
+
+      <!-- Reconciliation summary bar (only while a reconciliation is open) -->
+      <Transition name="modal">
+        <div
+          v-if="reconciliation"
+          class="sticky bottom-0 z-20 mt-6 border-t border-line bg-surface/95 px-4 py-4 shadow-[0_-8px_24px_-12px_rgb(var(--color-overlay)/0.25)] backdrop-blur sm:px-6"
+        >
+          <div class="mx-auto flex max-w-6xl flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div class="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4 lg:flex lg:items-center lg:gap-6">
+              <div class="flex flex-col">
+                <span class="text-xs uppercase tracking-wide text-faint">{{ t('reconciliation.summary.cleared') }}</span>
+                <span class="font-semibold tabular-nums text-content">{{ formatCurrency(reconciliation.clearedBalance) }}</span>
+                <span class="text-xs text-muted">{{ t('reconciliation.summary.clearedCount', reconciliation.clearedCount) }}</span>
+              </div>
+              <div class="flex flex-col">
+                <span class="text-xs uppercase tracking-wide text-faint">{{ t('reconciliation.summary.statement') }}</span>
+                <span class="font-semibold tabular-nums text-content">{{ formatCurrency(reconciliation.statementBalance) }}</span>
+              </div>
+              <div class="flex flex-col">
+                <span class="text-xs uppercase tracking-wide text-faint">{{ t('reconciliation.summary.difference') }}</span>
+                <span class="font-bold tabular-nums" :class="reconciliationDifferenceClass">{{ formatCurrency(reconciliation.difference) }}</span>
+                <span class="text-xs font-medium" :class="reconciliationDifferenceClass">{{ reconciliationDifferenceLabel }}</span>
+              </div>
+              <div class="flex flex-col">
+                <span class="text-xs uppercase tracking-wide text-faint">&nbsp;</span>
+                <span class="text-xs text-muted">{{ t('reconciliation.summary.pendingCount', reconciliation.pendingCount) }}</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <AppButton variant="ghost" size="sm" @click="closeReconciliation">{{ t('reconciliation.actions.cancel') }}</AppButton>
+              <AppButton
+                size="sm"
+                icon="check"
+                :disabled="!canFinishReconciliation"
+                :loading="isFinishingReconciliation"
+                @click="finishReconciliation"
+              >{{ t('reconciliation.actions.finish') }}</AppButton>
+            </div>
+          </div>
+        </div>
+      </Transition>
     </main>
+
+    <AppModal
+      :is-open="reconciliationOpen"
+      :title="t('reconciliation.openDialog.title')"
+      icon="fact_check"
+      size="sm"
+      @close="closeReconciliation"
+    >
+      <div class="flex flex-col gap-4 p-6">
+        <p class="text-sm text-muted">{{ t('reconciliation.openDialog.hint') }}</p>
+        <AppInput
+          :label="t('reconciliation.openDialog.statementDateLabel')"
+          type="date"
+          :model-value="openReconciliationDate"
+          @update:model-value="(v: string) => { openReconciliationDate = v }"
+        />
+        <AppInput
+          :label="t('reconciliation.openDialog.statementBalanceLabel')"
+          type="number"
+          step="0.01"
+          :model-value="openReconciliationBalance"
+          @update:model-value="(v: string) => { openReconciliationBalance = v }"
+        />
+        <div class="flex justify-end gap-2 pt-2">
+          <AppButton variant="ghost" size="sm" @click="closeReconciliation">{{ t('reconciliation.actions.cancel') }}</AppButton>
+          <AppButton size="sm" icon="play_arrow" :loading="isOpeningReconciliation" @click="startReconciliation">{{ t('reconciliation.actions.start') }}</AppButton>
+        </div>
+      </div>
+    </AppModal>
 
     <ConfirmDialog
       :is-open="confirmDeleteId !== null"

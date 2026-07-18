@@ -437,6 +437,31 @@ const en = {
       message: "This transaction will be permanently removed. This can't be undone.",
     },
   },
+  reconciliation: {
+    actions: {
+      start: 'Reconcile',
+      finish: 'Finish',
+      cancel: 'Cancel',
+    },
+    openDialog: {
+      title: 'Start reconciliation',
+      statementDateLabel: 'Statement date',
+      statementBalanceLabel: 'Statement balance',
+      hint: 'Enter the closing balance from your bank statement to start matching transactions.',
+    },
+    summary: {
+      cleared: 'Cleared balance',
+      statement: 'Statement balance',
+      difference: 'Difference',
+      clearedCount: '{count} cleared',
+      pendingCount: '{count} pending',
+      balanced: 'Balanced',
+      unbalanced: 'Off by {amount}',
+    },
+    finished: 'Reconciliation completed',
+    notBalanced: 'Reconciliation is not balanced',
+    loadError: 'Failed to load reconciliation summary',
+  },
   transactionModal: {
     titleCreate: 'Add Transaction',
     titleEdit: 'Edit Transaction',

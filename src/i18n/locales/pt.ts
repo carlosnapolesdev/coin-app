@@ -439,6 +439,31 @@ const pt: MessageSchema = {
       message: 'Esta transação será removida permanentemente. Essa ação não pode ser desfeita.',
     },
   },
+  reconciliation: {
+    actions: {
+      start: 'Conciliar',
+      finish: 'Concluir',
+      cancel: 'Cancelar',
+    },
+    openDialog: {
+      title: 'Iniciar conciliação',
+      statementDateLabel: 'Data do extrato',
+      statementBalanceLabel: 'Saldo do extrato',
+      hint: 'Informe o saldo de fechamento do seu extrato bancário para começar a conciliar transações.',
+    },
+    summary: {
+      cleared: 'Saldo conciliado',
+      statement: 'Saldo do extrato',
+      difference: 'Diferença',
+      clearedCount: '{count} conciliadas',
+      pendingCount: '{count} pendentes',
+      balanced: 'Conferido',
+      unbalanced: 'Diferença de {amount}',
+    },
+    finished: 'Conciliação concluída',
+    notBalanced: 'A conciliação não confere',
+    loadError: 'Falha ao carregar o resumo da conciliação',
+  },
   transactionModal: {
     titleCreate: 'Adicionar transação',
     titleEdit: 'Editar transação',
