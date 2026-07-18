@@ -4,13 +4,13 @@ const termsPt: LegalDocument = {
   slug: 'terms',
   updatedAt: '2026-07-14',
   intro:
-    'Estes Termos e Condições de Uso regulam o acesso e o uso do CoinFlow. Ao criar uma conta ou usar o serviço, você aceita estes termos.',
+    'Estes Termos e Condições de Uso regulam o acesso e o uso do Crecik. Ao criar uma conta ou usar o serviço, você aceita estes termos.',
   sections: [
     {
       id: 'objeto',
       heading: 'Objeto e aceitação',
       blocks: [
-        { kind: 'paragraph', text: 'O CoinFlow é um aplicativo gratuito de gestão de finanças pessoais. O uso do serviço implica a aceitação plena destes termos e da Política de Privacidade.' },
+        { kind: 'paragraph', text: 'O Crecik é um aplicativo gratuito de gestão de finanças pessoais. O uso do serviço implica a aceitação plena destes termos e da Política de Privacidade.' },
       ],
     },
     {
@@ -24,7 +24,7 @@ const termsPt: LegalDocument = {
       id: 'no-asesoramiento',
       heading: 'Não é aconselhamento financeiro',
       blocks: [
-        { kind: 'note', text: 'O CoinFlow é uma ferramenta de organização pessoal. Não constitui aconselhamento financeiro, contábil, fiscal nem de investimento. As decisões que você tomar com base nas informações do aplicativo são de sua exclusiva responsabilidade.' },
+        { kind: 'note', text: 'O Crecik é uma ferramenta de organização pessoal. Não constitui aconselhamento financeiro, contábil, fiscal nem de investimento. As decisões que você tomar com base nas informações do aplicativo são de sua exclusiva responsabilidade.' },
       ],
     },
     {
@@ -57,7 +57,7 @@ const termsPt: LegalDocument = {
       id: 'propiedad',
       heading: 'Propriedade intelectual',
       blocks: [
-        { kind: 'paragraph', text: 'O software, a marca CoinFlow, o design e demais elementos do site pertencem ao seu titular e estão protegidos pela legislação aplicável.' },
+        { kind: 'paragraph', text: 'O software, a marca Crecik, o design e demais elementos do site pertencem ao seu titular e estão protegidos pela legislação aplicável.' },
       ],
     },
     {

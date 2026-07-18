@@ -5,7 +5,7 @@ withDefaults(defineProps<{ wordmark?: boolean; subtitle?: string }>(), { wordmar
 <template>
   <RouterLink
     to="/"
-    :aria-label="wordmark ? undefined : 'CoinFlow'"
+    :aria-label="wordmark ? undefined : 'Crecik'"
     class="flex items-center gap-3 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
   >
     <div class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-fg shadow-sm">
@@ -15,7 +15,7 @@ withDefaults(defineProps<{ wordmark?: boolean; subtitle?: string }>(), { wordmar
       </svg>
     </div>
     <div v-if="wordmark" class="min-w-0">
-      <h1 class="truncate text-lg font-bold leading-tight tracking-tight text-content">CoinFlow</h1>
+      <h1 class="truncate text-lg font-bold leading-tight tracking-tight text-content">Crecik</h1>
       <p v-if="subtitle" class="truncate text-xs text-muted">{{ subtitle }}</p>
     </div>
   </RouterLink>

@@ -18,7 +18,7 @@ describe('resolveInitialTheme', () => {
   })
 
   it('returns the stored theme when one is present', () => {
-    window.localStorage.setItem('coinflow-theme', 'light')
+    window.localStorage.setItem('crecik-theme', 'light')
     expect(resolveInitialTheme()).toBe('light')
   })
 })

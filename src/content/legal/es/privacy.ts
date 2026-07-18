@@ -4,7 +4,7 @@ const privacyEs: LegalDocument = {
   slug: 'privacy',
   updatedAt: '2026-07-16',
   intro:
-    'Esta Política de Privacidad describe cómo CoinFlow trata los datos personales de las personas usuarias, de acuerdo con la Ley N.º 18.331 de Protección de Datos Personales y Acción de Habeas Data de Uruguay y su Decreto reglamentario 414/009.',
+    'Esta Política de Privacidad describe cómo Crecik trata los datos personales de las personas usuarias, de acuerdo con la Ley N.º 18.331 de Protección de Datos Personales y Acción de Habeas Data de Uruguay y su Decreto reglamentario 414/009.',
   sections: [
     {
       id: 'responsable',

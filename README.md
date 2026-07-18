@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/carlosnapolesdev/coin-app/actions/workflows/ci.yml/badge.svg)](https://github.com/carlosnapolesdev/coin-app/actions/workflows/ci.yml)
 
-Web client for **CoinFlow**, a personal finance management app. A Vue 3 SPA covering authentication, a dashboard, multi-currency accounts, transactions (with CSV import), budgets, savings goals, recurring transactions, reports, and settings — with full dark/light theming and three languages (English, Spanish, Portuguese).
+Web client for **Crecik**, a personal finance management app. A Vue 3 SPA covering authentication, a dashboard, multi-currency accounts, transactions (with CSV import), budgets, savings goals, recurring transactions, reports, and settings — with full dark/light theming and three languages (English, Spanish, Portuguese).
 
 Talks to the [`coin-api`](../coin-api) NestJS backend.
 

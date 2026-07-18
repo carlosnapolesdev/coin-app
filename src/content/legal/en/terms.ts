@@ -4,13 +4,13 @@ const termsEn: LegalDocument = {
   slug: 'terms',
   updatedAt: '2026-07-14',
   intro:
-    'These Terms and Conditions of Use govern the access and use of CoinFlow. By creating an account or using the service, you accept these terms.',
+    'These Terms and Conditions of Use govern the access and use of Crecik. By creating an account or using the service, you accept these terms.',
   sections: [
     {
       id: 'objeto',
       heading: 'Purpose and acceptance',
       blocks: [
-        { kind: 'paragraph', text: 'CoinFlow is a free personal finance management application. Using the service implies full acceptance of these terms and of the Privacy Policy.' },
+        { kind: 'paragraph', text: 'Crecik is a free personal finance management application. Using the service implies full acceptance of these terms and of the Privacy Policy.' },
       ],
     },
     {
@@ -24,7 +24,7 @@ const termsEn: LegalDocument = {
       id: 'no-asesoramiento',
       heading: 'Not financial advice',
       blocks: [
-        { kind: 'note', text: 'CoinFlow is a personal organisation tool. It does not constitute financial, accounting, tax or investment advice. The decisions you make based on the information in the app are your sole responsibility.' },
+        { kind: 'note', text: 'Crecik is a personal organisation tool. It does not constitute financial, accounting, tax or investment advice. The decisions you make based on the information in the app are your sole responsibility.' },
       ],
     },
     {
@@ -57,7 +57,7 @@ const termsEn: LegalDocument = {
       id: 'propiedad',
       heading: 'Intellectual property',
       blocks: [
-        { kind: 'paragraph', text: 'The software, the CoinFlow brand, the design and other elements of the site belong to its owner and are protected by applicable law.' },
+        { kind: 'paragraph', text: 'The software, the Crecik brand, the design and other elements of the site belong to its owner and are protected by applicable law.' },
       ],
     },
     {

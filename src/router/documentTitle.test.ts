@@ -5,8 +5,8 @@ describe('documentTitleFor', () => {
   const t = (key: string): string =>
     ({ 'sidebar.nav.transactions': 'Transactions' } as Record<string, string>)[key] ?? key
 
-  it('formats "View — CoinFlow" when the route declares a title key', () => {
-    expect(documentTitleFor({ title: 'sidebar.nav.transactions' }, t)).toBe('Transactions — CoinFlow')
+  it('formats "View — Crecik" when the route declares a title key', () => {
+    expect(documentTitleFor({ title: 'sidebar.nav.transactions' }, t)).toBe('Transactions — Crecik')
   })
 
   it('falls back to the bare brand when no title key is present', () => {

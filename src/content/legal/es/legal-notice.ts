@@ -9,7 +9,7 @@ const legalNoticeEs: LegalDocument = {
       id: 'titular',
       heading: 'Titular del sitio',
       blocks: [
-        { kind: 'paragraph', text: 'Este sitio y la aplicación CoinFlow son operados por su titular, con domicilio en Uruguay.' },
+        { kind: 'paragraph', text: 'Este sitio y la aplicación Crecik son operados por su titular, con domicilio en Uruguay.' },
         { kind: 'placeholder', text: 'Titular: [NOMBRE COMPLETO] — Correo: [EMAIL DE CONTACTO] — Sitio: coinlow.org' },
       ],
     },

@@ -85,7 +85,7 @@ describe('handleUnauthorizedSession', () => {
 
     expect(useAuthState().token).toBeNull()
     expect(useAuthState().user).toBeNull()
-    expect(window.sessionStorage.getItem('coinflow.auth')).toBeNull()
+    expect(window.sessionStorage.getItem('crecik.auth')).toBeNull()
     expect(router.replace).toHaveBeenCalledWith({
       name: 'login',
       query: { redirect: '/settings?tab=password' },
@@ -106,7 +106,7 @@ describe('handleUnauthorizedSession', () => {
     )
     handleUnauthorizedSession(router)
 
-    expect(window.sessionStorage.getItem('coinflow.auth')).toBeNull()
+    expect(window.sessionStorage.getItem('crecik.auth')).toBeNull()
     expect(router.replace).not.toHaveBeenCalled()
   })
 })

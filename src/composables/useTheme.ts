@@ -2,7 +2,7 @@ import { computed, ref } from 'vue'
 
 export type Theme = 'light' | 'dark'
 
-const STORAGE_KEY = 'coinflow-theme'
+const STORAGE_KEY = 'crecik-theme'
 
 export const resolveInitialTheme = (): Theme => {
   if (typeof window === 'undefined') return 'dark'

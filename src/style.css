@@ -70,7 +70,7 @@
     --ambient-1: rgba(92, 122, 20, 0.07);
     --ambient-2: rgba(21, 158, 148, 0.06);
 
-    /* Watermark — el logo de CoinFlow (arco en C + anillo central, el mismo
+    /* Watermark — el logo de Crecik (arco en C + anillo central, el mismo
        SVG de BrandMark) embebido como data-URI, color/intensidad por modo.
        Cada área (sidebar | main | auth) pinta el suyo vía .wm-logo-*. */
     --wm-logo: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%2314170F'%20stroke-opacity='.04'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M18.9%206.2%20A%209%209%200%201%200%2018.9%2017.8'/%3E%3Ccircle%20cx='12'%20cy='12'%20r='2.4'/%3E%3C/svg%3E");

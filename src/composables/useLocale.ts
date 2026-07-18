@@ -5,7 +5,7 @@ import { getStoredUser } from '../services/auth-session'
 export type LocaleCode = 'en' | 'es' | 'pt'
 export const SUPPORTED_LOCALES: LocaleCode[] = ['en', 'es', 'pt']
 
-const STORAGE_KEY = 'coinflow-locale'
+const STORAGE_KEY = 'crecik-locale'
 
 const isSupportedLocale = (value: unknown): value is LocaleCode =>
   value === 'en' || value === 'es' || value === 'pt'

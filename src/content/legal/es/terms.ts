@@ -4,13 +4,13 @@ const termsEs: LegalDocument = {
   slug: 'terms',
   updatedAt: '2026-07-14',
   intro:
-    'Estos Términos y Condiciones de Uso regulan el acceso y uso de CoinFlow. Al crear una cuenta o usar el servicio, aceptas estos términos.',
+    'Estos Términos y Condiciones de Uso regulan el acceso y uso de Crecik. Al crear una cuenta o usar el servicio, aceptas estos términos.',
   sections: [
     {
       id: 'objeto',
       heading: 'Objeto y aceptación',
       blocks: [
-        { kind: 'paragraph', text: 'CoinFlow es una aplicación gratuita de gestión de finanzas personales. El uso del servicio implica la aceptación plena de estos términos y de la Política de Privacidad.' },
+        { kind: 'paragraph', text: 'Crecik es una aplicación gratuita de gestión de finanzas personales. El uso del servicio implica la aceptación plena de estos términos y de la Política de Privacidad.' },
       ],
     },
     {
@@ -24,7 +24,7 @@ const termsEs: LegalDocument = {
       id: 'no-asesoramiento',
       heading: 'No es asesoramiento financiero',
       blocks: [
-        { kind: 'note', text: 'CoinFlow es una herramienta de organización personal. No constituye asesoramiento financiero, contable, fiscal ni de inversión. Las decisiones que tomes en base a la información de la app son de tu exclusiva responsabilidad.' },
+        { kind: 'note', text: 'Crecik es una herramienta de organización personal. No constituye asesoramiento financiero, contable, fiscal ni de inversión. Las decisiones que tomes en base a la información de la app son de tu exclusiva responsabilidad.' },
       ],
     },
     {
@@ -57,7 +57,7 @@ const termsEs: LegalDocument = {
       id: 'propiedad',
       heading: 'Propiedad intelectual',
       blocks: [
-        { kind: 'paragraph', text: 'El software, la marca CoinFlow, el diseño y demás elementos del sitio pertenecen a su titular y están protegidos por la normativa aplicable.' },
+        { kind: 'paragraph', text: 'El software, la marca Crecik, el diseño y demás elementos del sitio pertenecen a su titular y están protegidos por la normativa aplicable.' },
       ],
     },
     {

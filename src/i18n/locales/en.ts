@@ -82,7 +82,7 @@ const en = {
       accountCreatedMessage: 'Account created successfully. Sign in to continue.',
       passwordResetMessage: 'Password reset successfully. Sign in with your new password.',
       genericError: 'Unable to sign in right now.',
-      footer: '© 2026 CoinFlow • Secure & Encrypted',
+      footer: '© 2026 Crecik • Secure & Encrypted',
       highlights: {
         accounts: { title: 'All your accounts', text: 'Bank, cash, cards and assets in one ledger.' },
         categories: { title: 'Smart categories', text: 'Organize spending and income your way.' },
@@ -144,7 +144,7 @@ const en = {
       },
       step2: {
         title: 'Choose Currencies',
-        subtitle: "CoinFlow supports multiple currencies. Set your primary base currency and add any additional currencies you'll be using.",
+        subtitle: "Crecik supports multiple currencies. Set your primary base currency and add any additional currencies you'll be using.",
         baseCurrencyLabel: 'Base Currency',
         usdName: 'USD (US Dollar)',
         baseCurrencyDesc: 'Primary base currency for all transactions',
@@ -785,7 +785,7 @@ const en = {
   onboarding: {
     checklist: {
       title: 'First steps',
-      subtitle: 'Set up CoinFlow in a few minutes.',
+      subtitle: 'Set up Crecik in a few minutes.',
       progress: '{done} of {total}',
       dismiss: 'Dismiss',
       setup: 'Currencies and categories set up',
@@ -801,7 +801,7 @@ const en = {
     },
     coach: {
       understood: 'Got it',
-      dashboard: 'Start here: complete these steps to set up CoinFlow.',
+      dashboard: 'Start here: complete these steps to set up Crecik.',
       transactions: 'Add expenses and income here, and search them anytime.',
       reports: 'Filter your data by month, category or account.',
     },

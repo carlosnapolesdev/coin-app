@@ -84,7 +84,7 @@ const es: MessageSchema = {
       accountCreatedMessage: 'Cuenta creada correctamente. Inicia sesión para continuar.',
       passwordResetMessage: 'Contraseña restablecida correctamente. Inicia sesión con tu nueva contraseña.',
       genericError: 'No se pudo iniciar sesión en este momento.',
-      footer: '© 2026 CoinFlow • Seguro y Cifrado',
+      footer: '© 2026 Crecik • Seguro y Cifrado',
       highlights: {
         accounts: { title: 'Todas tus cuentas', text: 'Bancos, efectivo, tarjetas y activos en un solo registro.' },
         categories: { title: 'Categorías inteligentes', text: 'Organiza tus gastos e ingresos a tu manera.' },
@@ -146,7 +146,7 @@ const es: MessageSchema = {
       },
       step2: {
         title: 'Elige tus monedas',
-        subtitle: 'CoinFlow admite múltiples monedas. Define tu moneda base principal y agrega las monedas adicionales que uses.',
+        subtitle: 'Crecik admite múltiples monedas. Define tu moneda base principal y agrega las monedas adicionales que uses.',
         baseCurrencyLabel: 'Moneda base',
         usdName: 'USD (Dólar estadounidense)',
         baseCurrencyDesc: 'Moneda base principal para todas las transacciones',
@@ -787,7 +787,7 @@ const es: MessageSchema = {
   onboarding: {
     checklist: {
       title: 'Primeros pasos',
-      subtitle: 'Configurá CoinFlow en pocos minutos.',
+      subtitle: 'Configurá Crecik en pocos minutos.',
       progress: '{done} de {total}',
       dismiss: 'Descartar',
       setup: 'Divisas y categorías configuradas',
@@ -803,7 +803,7 @@ const es: MessageSchema = {
     },
     coach: {
       understood: 'Entendido',
-      dashboard: 'Empezá acá: completá estos pasos para configurar CoinFlow.',
+      dashboard: 'Empezá acá: completá estos pasos para configurar Crecik.',
       transactions: 'Agregá gastos e ingresos acá, y buscalos cuando quieras.',
       reports: 'Filtrá tu información por mes, categoría o cuenta.',
     },

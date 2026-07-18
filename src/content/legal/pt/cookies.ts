@@ -4,13 +4,13 @@ const cookiesPt: LegalDocument = {
   slug: 'cookies',
   updatedAt: '2026-07-16',
   intro:
-    'Esta política explica o armazenamento que o CoinFlow usa no seu navegador. Não usamos cookies de publicidade ou rastreamento, nem ferramentas de análise de terceiros.',
+    'Esta política explica o armazenamento que o Crecik usa no seu navegador. Não usamos cookies de publicidade ou rastreamento, nem ferramentas de análise de terceiros.',
   sections: [
     {
       id: 'intro',
       heading: 'Nossa abordagem',
       blocks: [
-        { kind: 'paragraph', text: 'O CoinFlow não usa cookies não essenciais. Por isso não exibimos um banner de consentimento de cookies: o armazenamento que utilizamos é estritamente necessário para o funcionamento do aplicativo.' },
+        { kind: 'paragraph', text: 'O Crecik não usa cookies não essenciais. Por isso não exibimos um banner de consentimento de cookies: o armazenamento que utilizamos é estritamente necessário para o funcionamento do aplicativo.' },
       ],
     },
     {
@@ -21,8 +21,8 @@ const cookiesPt: LegalDocument = {
         { kind: 'list', items: [
           'Sessão de acesso: o token que mantém você autenticado.',
           'Lembrar-me: o identificador para preencher previamente o seu acesso, se você escolher essa opção.',
-          'Idioma (coinflow-locale): o idioma que você selecionou.',
-          'Tema (coinflow-theme): sua preferência de modo claro ou escuro.',
+          'Idioma (crecik-locale): o idioma que você selecionou.',
+          'Tema (crecik-theme): sua preferência de modo claro ou escuro.',
         ] },
       ],
     },

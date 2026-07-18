@@ -1,6 +1,6 @@
-# CoinFlow Design System
+# Crecik Design System
 
-The single source of truth for how the CoinFlow UI looks and how new views must be
+The single source of truth for how the Crecik UI looks and how new views must be
 built. If a screen disagrees with this document, the screen is wrong.
 
 The golden rule: **never reach for a raw color, never reinvent a control.**
@@ -263,7 +263,7 @@ Loading indicator; inherits the current text color. `size`: `sm` · `md` · `lg`
 ```
 
 ### `BrandMark`
-The CoinFlow logo lockup (icon tile + wordmark). The only place the brand mark is defined.
+The Crecik logo lockup (icon tile + wordmark). The only place the brand mark is defined.
 ```vue
 <BrandMark :subtitle="user.email" />
 <BrandMark :wordmark="false" />

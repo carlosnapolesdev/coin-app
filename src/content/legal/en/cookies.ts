@@ -4,13 +4,13 @@ const cookiesEn: LegalDocument = {
   slug: 'cookies',
   updatedAt: '2026-07-16',
   intro:
-    'This policy explains the storage CoinFlow uses in your browser. We do not use advertising or tracking cookies, nor third-party analytics.',
+    'This policy explains the storage Crecik uses in your browser. We do not use advertising or tracking cookies, nor third-party analytics.',
   sections: [
     {
       id: 'intro',
       heading: 'Our approach',
       blocks: [
-        { kind: 'paragraph', text: 'CoinFlow does not use non-essential cookies. That is why we do not show a cookie consent banner: the storage we use is strictly necessary for the app to work.' },
+        { kind: 'paragraph', text: 'Crecik does not use non-essential cookies. That is why we do not show a cookie consent banner: the storage we use is strictly necessary for the app to work.' },
       ],
     },
     {
@@ -21,8 +21,8 @@ const cookiesEn: LegalDocument = {
         { kind: 'list', items: [
           'Login session: the token that keeps you authenticated.',
           'Remember me: the identifier used to pre-fill your login, if you choose that option.',
-          'Language (coinflow-locale): the language you selected.',
-          'Theme (coinflow-theme): your light or dark mode preference.',
+          'Language (crecik-locale): the language you selected.',
+          'Theme (crecik-theme): your light or dark mode preference.',
         ] },
       ],
     },

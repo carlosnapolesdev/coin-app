@@ -16,8 +16,8 @@ export type AuthResponse = {
   user: AuthUser
 }
 
-const AUTH_STORAGE_KEY = 'coinflow.auth'
-const REMEMBER_IDENTIFIER_KEY = 'coinflow.remember.identifier'
+const AUTH_STORAGE_KEY = 'crecik.auth'
+const REMEMBER_IDENTIFIER_KEY = 'crecik.remember.identifier'
 
 type StorageMode = 'local' | 'session'
 

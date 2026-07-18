@@ -18,12 +18,12 @@ describe('resolveInitialLocale', () => {
   })
 
   it('returns the stored locale from localStorage when present', () => {
-    window.localStorage.setItem('coinflow-locale', 'pt')
+    window.localStorage.setItem('crecik-locale', 'pt')
     expect(resolveInitialLocale()).toBe('pt')
   })
 
   it('prefers the cached session user language over localStorage', () => {
-    window.localStorage.setItem('coinflow-locale', 'pt')
+    window.localStorage.setItem('crecik-locale', 'pt')
     vi.spyOn(authSession, 'getStoredUser').mockReturnValue({
       id: 1, fullName: 'Test', email: 't@test.com', username: null, language: 'es',
     })
