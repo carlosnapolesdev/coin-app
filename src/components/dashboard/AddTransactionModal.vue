@@ -499,7 +499,6 @@ const handleSave = async (keepOpen = false) => {
         <label class="field-label">{{ t('transactionModal.tagsLabel') }}</label>
         <TagInput
           v-model="tagList"
-          :placeholder="t('transactionModal.tagsPlaceholder')"
           :disabled="isSaving"
         />
       </div>
