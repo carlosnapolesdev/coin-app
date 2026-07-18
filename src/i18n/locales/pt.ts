@@ -26,6 +26,18 @@ const pt: MessageSchema = {
   topHeader: {
     help: 'Ajuda',
   },
+  notifications: {
+    title: 'Notificações',
+    bellLabel: 'Notificações, {count} não lidas',
+    markAllRead: 'Marcar todas como lidas',
+    errors: {
+      load: 'Não foi possível carregar as notificações',
+    },
+    empty: {
+      title: 'Você está em dia',
+      description: 'Novos alertas aparecerão aqui quando orçamentos, saldos ou pagamentos agendados precisarem da sua atenção.',
+    },
+  },
   userMenu: {
     settings: 'Configurações',
     theme: 'Tema',

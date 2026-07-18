@@ -24,6 +24,18 @@ const en = {
   topHeader: {
     help: 'Help',
   },
+  notifications: {
+    title: 'Notifications',
+    bellLabel: 'Notifications, {count} unread',
+    markAllRead: 'Mark all as read',
+    errors: {
+      load: 'Could not load notifications',
+    },
+    empty: {
+      title: 'You are all caught up',
+      description: 'New alerts will appear here when budgets, balances, or scheduled payments need your attention.',
+    },
+  },
   userMenu: {
     settings: 'Settings',
     theme: 'Theme',

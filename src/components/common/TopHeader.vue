@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import { AppButton, BrandMark, LanguageToggle, ThemeToggle } from '../ui'
+import NotificationBell from './NotificationBell.vue'
 
 const { t } = useI18n()
 </script>
@@ -13,6 +14,7 @@ const { t } = useI18n()
     <div class="flex items-center gap-3">
       <LanguageToggle />
       <ThemeToggle />
+      <NotificationBell />
       <AppButton variant="secondary" size="md">{{ t('topHeader.help') }}</AppButton>
     </div>
   </header>
