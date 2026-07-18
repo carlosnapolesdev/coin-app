@@ -38,7 +38,7 @@ describe('attachmentsApi', () => {
     // — `return hasJSONContentType ? JSON.stringify(formDataToJSON(data)) : data`).
     // Without the explicit per-call override, the server receives a JSON body,
     // multer finds no `file` field, and the controller throws
-    // "Missing file field" — which is exactly what we observed in F10.
+    // "Missing file field" — the symptom that motivated this override.
     const post = vi.spyOn(api, 'post').mockResolvedValue({ data: dummyDto })
     const file = new File(['x'], 'r.pdf', { type: 'application/pdf' })
     await attachmentsApi.upload(7, file)
