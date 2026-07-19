@@ -278,19 +278,57 @@
     background-size: 17rem 17rem;
     background-position: right -7rem bottom 6rem;
   }
+  /* .wm-logo-main va por tramos porque el ancho útil da un salto grande: sin
+     sidebar main mide lo que el viewport (~23rem en un móvil de 375px), y ahí
+     no caben cuatro figuras de 26–31rem sin apilarse unas sobre otras. Cada
+     tramo baja el número de instancias y su escala; las posiciones están
+     elegidas para que no se solapen en los anchos reales de ese tramo. */
   .wm-logo-main {
-    /* Tres instancias: la grande se corta en la división con el sidebar; la de
-       arriba-derecha replica la geometría de los círculos originales (~23.4rem
-       de diámetro, centro a ~20rem del borde derecho y ~8rem del tope, recortada
-       arriba — asoma tenue bajo el velo del PageHeader sticky); la pequeña se
-       corta en el borde inferior. */
-    background-image: var(--wm-logo), var(--wm-logo), var(--wm-logo);
+    /* Móvil (sin sidebar): solo dos, en esquinas opuestas y a escala reducida.
+       Las otras dos se ocultan en vez de recolocarse — a este ancho cualquier
+       cuarta figura vuelve a chocar. */
+    background-image: var(--wm-logo), var(--wm-logo);
     background-repeat: no-repeat;
-    background-size: 26rem 26rem, 28rem 28rem, 11rem 11rem;
+    background-size: 17rem 17rem, 13rem 13rem;
     background-position:
-      left -11rem bottom 12rem,
-      right 6rem top -6rem,
-      right 3rem bottom -3rem;
+      right 2rem top -4rem,
+      left -4rem bottom 5rem;
+  }
+  @media (min-width: 48rem) {
+    .wm-logo-main {
+      /* Aparece el sidebar y main baja a ~32rem: caben tres, aún reducidas. */
+      background-image: var(--wm-logo), var(--wm-logo), var(--wm-logo);
+      background-size: 20rem 20rem, 21rem 21rem, 9rem 9rem;
+      background-position:
+        left -8rem bottom 9rem,
+        right 3rem top -3rem,
+        right 2rem bottom -2rem;
+    }
+  }
+  /* 96rem y no 80rem: a 1366x768 (una de las resoluciones de portátil más
+     comunes) el ancho da de sobra pero el alto no, y las cuatro figuras se
+     apilaban al 21%. El breakpoint solo puede mirar el ancho, así que se sube
+     hasta donde la altura típica acompaña. */
+  @media (min-width: 96rem) {
+    .wm-logo-main {
+      /* Composición completa: la grande se corta en la división con el sidebar;
+         la de arriba-derecha replica la geometría de los círculos originales
+         (~23.4rem de diámetro, centro a ~20rem del borde derecho, recortada
+         arriba — asoma tenue bajo el velo del PageHeader sticky); la central
+         parte del centro del área desplazada hacia arriba-izquierda (de ahí el
+         calc() sobre 50%, que es lo único que centra de verdad: las otras van
+         por offset de borde); la pequeña se corta en el borde inferior. */
+      background-image: var(--wm-logo), var(--wm-logo), var(--wm-logo), var(--wm-logo);
+      /* La central se queda en 34rem: es el máximo que crece sin que empiece a
+         tocar también la de abajo-izquierda (a partir de 36rem sí lo hace, y
+         eso obligaría a recolocar la composición entera). */
+      background-size: 26rem 26rem, 28rem 28rem, 34rem 34rem, 11rem 11rem;
+      background-position:
+        left -11rem bottom 12rem,
+        right 6rem top -3rem,
+        calc(50% - 5rem) calc(50% - 4rem),
+        right 3rem bottom -3rem;
+    }
   }
   .wm-logo-auth {
     background-image: var(--wm-logo), var(--wm-logo);

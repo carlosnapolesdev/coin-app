@@ -397,7 +397,7 @@ const steps = computed(() => [
       </aside>
 
       <!-- Main Content Area -->
-      <main class="wm-logo-auth relative flex min-h-screen flex-1 flex-col overflow-y-auto">
+      <main class="wm-logo-main relative flex min-h-screen flex-1 flex-col overflow-y-auto">
         <!-- Step 1 -->
         <template v-if="currentStep === 1">
           <header class="mx-auto w-full max-w-4xl p-8 pt-12 text-center lg:px-16 lg:text-left">
