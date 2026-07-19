@@ -70,10 +70,13 @@
     --ambient-1: rgba(92, 122, 20, 0.07);
     --ambient-2: rgba(21, 158, 148, 0.06);
 
-    /* Watermark — el logo de Crecik (arco en C + anillo central, el mismo
+    /* Watermark — el logo de Crecik (anillo + check + flecha, el mismo
        SVG de BrandMark) embebido como data-URI, color/intensidad por modo.
-       Cada área (sidebar | main | auth) pinta el suyo vía .wm-logo-*. */
-    --wm-logo: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%2314170F'%20stroke-opacity='.04'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M18.9%206.2%20A%209%209%200%201%200%2018.9%2017.8'/%3E%3Ccircle%20cx='12'%20cy='12'%20r='2.4'/%3E%3C/svg%3E");
+       Cada área (sidebar | main | auth) pinta el suyo vía .wm-logo-*.
+       El viewBox recorta el padding del icono (que en BrandMark/favicon lo
+       aporta la teja redondeada) para que la marca llene la caja: sin él la
+       figura queda ~20% más pequeña y los offsets de abajo dejan de cuadrar. */
+    --wm-logo: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='3.31%204.27%2025.44%2025.44'%20fill='none'%20stroke='%2314170F'%20opacity='.04'%20stroke-linecap='round'%3E%3Cpath%20d='M18.4%208%20A9.3%209.3%200%201%200%2025.3%2016.2'%20stroke-width='2.6'/%3E%3Cpath%20d='M12.75%2017.7%20L15.85%2014.6%20L18.65%2016.9%20L23.75%2011.27'%20stroke-width='2.8'%20stroke-linejoin='round'/%3E%3Cpath%20d='M25.9%208.9%20L25.38%2012.75%20L22.12%209.79%20Z'%20fill='%2314170F'%20stroke-width='1'%20stroke-linejoin='round'/%3E%3C/svg%3E");
 
     /* Paneles translúcidos (Sidebar, TopHeader) — tinte leve de surface */
     --panel-alpha: 0.5;
@@ -131,7 +134,7 @@
     --ambient-2: rgba(23, 160, 145, 0.04);
 
     /* Watermark — el logo en trazo salvia claro sobre el negro-verdoso */
-    --wm-logo: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23EDF1EC'%20stroke-opacity='.05'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M18.9%206.2%20A%209%209%200%201%200%2018.9%2017.8'/%3E%3Ccircle%20cx='12'%20cy='12'%20r='2.4'/%3E%3C/svg%3E");
+    --wm-logo: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='3.31%204.27%2025.44%2025.44'%20fill='none'%20stroke='%23EDF1EC'%20opacity='.05'%20stroke-linecap='round'%3E%3Cpath%20d='M18.4%208%20A9.3%209.3%200%201%200%2025.3%2016.2'%20stroke-width='2.6'/%3E%3Cpath%20d='M12.75%2017.7%20L15.85%2014.6%20L18.65%2016.9%20L23.75%2011.27'%20stroke-width='2.8'%20stroke-linejoin='round'/%3E%3Cpath%20d='M25.9%208.9%20L25.38%2012.75%20L22.12%209.79%20Z'%20fill='%23EDF1EC'%20stroke-width='1'%20stroke-linejoin='round'/%3E%3C/svg%3E");
 
     --panel-alpha: 0.35;
   }
