@@ -26,6 +26,23 @@ const es: MessageSchema = {
   topHeader: {
     help: 'Ayuda',
   },
+  meta: {
+    description: {
+      default:
+        'Panel de finanzas personales para controlar cuentas, presupuestos, metas y pagos recurrentes. Crece tu dinero, controla tu futuro.',
+      login: 'Inicia sesión en tu cuenta de Crecik para gestionar tus finanzas personales.',
+      register: 'Crea una cuenta gratuita de Crecik y empieza a tomar el control de tu dinero.',
+      legalPrivacy: 'Cómo Crecik recopila, usa y protege tus datos personales.',
+      legalTerms: 'Los términos y condiciones que rigen el uso de Crecik.',
+      legalCookies: 'Cómo Crecik utiliza cookies y tecnologías similares.',
+      legalNotice: 'Información legal sobre el servicio Crecik y su titular.',
+    },
+  },
+  notFound: {
+    title: 'Página no encontrada',
+    message: 'La página que buscas no existe o se ha movido.',
+    cta: 'Volver a Crecik',
+  },
   notifications: {
     title: 'Notificaciones',
     bellLabel: 'Notificaciones, {count} sin leer',

@@ -2,6 +2,7 @@ import { watch } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router'
 import { i18n } from '../i18n'
 import { documentTitleFor } from './documentTitle'
+import { applyHeadFor } from './head'
 import { initializeAuth, isAuthenticated } from '../services/auth'
 
 // Route components are lazy-loaded so each view lands in its own chunk, keeping
@@ -20,6 +21,7 @@ const RecurringView = () => import('../components/dashboard/RecurringView.vue')
 const ReportsView = () => import('../components/dashboard/ReportsView.vue')
 const SettingsView = () => import('../components/dashboard/SettingsView.vue')
 const LegalPage = () => import('../components/legal/LegalPage.vue')
+const NotFound = () => import('../components/NotFound.vue')
 
 const router = createRouter({
   history: createWebHistory(),
@@ -134,6 +136,12 @@ const router = createRouter({
       component: SettingsView,
       meta: { requiresAuth: true, title: 'sidebar.nav.settings' },
     },
+    {
+      path: '/:pathMatch(.*)*',
+      name: 'not-found',
+      component: NotFound,
+      meta: { title: 'notFound.title' },
+    },
   ],
 })
 
@@ -157,11 +165,13 @@ router.beforeEach(async (to) => {
 // Keep the browser tab title in sync with the active view...
 router.afterEach((to) => {
   document.title = documentTitleFor(to.meta)
+  applyHeadFor(to)
 })
 
 // ...and re-apply it when the user switches language mid-session.
 watch(i18n.global.locale, () => {
   document.title = documentTitleFor(router.currentRoute.value.meta)
+  applyHeadFor(router.currentRoute.value)
 })
 
 export default router

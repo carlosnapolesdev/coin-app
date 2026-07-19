@@ -1,0 +1,14 @@
+User-agent: *
+Disallow: /dashboard
+Disallow: /accounts
+Disallow: /transactions
+Disallow: /budgets
+Disallow: /goals
+Disallow: /recurring
+Disallow: /reports
+Disallow: /categories
+Disallow: /settings
+Disallow: /forgot-password
+Disallow: /reset-password
+
+Sitemap: https://crecik.com/sitemap.xml

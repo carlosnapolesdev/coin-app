@@ -14,7 +14,8 @@
     "dev": "vite",
     "build": "vue-tsc -b && vite build",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "brand-assets": "bash scripts/brand/generate.sh"
   },
   "dependencies": {
     "@material-symbols/metadata": "^0.45.8",
@@ -29,6 +30,7 @@
     "@vue/tsconfig": "^0.9.1",
     "autoprefixer": "^10.5.4",
     "jsdom": "^29.1.1",
+    "png-to-ico": "^3.0.2",
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.19",
     "typescript": "~5.9.3",

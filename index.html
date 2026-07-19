@@ -2,19 +2,54 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Crecik - Personal Dashboard</title>
+    <title>Crecik – Grow your money, own your future</title>
+    <meta
+      name="description"
+      content="Personal finance dashboard to track accounts, budgets, goals and recurring payments. Grow your money, own your future."
+    />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#F6F7F3" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0A0E0C" />
+    <link rel="canonical" href="https://crecik.com/" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Crecik" />
+    <meta property="og:title" content="Crecik – Grow your money, own your future" />
+    <meta
+      property="og:description"
+      content="Personal finance dashboard to track accounts, budgets, goals and recurring payments. Grow your money, own your future."
+    />
+    <meta property="og:url" content="https://crecik.com/" />
+    <meta property="og:image" content="https://crecik.com/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Crecik — grow your money, own your future" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Crecik – Grow your money, own your future" />
+    <meta
+      name="twitter:description"
+      content="Personal finance dashboard to track accounts, budgets, goals and recurring payments. Grow your money, own your future."
+    />
+    <meta name="twitter:image" content="https://crecik.com/og.png" />
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/x-icon" sizes="16x16 32x32 48x48" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+
     <script>
-      // Apply the saved theme before paint to avoid a flash of the wrong theme.
-      // Dark is the default unless the user explicitly chose light.
       (function () {
         try {
-          var t = localStorage.getItem('crecik-theme');
-          if (t !== 'light') {
+          var theme = localStorage.getItem('crecik-theme');
+          if (theme !== 'light') {
             document.documentElement.classList.add('dark');
           }
-        } catch (e) {}
+          var locale = localStorage.getItem('crecik-locale');
+          if (locale === 'en' || locale === 'es' || locale === 'pt') {
+            document.documentElement.lang = locale;
+          }
+        } catch (error) {}
       })();
     </script>
   </head>

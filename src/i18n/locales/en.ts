@@ -24,6 +24,23 @@ const en = {
   topHeader: {
     help: 'Help',
   },
+  meta: {
+    description: {
+      default:
+        'Personal finance dashboard to track accounts, budgets, goals and recurring payments. Grow your money, own your future.',
+      login: 'Sign in to your Crecik account to manage your personal finances.',
+      register: 'Create a free Crecik account and start taking control of your money.',
+      legalPrivacy: 'How Crecik collects, uses and protects your personal data.',
+      legalTerms: 'The terms and conditions that govern your use of Crecik.',
+      legalCookies: 'How Crecik uses cookies and similar technologies.',
+      legalNotice: 'Legal information about the Crecik service and its operator.',
+    },
+  },
+  notFound: {
+    title: 'Page not found',
+    message: 'The page you are looking for does not exist or has been moved.',
+    cta: 'Back to Crecik',
+  },
   notifications: {
     title: 'Notifications',
     bellLabel: 'Notifications, {count} unread',
