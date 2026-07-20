@@ -1,0 +1,14 @@
+services:
+  coin-app:
+    build: .
+    container_name: coin-app
+    restart: unless-stopped
+    # No ports mapping on purpose: Caddy reaches this container over the `web`
+    # network as coin-app:80. Publishing the port would also serve the app in
+    # cleartext over the VPS public IP, bypassing TLS and Caddy's headers.
+    networks:
+      - web
+
+networks:
+  web:
+    external: true
