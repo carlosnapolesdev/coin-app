@@ -23,7 +23,7 @@ export function installGlobalErrorHandlers(app: App) {
   window.addEventListener(
     'unhandledrejection',
     (event) => {
-      logError('unhandledrejection', event.reason)
+      logError('window.unhandledRejection', event.reason)
     },
     { signal: abortController.signal },
   )

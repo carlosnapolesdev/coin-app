@@ -9,6 +9,7 @@ import {
   type BudgetDetail,
   type CreateBudgetPayload,
 } from '../../services/budgets'
+import { logError } from '../../utils/logError'
 import {
   AppButton,
   AppCard,
@@ -98,9 +99,9 @@ const loadBudgets = async () => {
   try {
     const { data } = await budgetsApi.list()
     budgets.value = data
-  } catch (e) {
+  } catch (err: unknown) {
+    logError('budgets.loadBudgets', err)
     error.value = t('budgets.loadError')
-    console.error(e)
   } finally {
     isLoading.value = false
   }
@@ -110,8 +111,8 @@ const loadCategories = async () => {
   try {
     const { data } = await api.get<BackendCategory[]>('/users/me/categories')
     allCategories.value = data
-  } catch (e) {
-    console.error('Failed to load categories', e)
+  } catch (err: unknown) {
+    logError('budgets.loadCategories', err)
   }
 }
 
@@ -160,9 +161,9 @@ const saveBudget = async () => {
     }
     closeModal()
     toast.success(t('budgets.saved'))
-  } catch (e) {
+  } catch (err: unknown) {
+    logError('budgets.saveBudget', err)
     formError.value = t('budgets.saveError')
-    console.error(e)
   } finally {
     isSaving.value = false
   }
@@ -180,8 +181,8 @@ const confirmDelete = async () => {
     await budgetsApi.remove(id)
     budgets.value = budgets.value.filter((b) => b.id !== id)
     toast.success(t('budgets.deleted'))
-  } catch (e) {
-    console.error('Failed to delete budget', e)
+  } catch (err: unknown) {
+    logError('budgets.confirmDelete', err)
     toast.error(t('budgets.deleteError'))
   } finally {
     isDeleting.value = false

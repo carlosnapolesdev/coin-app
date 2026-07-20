@@ -19,6 +19,7 @@ import {
 } from '../ui'
 import { LEGAL_SLUGS, LEGAL_ROUTE_PATHS, LEGAL_TITLE_KEYS } from '../../content/legal'
 import { useToast } from '../../composables/useToast'
+import { logError } from '../../utils/logError'
 
 const authState = useAuthState()
 const { t } = useI18n()
@@ -41,8 +42,9 @@ const saveProfile = async () => {
     })
     setCurrentUser(data)
     profileSuccess.value = t('settings.profile.successMessage')
-  } catch (e) {
-    profileError.value = getErrorMessage(e, t('settings.profile.errorFallback'))
+  } catch (err) {
+    logError('settings.saveProfile', err)
+    profileError.value = getErrorMessage(err, t('settings.profile.errorFallback'))
   } finally {
     isSavingProfile.value = false
   }
@@ -89,8 +91,9 @@ const changePassword = async () => {
     passwordForm.currentPassword = ''
     passwordForm.newPassword = ''
     passwordForm.confirmPassword = ''
-  } catch (e) {
-    passwordError.value = getErrorMessage(e, t('settings.password.errorFallback'))
+  } catch (err) {
+    logError('settings.changePassword', err)
+    passwordError.value = getErrorMessage(err, t('settings.password.errorFallback'))
   } finally {
     isSavingPassword.value = false
   }
@@ -112,8 +115,9 @@ const loadCurrencies = async () => {
     for (const uc of data) {
       exchangeRateInputs[uc.currencyId] = String(uc.exchangeRate)
     }
-  } catch (e) {
-    currenciesError.value = getErrorMessage(e, t('settings.currencies.errorFallback'))
+  } catch (err) {
+    logError('settings.loadCurrencies', err)
+    currenciesError.value = getErrorMessage(err, t('settings.currencies.errorFallback'))
   } finally {
     isLoadingCurrencies.value = false
   }
@@ -133,9 +137,10 @@ const loadTags = async () => {
   tagsError.value = ''
   try {
     userTags.value = await tagsApi.list()
-  } catch (e) {
+  } catch (err) {
+    logError('settings.loadTags', err)
     userTags.value = []
-    tagsError.value = getErrorMessage(e, t('settings.tags.loadError'))
+    tagsError.value = getErrorMessage(err, t('settings.tags.loadError'))
   } finally {
     isLoadingTags.value = false
   }
@@ -162,8 +167,9 @@ const renameTag = async () => {
     cancelRename()
     await loadTags()
     toast.success(t('settings.tags.toast.renamed'))
-  } catch (e) {
-    toast.error(getErrorMessage(e, t('settings.tags.toast.error')))
+  } catch (err) {
+    logError('settings.renameTag', err)
+    toast.error(getErrorMessage(err, t('settings.tags.toast.error')))
   } finally {
     savingTagId.value = null
   }
@@ -177,8 +183,9 @@ const confirmDeleteTag = async () => {
     tagToDelete.value = null
     await loadTags()
     toast.success(t('settings.tags.toast.deleted'))
-  } catch (e) {
-    toast.error(getErrorMessage(e, t('settings.tags.toast.error')))
+  } catch (err) {
+    logError('settings.confirmDeleteTag', err)
+    toast.error(getErrorMessage(err, t('settings.tags.toast.error')))
   } finally {
     isDeletingTag.value = false
   }
@@ -204,8 +211,9 @@ const saveExchangeRate = async (currencyId: number) => {
     const index = userCurrencies.value.findIndex((uc) => uc.currencyId === currencyId)
     if (index !== -1) userCurrencies.value[index] = data
     currencySavedId.value = currencyId
-  } catch (e) {
-    currenciesError.value = getErrorMessage(e, t('settings.currencies.saveErrorFallback'))
+  } catch (err) {
+    logError('settings.saveExchangeRate', err)
+    currenciesError.value = getErrorMessage(err, t('settings.currencies.saveErrorFallback'))
   } finally {
     savingCurrencyId.value = null
   }

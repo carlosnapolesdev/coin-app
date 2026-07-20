@@ -2,6 +2,7 @@
 import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import api from '../../services/api'
+import { logError } from '../../utils/logError'
 import { AppButton, AppModal, AppSpinner } from '../ui'
 
 const { t } = useI18n()
@@ -34,9 +35,9 @@ const fetchCurrencies = async () => {
   try {
     const response = await api.get<Currency[]>('/currencies')
     currencies.value = response.data
-  } catch (e) {
+  } catch (err: unknown) {
+    logError('currencyModal.fetchCurrencies', err)
     error.value = t('currencyModal.loadError')
-    console.error(e)
   } finally {
     isLoading.value = false
   }

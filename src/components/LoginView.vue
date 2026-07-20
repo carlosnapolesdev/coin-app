@@ -9,6 +9,7 @@ import LegalFooter from './legal/LegalFooter.vue'
 import { AppBadge, AppButton } from './ui'
 import { getApiErrorMessage, login } from '../services/auth'
 import { getSavedIdentifier } from '../services/auth-session'
+import { logError } from '../utils/logError'
 
 const router = useRouter()
 const route = useRoute()
@@ -59,9 +60,11 @@ const handleLogin = async () => {
 
     const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : '/dashboard'
     await router.replace(redirect)
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      const responseData = error.response?.data as {
+  } catch (err) {
+    logError('login.handleLogin', err)
+
+    if (axios.isAxiosError(err)) {
+      const responseData = err.response?.data as {
         message?: string
         validationErrors?: Record<string, string>
       } | undefined
@@ -71,7 +74,7 @@ const handleLogin = async () => {
       }
     }
 
-    errorMessage.value = getApiErrorMessage(error, t('auth.login.genericError'))
+    errorMessage.value = getApiErrorMessage(err, t('auth.login.genericError'))
   } finally {
     isSubmitting.value = false
   }

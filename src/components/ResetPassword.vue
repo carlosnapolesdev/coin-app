@@ -6,6 +6,7 @@ import TopHeader from './common/TopHeader.vue'
 import LegalFooter from './legal/LegalFooter.vue'
 import { AppButton } from './ui'
 import { getApiErrorMessage, resetPassword } from '../services/auth'
+import { logError } from '../utils/logError'
 
 const route = useRoute()
 const router = useRouter()
@@ -35,8 +36,9 @@ const handleSubmit = async () => {
   try {
     await resetPassword(token, newPassword.value)
     router.push({ path: '/login', query: { reset: '1' } })
-  } catch (error) {
-    errorMessage.value = getApiErrorMessage(error, t('auth.resetPassword.genericError'))
+  } catch (err) {
+    logError('resetPassword.handleSubmit', err)
+    errorMessage.value = getApiErrorMessage(err, t('auth.resetPassword.genericError'))
   } finally {
     isSubmitting.value = false
   }

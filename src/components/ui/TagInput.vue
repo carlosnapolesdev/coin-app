@@ -2,6 +2,7 @@
 import { computed, nextTick, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { tagsApi, type TagDto } from '../../services/tags'
+import { logError } from '../../utils/logError'
 import AppSpinner from './AppSpinner.vue'
 
 const props = withDefaults(
@@ -56,7 +57,8 @@ const loadTags = async () => {
   try {
     allTags.value = await tagsApi.list()
     tagsLoaded.value = true
-  } catch {
+  } catch (err: unknown) {
+    logError('tagInput.loadTags', err)
     allTags.value = []
   } finally {
     isLoading.value = false

@@ -32,12 +32,12 @@ function patch(partial: Partial<OnboardingState>) {
   if (!user) return
   const next: OnboardingState = { ...state.value, ...partial }
   setCurrentUser({ ...user, onboardingState: next })
-  onboardingApi.update(partial).catch((error: unknown) => {
+  onboardingApi.update(partial).catch((err: unknown) => {
     // Se conserva el valor optimista para esta sesión, pero el fallo se reporta:
     // sin rastro, la UI queda marcada mientras el servidor nunca guardó y la
     // divergencia sólo aparece en la siguiente sesión. No se muestra toast
     // porque es una sincronización de fondo que el usuario no puede accionar.
-    logError('onboarding.sync', error)
+    logError('onboarding.sync', err)
   })
 }
 

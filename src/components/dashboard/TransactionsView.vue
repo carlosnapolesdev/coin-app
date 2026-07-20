@@ -76,7 +76,8 @@ const loadTransactions = async () => {
     })
     transactions.value = res.data.data
     total.value = res.data.total
-  } catch {
+  } catch (err: unknown) {
+    logError('transactions.loadTransactions', err)
     error.value = t('transactions.loadError')
   } finally {
     isLoading.value = false
@@ -87,10 +88,10 @@ const loadAccounts = async () => {
   try {
     const res = await accountsApi.list()
     accounts.value = res.data
-  } catch (error: unknown) {
+  } catch (err: unknown) {
     // Sin cuentas el filtro queda vacío y el alta no puede completarse, así que
     // el fallo sí afecta la tarea en curso: se avisa además de reportarlo.
-    logError('transactions.loadAccounts', error)
+    logError('transactions.loadAccounts', err)
     toast.error(t('accounts.loadError'))
   }
 }
@@ -98,7 +99,8 @@ const loadAccounts = async () => {
 const loadTags = async () => {
   try {
     availableTags.value = await tagsApi.list()
-  } catch {
+  } catch (err: unknown) {
+    logError('transactions.loadTags', err)
     availableTags.value = []
   }
 }
@@ -189,7 +191,8 @@ const startReconciliation = async () => {
     })
     await loadSummary(data.id)
     await Promise.all([loadAccounts(), loadTransactions()])
-  } catch {
+  } catch (err: unknown) {
+    logError('transactions.startReconciliation', err)
     toast.error(t('reconciliation.loadError'))
   } finally {
     isOpeningReconciliation.value = false
@@ -204,7 +207,8 @@ const loadSummary = async (reconciliationId: number) => {
       reconciliationId,
     )
     reconciliation.value = data
-  } catch {
+  } catch (err: unknown) {
+    logError('transactions.loadSummary', err)
     toast.error(t('reconciliation.loadError'))
   }
 }
@@ -220,7 +224,8 @@ const toggleTransactionCleared = async (tx: TransactionDetail) => {
       transactions.value[idx] = { ...transactions.value[idx]!, status: target }
     }
     await loadSummary(reconciliation.value.id)
-  } catch {
+  } catch (err: unknown) {
+    logError('transactions.toggleTransactionCleared', err)
     toast.error(t('transactions.saveError'))
   } finally {
     reconcilingTransactionId.value = null
@@ -238,9 +243,9 @@ const finishReconciliation = async () => {
     await reconciliationsApi.complete(selectedAccountId.value, reconciliation.value.id)
     reconciliation.value = { ...reconciliation.value, isCompleted: true }
     toast.success(t('reconciliation.finished'))
-  } catch (error: unknown) {
-    logError('transactions.completeReconciliation', error)
-    toast.error(getApiErrorMessage(error, t('reconciliation.notBalanced')))
+  } catch (err: unknown) {
+    logError('transactions.completeReconciliation', err)
+    toast.error(getApiErrorMessage(err, t('reconciliation.notBalanced')))
   } finally {
     isFinishingReconciliation.value = false
   }
@@ -284,7 +289,8 @@ const exportTransactions = async () => {
     link.click()
     URL.revokeObjectURL(url)
     toast.success(t('transactions.exported'))
-  } catch {
+  } catch (err: unknown) {
+    logError('transactions.exportTransactions', err)
     toast.error(t('transactions.exportError'))
   } finally {
     isExporting.value = false
@@ -303,7 +309,8 @@ const confirmDelete = async () => {
     await Promise.all([loadAccounts(), loadTransactions(), loadTags()])
     confirmDeleteId.value = null
     toast.success(t('transactions.deleted'))
-  } catch {
+  } catch (err: unknown) {
+    logError('transactions.confirmDelete', err)
     toast.error(t('transactions.deleteError'))
   } finally {
     isDeleting.value = false

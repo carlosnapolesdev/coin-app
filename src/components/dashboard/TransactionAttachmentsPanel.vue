@@ -7,6 +7,7 @@ import { useAttachmentBlobUrls } from '../../composables/useAttachmentBlobUrls'
 import AttachmentLightbox from '../common/AttachmentLightbox.vue'
 import { lightboxIndexFor } from '../common/lightboxIndex'
 import { ConfirmDialog } from '../ui'
+import { logError } from '../../utils/logError'
 
 const props = defineProps<{
   /** ID de la transacción a cuyos adjuntos apunta el panel. */
@@ -110,7 +111,7 @@ function openPdf(id: number) {
     })
     .catch((err) => {
       win?.close()
-      console.error('attachment openPdf failed', err)
+      logError('attachments.openPdf', err)
     })
 }
 function openLightboxFor(id: number) {

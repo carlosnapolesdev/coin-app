@@ -7,6 +7,7 @@ import api from '../../services/api'
 import { accountsApi, type AccountDetail, type AccountType, type AccountTemplate } from '../../services/accounts'
 import iconVersions from '@material-symbols/metadata/versions.json'
 import { formatDate } from '../../utils/format'
+import { logError } from '../../utils/logError'
 import { useToast } from '../../composables/useToast'
 
 const { t } = useI18n()
@@ -171,9 +172,9 @@ const fetchAccounts = async () => {
     } else {
       startCreating()
     }
-  } catch (e) {
+  } catch (err: unknown) {
+    logError('accounts.fetchAccounts', err)
     error.value = t('accounts.loadError')
-    console.error(e)
   } finally {
     isLoading.value = false
   }
@@ -186,8 +187,8 @@ const fetchUserCurrencies = async () => {
     if (isCreating.value && selectedAccount.value.currencyId === null) {
       selectedAccount.value.currencyId = baseCurrencyId.value
     }
-  } catch (e) {
-    console.error('Failed to load currencies', e)
+  } catch (err: unknown) {
+    logError('accounts.fetchUserCurrencies', err)
   }
 }
 
@@ -197,8 +198,8 @@ const selectAccount = async (id: number) => {
   try {
     const { data } = await accountsApi.get(id)
     populateForm(data)
-  } catch (e) {
-    console.error('Failed to load account details', e)
+  } catch (err: unknown) {
+    logError('accounts.selectAccount', err)
   }
 }
 
@@ -251,8 +252,8 @@ const saveChanges = async () => {
       lastUpdatedAt.value = data.updatedAt
     }
     toast.success(t('accounts.saved'))
-  } catch (e) {
-    console.error('Failed to save account', e)
+  } catch (err: unknown) {
+    logError('accounts.saveChanges', err)
     toast.error(t('accounts.saveError'))
   } finally {
     isSaving.value = false
@@ -275,8 +276,8 @@ const confirmDeleteAccount = async () => {
       else startCreating()
     }
     toast.success(t('accounts.deleted'))
-  } catch (e) {
-    console.error('Failed to delete account', e)
+  } catch (err: unknown) {
+    logError('accounts.confirmDeleteAccount', err)
     toast.error(t('accounts.deleteError'))
   } finally {
     confirmDeleteId.value = null

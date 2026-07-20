@@ -10,6 +10,7 @@ import api from '../services/api'
 import { useLocale } from '../composables/useLocale'
 import { LEGAL_ROUTE_PATHS } from '../content/legal'
 import { validateRegisterStep1 } from '../utils/registerValidation'
+import { logError } from '../utils/logError'
 
 const router = useRouter()
 const { t } = useI18n()
@@ -39,8 +40,8 @@ const fetchAvailableCurrencies = async () => {
   try {
     const response = await api.get<Currency[]>('/currencies')
     availableCurrencies.value = response.data
-  } catch (e) {
-    console.error('Failed to load currencies', e)
+  } catch (err) {
+    logError('register.fetchAvailableCurrencies', err)
   } finally {
     isLoadingCurrencies.value = false
   }
@@ -130,9 +131,9 @@ const fetchCategories = async (language: string) => {
     // Expand only the first category by default
     const firstCategory = response.data[0]
     expandedCategories.value = firstCategory ? [firstCategory.id] : []
-  } catch (e) {
+  } catch (err) {
+    logError('register.fetchCategories', err)
     categoriesError.value = t('auth.register.errors.categoriesLoadFailed')
-    console.error(e)
   } finally {
     isLoadingCategories.value = false
   }
@@ -274,9 +275,11 @@ const completeRegistration = async () => {
     })
 
     currentStep.value = 4
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      const responseData = error.response?.data as {
+  } catch (err) {
+    logError('register.completeRegistration', err)
+
+    if (axios.isAxiosError(err)) {
+      const responseData = err.response?.data as {
         message?: string
         validationErrors?: Record<string, string>
       } | undefined

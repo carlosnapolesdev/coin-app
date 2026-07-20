@@ -16,6 +16,7 @@ import {
 } from './auth-session'
 import { setLocale, type LocaleCode } from '../composables/useLocale'
 import { usersApi } from './users'
+import { logError } from '../utils/logError'
 
 type LoginPayload = {
   identifier: string
@@ -63,7 +64,11 @@ export const initializeAuth = async () => {
   if (!initializationPromise) {
     initializationPromise = fetchCurrentUser()
       .then(() => undefined)
-      .catch(() => {
+      .catch((err: unknown) => {
+        // Clearing the session on a failed /auth/me is correct, but without
+        // a report there is no way to tell an expired token apart from a
+        // transient network outage.
+        logError('auth.initializeAuth', err)
         clearSession()
       })
       .finally(() => {
@@ -156,7 +161,7 @@ export const changeLanguage = async (language: LocaleCode) => {
   try {
     const { data } = await usersApi.updateProfile({ language })
     setCurrentUser(data)
-  } catch (e) {
-    console.error('Failed to sync language preference', e)
+  } catch (err: unknown) {
+    logError('auth.changeLanguage', err)
   }
 }

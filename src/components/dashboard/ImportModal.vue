@@ -2,6 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { AppButton, AppModal } from '../ui'
+import { logError } from '../../utils/logError'
 import { type ColumnMapping, type ImportRow, transactionsApi } from '../../services/transactions'
 
 const { t } = useI18n()
@@ -92,7 +93,8 @@ const onFileChange = async (event: Event) => {
   try {
     csvHeaders.value = await readHeaders(file)
     mapping.value = autodetectMapping(csvHeaders.value)
-  } catch {
+  } catch (err: unknown) {
+    logError('importModal.onFileChange', err)
     error.value = t('importModal.readError')
   }
 }
@@ -105,7 +107,8 @@ const runPreview = async () => {
     const res = await transactionsApi.importPreview(selectedFile.value, mapping.value)
     previewRows.value = res.data.rows
     step.value = 'preview'
-  } catch {
+  } catch (err: unknown) {
+    logError('importModal.runPreview', err)
     error.value = t('importModal.previewError')
   } finally {
     isLoading.value = false
@@ -121,7 +124,8 @@ const confirmImport = async () => {
     createdCount.value = res.data.created
     step.value = 'done'
     emit('imported')
-  } catch {
+  } catch (err: unknown) {
+    logError('importModal.confirmImport', err)
     error.value = t('importModal.importError')
   } finally {
     isCommitting.value = false

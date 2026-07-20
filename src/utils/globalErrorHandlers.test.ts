@@ -32,7 +32,7 @@ describe('globalErrorHandlers', () => {
       Object.assign(new Event('unhandledrejection'), { reason: failure }),
     )
 
-    expect(reported).toEqual([['unhandledrejection', failure]])
+    expect(reported).toEqual([['window.unhandledRejection', failure]])
   })
 
   it('routes Vue render errors through logError', () => {

@@ -8,6 +8,7 @@ import {
   type NotificationItem,
 } from '../../services/notifications'
 import { isAuthenticated } from '../../services/auth'
+import { logError } from '../../utils/logError'
 import { EmptyState } from '../ui'
 
 const { t, locale } = useI18n()
@@ -48,7 +49,8 @@ async function refresh(): Promise<void> {
   try {
     const { data } = await notificationsApi.list(false)
     items.value = data
-  } catch (err) {
+  } catch (err: unknown) {
+    logError('notifications.refresh', err)
     error.value = (err as Error).message ?? t('notifications.errors.load')
   } finally {
     loading.value = false
@@ -67,7 +69,8 @@ async function handleItemClick(item: NotificationItem): Promise<void> {
   close()
   try {
     await notificationsApi.markRead(item.id)
-  } catch {
+  } catch (err: unknown) {
+    logError('notifications.handleItemClick', err)
     items.value = previous
   }
 }
@@ -77,7 +80,8 @@ async function handleMarkAll(): Promise<void> {
   items.value = items.value.map((n) => ({ ...n, isRead: true }))
   try {
     await notificationsApi.markAllRead()
-  } catch {
+  } catch (err: unknown) {
+    logError('notifications.handleMarkAll', err)
     items.value = previous
   }
 }
@@ -89,7 +93,10 @@ const formattedDate = (iso: string | null): string => {
       dateStyle: 'medium',
       timeStyle: 'short',
     }).format(new Date(iso))
-  } catch {
+  } catch (err: unknown) {
+    // Legitimate recovery for an invalid locale; still reported, because
+    // systematic occurrences would indicate a language configuration bug.
+    logError('notifications.formattedDate', err)
     return iso
   }
 }

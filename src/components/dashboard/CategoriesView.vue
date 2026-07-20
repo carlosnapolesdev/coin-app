@@ -5,6 +5,7 @@ import AppSidebar from './AppSidebar.vue'
 import EditCategoryModal from './EditCategoryModal.vue'
 import { AppBadge, AppButton, AppIconButton, AppSpinner, AppTabs, ConfirmDialog, PageContainer, PageHeader } from '../ui'
 import api from '../../services/api'
+import { logError } from '../../utils/logError'
 import { useToast } from '../../composables/useToast'
 
 const { t } = useI18n()
@@ -111,9 +112,9 @@ const fetchCategories = async (silent = false) => {
       const existingIds = new Set(categories.value.map(c => c.id))
       expandedCategories.value = expandedCategories.value.filter(id => existingIds.has(id))
     }
-  } catch (e) {
+  } catch (err: unknown) {
+    logError('categories.fetchCategories', err)
     error.value = t('categories.loadError')
-    console.error(e)
   } finally {
     if (!silent) isLoading.value = false
   }
@@ -157,9 +158,9 @@ const fetchDeletedCategories = async (silent = false) => {
     }
 
     deletedCategories.value = deleted
-  } catch (e) {
+  } catch (err: unknown) {
+    logError('categories.fetchDeletedCategories', err)
     errorDeleted.value = t('categories.loadDeletedError')
-    console.error(e)
   } finally {
     if (!silent) isLoadingDeleted.value = false
   }
@@ -170,8 +171,8 @@ const restoreCategory = async (id: number) => {
     await api.patch(`/users/me/categories/${id}`, { active: true })
     await Promise.all([fetchCategories(true), fetchDeletedCategories(true)])
     toast.success(t('categories.restored'))
-  } catch (e) {
-    console.error('Failed to restore category', e)
+  } catch (err: unknown) {
+    logError('categories.restoreCategory', err)
     toast.error(t('categories.restoreError'))
   }
 }
@@ -186,8 +187,8 @@ const confirmDeleteCategory = async () => {
     await api.delete(`/users/me/categories/${confirmDeleteId.value}`)
     await Promise.all([fetchCategories(true), fetchDeletedCategories(true)])
     toast.success(t('categories.deleted'))
-  } catch (e) {
-    console.error('Failed to delete category', e)
+  } catch (err: unknown) {
+    logError('categories.confirmDeleteCategory', err)
     toast.error(t('categories.deleteError'))
   } finally {
     confirmDeleteId.value = null

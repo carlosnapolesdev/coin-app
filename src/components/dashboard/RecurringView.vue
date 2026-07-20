@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import AppSidebar from './AppSidebar.vue'
 import api from '../../services/api'
 import { formatCurrency } from '../../utils/format'
+import { logError } from '../../utils/logError'
 import { type AccountDetail, accountsApi } from '../../services/accounts'
 import {
   type CreateRecurringPayload,
@@ -118,9 +119,9 @@ const loadTemplates = async () => {
   try {
     const { data } = await recurringApi.list()
     templates.value = data
-  } catch (e) {
+  } catch (err: unknown) {
+    logError('recurring.loadTemplates', err)
     error.value = t('recurring.loadError')
-    console.error(e)
   } finally {
     isLoading.value = false
   }
@@ -134,8 +135,8 @@ const loadRefData = async () => {
     ])
     accounts.value = accountsRes.data
     allCategories.value = categoriesRes.data
-  } catch (e) {
-    console.error('Failed to load accounts/categories', e)
+  } catch (err: unknown) {
+    logError('recurring.loadRefData', err)
   }
 }
 
@@ -218,9 +219,9 @@ const saveTemplate = async () => {
     }
     closeModal()
     toast.success(t('recurring.saved'))
-  } catch (e) {
+  } catch (err: unknown) {
+    logError('recurring.saveTemplate', err)
     formError.value = t('recurring.saveError')
-    console.error(e)
   } finally {
     isSaving.value = false
   }
@@ -231,8 +232,8 @@ const toggleActive = async (tpl: RecurringDetail) => {
     const { data } = await recurringApi.update(tpl.id, { active: !tpl.active })
     const idx = templates.value.findIndex((r) => r.id === data.id)
     if (idx !== -1) templates.value[idx] = data
-  } catch (e) {
-    console.error('Failed to toggle recurring transaction', e)
+  } catch (err: unknown) {
+    logError('recurring.toggleActive', err)
     toast.error(t('recurring.toggleError'))
   }
 }
@@ -243,8 +244,8 @@ const runNow = async (tpl: RecurringDetail) => {
     await recurringApi.runNow(tpl.id)
     await loadTemplates()
     toast.success(t('recurring.runSuccess'))
-  } catch (e) {
-    console.error('Failed to run recurring transaction now', e)
+  } catch (err: unknown) {
+    logError('recurring.runNow', err)
     toast.error(t('recurring.runError'))
   } finally {
     runningId.value = null
@@ -263,8 +264,8 @@ const confirmDelete = async () => {
     await recurringApi.remove(id)
     templates.value = templates.value.filter((tpl) => tpl.id !== id)
     toast.success(t('recurring.deleted'))
-  } catch (e) {
-    console.error('Failed to delete recurring transaction', e)
+  } catch (err: unknown) {
+    logError('recurring.confirmDelete', err)
     toast.error(t('recurring.deleteError'))
   } finally {
     isDeleting.value = false

@@ -3,6 +3,7 @@ import { computed, ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AppSidebar from './AppSidebar.vue'
 import { formatCurrency } from '../../utils/format'
+import { logError } from '../../utils/logError'
 import { accountsApi, type AccountDetail } from '../../services/accounts'
 import {
   goalsApi,
@@ -68,9 +69,9 @@ const loadGoals = async () => {
   try {
     const { data } = await goalsApi.list()
     goals.value = data
-  } catch (e) {
+  } catch (err: unknown) {
+    logError('goals.loadGoals', err)
     error.value = t('goals.loadError')
-    console.error(e)
   } finally {
     isLoading.value = false
   }
@@ -80,8 +81,8 @@ const loadAccounts = async () => {
   try {
     const { data } = await accountsApi.list()
     accounts.value = data
-  } catch (e) {
-    console.error('Failed to load accounts', e)
+  } catch (err: unknown) {
+    logError('goals.loadAccounts', err)
   }
 }
 
@@ -139,9 +140,9 @@ const saveGoal = async () => {
     }
     closeModal()
     toast.success(t('goals.saved'))
-  } catch (e) {
+  } catch (err: unknown) {
+    logError('goals.saveGoal', err)
     formError.value = t('goals.saveError')
-    console.error(e)
   } finally {
     isSaving.value = false
   }
@@ -159,8 +160,8 @@ const confirmDelete = async () => {
     await goalsApi.remove(id)
     goals.value = goals.value.filter((g) => g.id !== id)
     toast.success(t('goals.deleted'))
-  } catch (e) {
-    console.error('Failed to delete goal', e)
+  } catch (err: unknown) {
+    logError('goals.confirmDelete', err)
     toast.error(t('goals.deleteError'))
   } finally {
     isDeleting.value = false
@@ -197,9 +198,9 @@ const saveContribution = async () => {
     if (idx !== -1) goals.value[idx] = data
     closeContributeModal()
     toast.success(t('goals.contribute.success'))
-  } catch (e) {
+  } catch (err: unknown) {
+    logError('goals.saveContribution', err)
     contributionError.value = t('goals.contribute.error')
-    console.error(e)
   } finally {
     isContributing.value = false
   }

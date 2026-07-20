@@ -1,5 +1,6 @@
 import { onScopeDispose, ref, watch, type Ref } from 'vue'
 import { attachmentsApi, type AttachmentDto } from '../services/attachments'
+import { logError } from '../utils/logError'
 
 /**
  * Mantiene un `blob:` URL por cada adjunto de imagen de la lista, obtenido vía
@@ -45,7 +46,7 @@ export function useAttachmentBlobUrls(attachments: Ref<AttachmentDto[]>) {
             urlById.value = next
           })
           .catch((err) => {
-            console.error(`attachment thumbnail ${id} failed to load`, err)
+            logError('attachments.thumbnail', err)
           })
           .finally(() => pending.delete(id))
       }

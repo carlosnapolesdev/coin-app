@@ -7,6 +7,7 @@ import { type AccountDetail, accountsApi } from '../../services/accounts'
 import { currenciesApi } from '../../services/currencies'
 import TransactionAttachmentsPanel from './TransactionAttachmentsPanel.vue'
 import { formatCurrency } from '../../utils/format'
+import { logError } from '../../utils/logError'
 import { AppButton, AppIconButton, AppModal, AppSpinner, TagInput } from '../ui'
 import { useToast } from '../../composables/useToast'
 
@@ -217,7 +218,8 @@ const loadData = async () => {
           const res = await transactionsApi.getSplits(props.transaction.id)
           populateSplits(res.data)
           splitsEnabled.value = true
-        } catch {
+        } catch (err: unknown) {
+          logError('transactionModal.loadSplits', err)
           error.value = t('transactionSplits.loadError')
         }
       }
@@ -228,7 +230,8 @@ const loadData = async () => {
     }
     await nextTick()
     suppressAutoRate = false
-  } catch {
+  } catch (err: unknown) {
+    logError('transactionModal.loadData', err)
     error.value = t('transactionModal.loadError')
   } finally {
     isLoading.value = false
@@ -264,7 +267,8 @@ watch([accountId, destinationAccountId, selectedType], async () => {
   try {
     const res = await currenciesApi.suggestRate(sourceCurrencyId.value!, destinationCurrencyId.value!)
     exchangeRate.value = res.data.rate !== null ? String(res.data.rate) : ''
-  } catch {
+  } catch (err: unknown) {
+    logError('transactionModal.loadExchangeRate', err)
     exchangeRate.value = ''
   }
 })
@@ -349,7 +353,8 @@ const handleSave = async (keepOpen = false) => {
       accountId.value = accounts.value[0]?.id ?? null
       localTransactionId.value = null
     }
-  } catch {
+  } catch (err: unknown) {
+    logError('transactionModal.handleSave', err)
     error.value = t('transactionModal.saveError')
   } finally {
     isSaving.value = false

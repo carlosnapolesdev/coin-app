@@ -1,4 +1,5 @@
 import type { OnboardingState } from './onboarding'
+import { logError } from '../utils/logError'
 
 export type AuthUser = {
   id: number
@@ -36,7 +37,10 @@ const readStoredSession = (storage: Storage): AuthResponse | null => {
       return null
     }
     return session
-  } catch {
+  } catch (err: unknown) {
+    // Legitimate recovery: clean up and continue. Still reported, because
+    // a systematically corrupt storage is itself a bug.
+    logError('authSession.readStoredSession', err)
     storage.removeItem(AUTH_STORAGE_KEY)
     return null
   }
