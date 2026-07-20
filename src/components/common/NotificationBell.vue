@@ -7,6 +7,7 @@ import {
   notificationsApi,
   type NotificationItem,
 } from '../../services/notifications'
+import { isAuthenticated } from '../../services/auth'
 import { EmptyState } from '../ui'
 
 const { t, locale } = useI18n()
@@ -38,6 +39,10 @@ const onKeydown = (e: KeyboardEvent) => {
 }
 
 async function refresh(): Promise<void> {
+  // TopHeader se monta también en vistas públicas (login, registro, reset,
+  // legal, 404). Sin esta guarda la campana pedía /users/me/notifications sin
+  // sesión: 401 en consola al cargar y otro cada minuto por el polling.
+  if (!isAuthenticated()) return
   loading.value = true
   error.value = null
   try {

@@ -2,8 +2,12 @@
 import { useI18n } from 'vue-i18n'
 import { AppButton, BrandMark, LanguageToggle, ThemeToggle } from '../ui'
 import NotificationBell from './NotificationBell.vue'
+import { useAuthState } from '../../services/auth'
 
 const { t } = useI18n()
+// Esta cabecera se usa también en vistas públicas; una campana de
+// notificaciones no tiene sentido sin sesión.
+const auth = useAuthState()
 </script>
 
 <template>
@@ -14,7 +18,7 @@ const { t } = useI18n()
     <div class="flex items-center gap-3">
       <LanguageToggle />
       <ThemeToggle />
-      <NotificationBell />
+      <NotificationBell v-if="auth.user" />
       <AppButton variant="secondary" size="md">{{ t('topHeader.help') }}</AppButton>
     </div>
   </header>
