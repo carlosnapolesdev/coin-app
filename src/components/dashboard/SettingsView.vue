@@ -3,7 +3,7 @@ import axios from 'axios'
 import { onMounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AppSidebar from './AppSidebar.vue'
-import { setCurrentUser, useAuthState } from '../../services/auth'
+import { applyRotatedToken, setCurrentUser, useAuthState } from '../../services/auth'
 import { usersApi } from '../../services/users'
 import { currenciesApi, type UserCurrencyDetail } from '../../services/currencies'
 import { tagsApi, type TagDto } from '../../services/tags'
@@ -84,10 +84,11 @@ const changePassword = async () => {
 
   isSavingPassword.value = true
   try {
-    await usersApi.changePassword({
+    const { data } = await usersApi.changePassword({
       currentPassword: passwordForm.currentPassword,
       newPassword: passwordForm.newPassword,
     })
+    applyRotatedToken(data)
     passwordSuccess.value = t('settings.password.successMessage')
     passwordForm.currentPassword = ''
     passwordForm.newPassword = ''

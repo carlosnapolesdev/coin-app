@@ -76,6 +76,21 @@ export const updateStoredUser = (user: AuthUser) => {
   }
 }
 
+export const updateStoredToken = (token: string, expiresAt: string) => {
+  // Mirrors updateStoredUser: the caller does not know whether this session was
+  // remembered, so we rewrite whichever storage already holds it.
+  const localSession = readStoredSession(window.localStorage)
+  if (localSession) {
+    window.localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify({ ...localSession, token, expiresAt }))
+    return
+  }
+
+  const sessionStorageSession = readStoredSession(window.sessionStorage)
+  if (sessionStorageSession) {
+    window.sessionStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify({ ...sessionStorageSession, token, expiresAt }))
+  }
+}
+
 export const clearAuthSession = () => {
   window.localStorage.removeItem(AUTH_STORAGE_KEY)
   window.sessionStorage.removeItem(AUTH_STORAGE_KEY)

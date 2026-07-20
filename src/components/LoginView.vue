@@ -7,7 +7,7 @@ import { useI18n } from 'vue-i18n'
 import TopHeader from './common/TopHeader.vue'
 import LegalFooter from './legal/LegalFooter.vue'
 import { AppBadge, AppButton } from './ui'
-import { getApiErrorMessage, login } from '../services/auth'
+import { getApiErrorMessage, login, resendVerification } from '../services/auth'
 import { getSavedIdentifier } from '../services/auth-session'
 import { logError } from '../utils/logError'
 import { isExpectedApiRejection } from '../utils/expectedApiRejection'
@@ -20,6 +20,8 @@ const isSubmitting = ref(false)
 const isPasswordVisible = ref(false)
 const errorMessage = ref('')
 const successMessage = ref('')
+const showResendVerification = ref(false)
+const isResending = ref(false)
 const fieldErrors = reactive<Record<string, string>>({})
 const form = reactive({
   identifier: '',
@@ -48,6 +50,7 @@ const handleLogin = async () => {
   clearFieldErrors()
   errorMessage.value = ''
   successMessage.value = ''
+  showResendVerification.value = false
   isSubmitting.value = true
 
   try {
@@ -68,9 +71,18 @@ const handleLogin = async () => {
 
     if (axios.isAxiosError(err)) {
       const responseData = err.response?.data as {
+        code?: string
         message?: string
         validationErrors?: Record<string, string>
       } | undefined
+
+      // The API answers with a stable code because the copy has to branch here;
+      // matching on the message text would break the moment it is reworded.
+      if (responseData?.code === 'EMAIL_NOT_VERIFIED') {
+        showResendVerification.value = true
+        errorMessage.value = t('auth.login.notVerified')
+        return
+      }
 
       if (responseData?.validationErrors) {
         Object.assign(fieldErrors, responseData.validationErrors)
@@ -80,6 +92,24 @@ const handleLogin = async () => {
     errorMessage.value = getApiErrorMessage(err, t('auth.login.genericError'))
   } finally {
     isSubmitting.value = false
+  }
+}
+
+const handleResendVerification = async () => {
+  isResending.value = true
+  try {
+    await resendVerification(form.identifier.trim())
+    errorMessage.value = ''
+    successMessage.value = t('auth.login.resendSent')
+    showResendVerification.value = false
+  } catch (err) {
+    // The API answers 204 whether or not the address exists, so a 4xx here means
+    // what was typed is not a valid email — the user can fix that, and the
+    // message below says so. Only genuine faults are worth a report.
+    if (!isExpectedApiRejection(err)) logError('login.handleResendVerification', err)
+    errorMessage.value = t('auth.login.resendFailed')
+  } finally {
+    isResending.value = false
   }
 }
 
@@ -167,6 +197,17 @@ onMounted(() => {
           >
             {{ errorMessage }}
           </p>
+
+          <AppButton
+            v-if="showResendVerification"
+            class="mb-6"
+            block
+            variant="secondary"
+            :loading="isResending"
+            @click="handleResendVerification"
+          >
+            {{ t('auth.login.resendVerification') }}
+          </AppButton>
 
           <form class="space-y-5" @submit.prevent="handleLogin">
             <div>

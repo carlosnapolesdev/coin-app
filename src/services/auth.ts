@@ -10,6 +10,7 @@ import {
   getStoredUser,
   saveAuthSession,
   saveIdentifier,
+  updateStoredToken,
   updateStoredUser,
   type AuthResponse,
   type AuthUser,
@@ -107,6 +108,14 @@ export const setCurrentUser = (user: AuthUser) => {
   syncLocaleFromLanguage(user.language)
 }
 
+export const applyRotatedToken = (payload: { token: string; expiresAt: string }) => {
+  // Changing the password revokes every token issued earlier, including the one
+  // this tab is holding. The API hands back a fresh one so the session that just
+  // proved it knows the password survives while other devices are signed out.
+  updateStoredToken(payload.token, payload.expiresAt)
+  authState.token = payload.token
+}
+
 export const clearSession = () => {
   clearAuthSession()
   authState.token = null
@@ -136,6 +145,14 @@ export const forgotPassword = async (email: string) => {
 
 export const resetPassword = async (token: string, newPassword: string) => {
   await api.post('/auth/reset-password', { token, newPassword })
+}
+
+export const verifyEmail = async (token: string) => {
+  await api.post('/auth/verify-email', { token })
+}
+
+export const resendVerification = async (email: string) => {
+  await api.post('/auth/resend-verification', { email })
 }
 
 export const isAuthenticated = () => {

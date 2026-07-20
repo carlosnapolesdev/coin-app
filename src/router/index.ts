@@ -11,6 +11,7 @@ const Login = () => import('../components/LoginView.vue')
 const Register = () => import('../components/RegisterView.vue')
 const ForgotPassword = () => import('../components/ForgotPassword.vue')
 const ResetPassword = () => import('../components/ResetPassword.vue')
+const VerifyEmail = () => import('../components/VerifyEmail.vue')
 const Dashboard = () => import('../components/dashboard/DashboardView.vue')
 const CategoriesView = () => import('../components/dashboard/CategoriesView.vue')
 const AccountsView = () => import('../components/dashboard/AccountsView.vue')
@@ -53,6 +54,12 @@ const router = createRouter({
       name: 'reset-password',
       component: ResetPassword,
       meta: { publicOnly: true, title: 'auth.resetPassword.title' },
+    },
+    {
+      path: '/verify-email',
+      name: 'verify-email',
+      component: VerifyEmail,
+      meta: { publicOnly: true, title: 'auth.verifyEmail.title' },
     },
     {
       path: '/legal/privacy',
