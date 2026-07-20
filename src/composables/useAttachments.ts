@@ -1,5 +1,6 @@
 import { ref } from 'vue';
 import { attachmentsApi, type AttachmentDto } from '../services/attachments';
+import { logError } from '../utils/logError';
 
 export function useAttachments() {
   const attachments = ref<AttachmentDto[]>([]);
@@ -46,6 +47,10 @@ export function useAttachments() {
             errorByFile.value = next;
           }
         } else {
+          // The per-file message below already tells the user which upload
+          // failed, but an upload can fail for reasons only a report explains:
+          // a 500, a proxy timeout, a rejected file type.
+          logError('attachments.addFiles', r.reason);
           const next = new Map(errorByFile.value);
           next.set(file.name, (r.reason as Error)?.message ?? 'Upload failed');
           errorByFile.value = next;

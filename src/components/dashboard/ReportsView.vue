@@ -13,6 +13,7 @@ import {
 import { chartSeriesColor } from '../../utils/chartColors'
 import { formatCurrency, formatDate } from '../../utils/format'
 import { useOnboarding } from '../../composables/useOnboarding'
+import { logError } from '../../utils/logError'
 
 const { t } = useI18n()
 const { markReportsVisited } = useOnboarding()
@@ -25,6 +26,7 @@ const customTo = ref('')
 
 const isLoading = ref(false)
 const error = ref('')
+const partialError = ref('')
 
 const monthlyPoints = ref<MonthlyPoint[]>([])
 const categoryTotals = ref<CategoryTotal[]>([])
@@ -55,19 +57,28 @@ const loadReports = async () => {
   isLoading.value = true
   error.value = ''
   const { from, to } = resolvedRange.value
+  partialError.value = ''
   const [ieRes, catRes, nwRes] = await Promise.allSettled([
     reportsApi.incomeExpense({ from, to }),
     reportsApi.categories({ from, to }),
     reportsApi.netWorth({ from, to }),
   ])
 
-  if (ieRes.status === 'fulfilled') {
-    monthlyPoints.value = ieRes.value.data
-  } else {
-    error.value = t('reports.loadError')
-  }
+  if (ieRes.status === 'rejected') logError('reports.incomeExpense', ieRes.reason)
+  if (catRes.status === 'rejected') logError('reports.categories', catRes.reason)
+  if (nwRes.status === 'rejected') logError('reports.netWorth', nwRes.reason)
+
+  monthlyPoints.value = ieRes.status === 'fulfilled' ? ieRes.value.data : []
   categoryTotals.value = catRes.status === 'fulfilled' ? catRes.value.data : []
   netWorthPoints.value = nwRes.status === 'fulfilled' ? nwRes.value.data : []
+
+  // Only a total failure earns the full-screen retry: `error` replaces the
+  // whole report area, so raising it for one failed panel would also hide the
+  // two that loaded. A partial failure gets a banner above the results instead,
+  // because an empty chart is otherwise indistinguishable from "no data".
+  const failures = [ieRes, catRes, nwRes].filter((r) => r.status === 'rejected').length
+  if (failures === 3) error.value = t('reports.loadError')
+  else if (failures > 0) partialError.value = t('reports.partialLoadError')
 
   isLoading.value = false
 }
@@ -265,6 +276,13 @@ const topCategories = computed(() =>
         </div>
 
         <template v-else>
+          <div
+            v-if="partialError"
+            class="rounded-xl border border-danger/30 bg-danger/10 p-4 text-sm font-medium text-danger"
+          >
+            {{ partialError }}
+          </div>
+
           <!-- Income vs Expense -->
           <AppCard>
             <div class="mb-4 flex items-center justify-between">

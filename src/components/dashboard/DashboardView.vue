@@ -11,6 +11,7 @@ import { budgetsApi, type BudgetDetail } from '../../services/budgets'
 import { formatCurrency, formatDate as formatDateLocale, formatMonthYear } from '../../utils/format'
 import { groupByCurrency } from '../../utils/currency'
 import { chartSeriesColor, foldChartEntries } from '../../utils/chartColors'
+import { logError } from '../../utils/logError'
 
 const router = useRouter()
 const { t } = useI18n()
@@ -20,6 +21,7 @@ const activeTopTab = ref<'accounts' | 'balances'>('accounts')
 const accounts = ref<AccountDetail[]>([])
 const isLoadingAccounts = ref(false)
 const netWorth = ref<NetWorthSummary | null>(null)
+const partialLoadError = ref('')
 
 const typeIconMap: Record<AccountType, string> = {
   BANK: 'account_balance',
@@ -73,9 +75,20 @@ onMounted(async () => {
   ])
 
   if (accountsRes.status === 'fulfilled') accounts.value = accountsRes.value.data
+  else logError('dashboard.loadAccounts', accountsRes.reason)
   if (txRes.status === 'fulfilled') currentMonthTransactions.value = txRes.value.data
+  else logError('dashboard.loadTransactions', txRes.reason)
   if (budgetsRes.status === 'fulfilled') budgets.value = budgetsRes.value.data
+  else logError('dashboard.loadBudgets', budgetsRes.reason)
   if (netWorthRes.status === 'fulfilled') netWorth.value = netWorthRes.value.data
+  else logError('dashboard.loadNetWorth', netWorthRes.reason)
+
+  // Without this the failure is invisible and, worse, misread: a failed account
+  // load renders as zero accounts, which in a finance app reads as "my money is
+  // gone" rather than "this did not load".
+  if ([accountsRes, txRes, budgetsRes, netWorthRes].some((r) => r.status === 'rejected')) {
+    partialLoadError.value = t('dashboard.partialLoadError')
+  }
 
   isLoadingAccounts.value = false
   isLoadingChart.value = false
@@ -158,6 +171,13 @@ const goToTransactions = () => router.push({ name: 'transactions' })
       <PageHeader :title="t('dashboard.pageTitle')" :subtitle="t('dashboard.pageSubtitle', { month: currentMonthLabel })" />
 
       <PageContainer>
+        <div
+          v-if="partialLoadError"
+          class="rounded-xl border border-danger/30 bg-danger/10 p-4 text-sm font-medium text-danger"
+        >
+          {{ partialLoadError }}
+        </div>
+
         <GettingStartedChecklist />
 
         <!-- Summary stats -->

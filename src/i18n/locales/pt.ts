@@ -301,6 +301,7 @@ const pt: MessageSchema = {
   dashboard: {
     pageTitle: 'Painel',
     pageSubtitle: 'Visão geral · {month}',
+    partialLoadError: 'Não foi possível carregar parte do painel. O que você vê pode estar incompleto.',
     stats: {
       accountsLabel: 'Contas',
       accountsDesc: 'Rastreadas no seu portfólio',
@@ -719,6 +720,7 @@ const pt: MessageSchema = {
     pageTitle: 'Relatórios',
     pageSubtitle: 'Receitas vs. despesas, evolução do patrimônio líquido e principais categorias de gastos.',
     loadError: 'Falha ao carregar os relatórios.',
+    partialLoadError: 'Não foi possível carregar parte dos relatórios. O que você vê pode estar incompleto.',
     range: {
       thisMonth: 'Este mês',
       threeMonths: '3M',

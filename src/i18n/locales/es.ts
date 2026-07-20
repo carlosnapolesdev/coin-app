@@ -301,6 +301,7 @@ const es: MessageSchema = {
   dashboard: {
     pageTitle: 'Panel',
     pageSubtitle: 'Resumen · {month}',
+    partialLoadError: 'No se pudo cargar parte del panel. Lo que ves puede estar incompleto.',
     stats: {
       accountsLabel: 'Cuentas',
       accountsDesc: 'Registradas en tu portafolio',
@@ -719,6 +720,7 @@ const es: MessageSchema = {
     pageTitle: 'Informes',
     pageSubtitle: 'Ingresos vs. gastos, evolución del patrimonio neto y principales categorías de gasto.',
     loadError: 'No se pudieron cargar los informes.',
+    partialLoadError: 'No se pudo cargar parte de los informes. Lo que ves puede estar incompleto.',
     range: {
       thisMonth: 'Este mes',
       threeMonths: '3M',

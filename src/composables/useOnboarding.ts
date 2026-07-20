@@ -49,9 +49,15 @@ async function loadCounts() {
     transactionsApi.search({ page: 1, pageSize: 1 }),
     budgetsApi.list(),
   ])
+  // No UI for these: the counters only drive which checklist steps look done,
+  // so a failure shows a completed step as pending. A banner would be noise;
+  // losing the reason entirely would not.
   if (a.status === 'fulfilled') counts.accounts = a.value.data.length
+  else logError('onboarding.countAccounts', a.reason)
   if (t.status === 'fulfilled') counts.transactions = t.value.data.total
+  else logError('onboarding.countTransactions', t.reason)
   if (b.status === 'fulfilled') counts.budgets = b.value.data.length
+  else logError('onboarding.countBudgets', b.reason)
   counts.loaded = true
 
   // Usuario con datos previos: no corresponde celebrar retroactivamente.

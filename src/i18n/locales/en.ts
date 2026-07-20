@@ -299,6 +299,7 @@ const en = {
   dashboard: {
     pageTitle: 'Dashboard',
     pageSubtitle: 'Overview · {month}',
+    partialLoadError: 'Part of the dashboard failed to load. What you see may be incomplete.',
     stats: {
       accountsLabel: 'Accounts',
       accountsDesc: 'Tracked across your portfolio',
@@ -717,6 +718,7 @@ const en = {
     pageTitle: 'Reports',
     pageSubtitle: 'Income vs. expense, net worth trend and top spending categories.',
     loadError: 'Failed to load reports.',
+    partialLoadError: 'Part of the reports failed to load. What you see may be incomplete.',
     range: {
       thisMonth: 'This month',
       threeMonths: '3M',
