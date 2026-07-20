@@ -6,6 +6,7 @@ import {
   onboardingApi,
   type OnboardingState,
 } from '../services/onboarding'
+import { logError } from '../utils/logError'
 import { accountsApi } from '../services/accounts'
 import { transactionsApi } from '../services/transactions'
 import { budgetsApi } from '../services/budgets'
@@ -31,8 +32,12 @@ function patch(partial: Partial<OnboardingState>) {
   if (!user) return
   const next: OnboardingState = { ...state.value, ...partial }
   setCurrentUser({ ...user, onboardingState: next })
-  onboardingApi.update(partial).catch(() => {
-    // Falla de red: se conserva el valor optimista para esta sesión.
+  onboardingApi.update(partial).catch((error: unknown) => {
+    // Se conserva el valor optimista para esta sesión, pero el fallo se reporta:
+    // sin rastro, la UI queda marcada mientras el servidor nunca guardó y la
+    // divergencia sólo aparece en la siguiente sesión. No se muestra toast
+    // porque es una sincronización de fondo que el usuario no puede accionar.
+    logError('onboarding.sync', error)
   })
 }
 

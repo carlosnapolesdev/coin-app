@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import Sidebar from './Sidebar.vue'
+import AppSidebar from './AppSidebar.vue'
 import AddTransactionModal from './AddTransactionModal.vue'
 import ImportModal from './ImportModal.vue'
 import CoachMark from '../onboarding/CoachMark.vue'
@@ -11,6 +11,8 @@ import { type TransactionDetail, type TransactionStatus, type TransactionType, t
 import { tagsApi, type TagDto } from '../../services/tags'
 import { type ReconciliationSummary, reconciliationsApi } from '../../services/reconciliations'
 import { formatCurrency, formatDate as formatDateLocale } from '../../utils/format'
+import { logError } from '../../utils/logError'
+import { getApiErrorMessage } from '../../services/auth'
 import { useOnboarding } from '../../composables/useOnboarding'
 import { useToast } from '../../composables/useToast'
 
@@ -85,8 +87,11 @@ const loadAccounts = async () => {
   try {
     const res = await accountsApi.list()
     accounts.value = res.data
-  } catch {
-    // ignore
+  } catch (error: unknown) {
+    // Sin cuentas el filtro queda vacío y el alta no puede completarse, así que
+    // el fallo sí afecta la tarea en curso: se avisa además de reportarlo.
+    logError('transactions.loadAccounts', error)
+    toast.error(t('accounts.loadError'))
   }
 }
 
@@ -233,9 +238,9 @@ const finishReconciliation = async () => {
     await reconciliationsApi.complete(selectedAccountId.value, reconciliation.value.id)
     reconciliation.value = { ...reconciliation.value, isCompleted: true }
     toast.success(t('reconciliation.finished'))
-  } catch (e: any) {
-    const message = e?.response?.data?.message ?? t('reconciliation.notBalanced')
-    toast.error(message)
+  } catch (error: unknown) {
+    logError('transactions.completeReconciliation', error)
+    toast.error(getApiErrorMessage(error, t('reconciliation.notBalanced')))
   } finally {
     isFinishingReconciliation.value = false
   }
@@ -345,7 +350,7 @@ const transferLabel = (tx: TransactionDetail) => {
 
 <template>
   <div class="flex h-screen overflow-hidden bg-ambient">
-    <Sidebar />
+    <AppSidebar />
 
     <main class="wm-logo-main flex-1 overflow-y-auto">
       <PageHeader :title="t('transactions.pageTitle')" :subtitle="t('transactions.pageSubtitle')" />

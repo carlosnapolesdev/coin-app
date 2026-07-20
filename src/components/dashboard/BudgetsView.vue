@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import Sidebar from './Sidebar.vue'
+import AppSidebar from './AppSidebar.vue'
 import api from '../../services/api'
 import { formatCurrency } from '../../utils/format'
 import {
@@ -197,7 +197,7 @@ onMounted(() => {
 
 <template>
   <div class="flex h-screen overflow-hidden bg-ambient">
-    <Sidebar />
+    <AppSidebar />
 
     <main class="wm-logo-main flex-1 overflow-y-auto">
       <PageHeader :title="t('budgets.pageTitle')" :subtitle="t('budgets.pageSubtitle')" />

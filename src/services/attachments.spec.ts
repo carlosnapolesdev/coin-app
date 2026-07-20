@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import type { InternalAxiosRequestConfig } from 'axios'
 import api from './api'
 import * as authSession from './auth-session'
 import { attachmentsApi } from './attachments'
@@ -56,7 +57,7 @@ describe('attachmentsApi', () => {
     // transformRequest) by installing a custom adapter that captures the
     // outbound config. If axios 1.14 JSON-stringifies FormData, this fails;
     // if multipart is preserved, it passes.
-    let capturedConfig: any
+    let capturedConfig: InternalAxiosRequestConfig | undefined
     const previousAdapter = api.defaults.adapter
     api.defaults.adapter = (config) => {
       capturedConfig = config
@@ -74,8 +75,11 @@ describe('attachmentsApi', () => {
     } finally {
       api.defaults.adapter = previousAdapter
     }
+    // Falla explícitamente si el adaptador nunca corrió, en vez de dar un falso
+    // verde por comparar contra `undefined`.
+    expect(capturedConfig).toBeDefined()
     // After transformRequest: body must still be FormData, not a stringified blob.
-    expect(capturedConfig.data).toBeInstanceOf(FormData)
+    expect(capturedConfig!.data).toBeInstanceOf(FormData)
   })
 
   it('remove deletes', async () => {

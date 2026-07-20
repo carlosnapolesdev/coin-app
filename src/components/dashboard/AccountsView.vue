@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import Sidebar from './Sidebar.vue'
+import AppSidebar from './AppSidebar.vue'
 import { AnimatedAmount, AppButton, AppIconButton, AppSpinner, AppTabs, ConfirmDialog, PageContainer, PageHeader } from '../ui'
 import api from '../../services/api'
 import { accountsApi, type AccountDetail, type AccountType, type AccountTemplate } from '../../services/accounts'
@@ -307,7 +307,7 @@ onMounted(() => {
 
 <template>
   <div class="flex h-screen overflow-hidden bg-ambient">
-    <Sidebar />
+    <AppSidebar />
 
     <main class="wm-logo-main flex-1 overflow-y-auto">
       <PageHeader :title="t('accounts.pageTitle')" :subtitle="t('accounts.pageSubtitle')" />

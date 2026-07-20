@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import Sidebar from './Sidebar.vue'
+import AppSidebar from './AppSidebar.vue'
 import CoachMark from '../onboarding/CoachMark.vue'
 import { AppButton, AppCard, AppInput, AppSpinner, AppTabs, PageContainer, PageHeader } from '../ui'
 import {
@@ -224,7 +224,7 @@ const topCategories = computed(() =>
 
 <template>
   <div class="flex h-screen overflow-hidden bg-ambient">
-    <Sidebar />
+    <AppSidebar />
 
     <main class="wm-logo-main flex-1 overflow-y-auto">
       <PageHeader :title="t('reports.pageTitle')" :subtitle="t('reports.pageSubtitle')" />

@@ -81,6 +81,29 @@ describe('useOnboarding', () => {
     expect(ob.checklistVisible.value).toBe(true)
   })
 
+  it('reports a failed sync instead of swallowing it', async () => {
+    const { onboardingApi } = await import('../services/onboarding')
+    const { setErrorReporter } = await import('../utils/logError')
+    const failure = new Error('network down')
+    vi.mocked(onboardingApi.update).mockRejectedValueOnce(failure)
+    const reported: [string, unknown][] = []
+    setErrorReporter((context, error) => reported.push([context, error]))
+
+    try {
+      const ob = useOnboarding()
+      ob.markReportsVisited()
+      // El patch es fire-and-forget: cede el turno para que el rechazo se asiente.
+      await Promise.resolve()
+      await Promise.resolve()
+
+      expect(reported).toEqual([['onboarding.sync', failure]])
+      // El valor optimista sobrevive al fallo de red dentro de la sesión.
+      expect(ob.steps.value.find((s) => s.key === 'reports')?.done).toBe(true)
+    } finally {
+      setErrorReporter(null)
+    }
+  })
+
   it('defers the first-transaction celebration until flushed', () => {
     const ob = useOnboarding()
     ob.notifyTransactionCreated()

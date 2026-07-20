@@ -19,13 +19,13 @@ describe('useAttachments', () => {
     const { attachments, load } = useAttachments()
     await load(7)
     expect(attachments.value).toHaveLength(2)
-    expect((attachmentsApi.list as any).mock.calls[0][0]).toBe(7)
+    expect(vi.mocked(attachmentsApi.list).mock.calls[0][0]).toBe(7)
   })
 
   it('addFiles uploads in parallel, aggregates per-file progress, fills errorByFile on fail', async () => {
     const progressSpy = vi.fn()
-    ;(attachmentsApi.upload as any).mockReset()
-    ;(attachmentsApi.upload as any)
+    vi.mocked(attachmentsApi.upload).mockReset()
+    vi.mocked(attachmentsApi.upload)
       .mockImplementationOnce(async (_tx: number, file: File, onProgress?: (p: number) => void) => {
         onProgress?.(50)
         onProgress?.(100)
@@ -54,14 +54,14 @@ describe('useAttachments', () => {
     await load(7)
     await remove(2)
     expect(attachments.value.find((a) => a.id === 2)).toBeUndefined()
-    expect((attachmentsApi.remove as any)).toHaveBeenCalledWith(2)
+    expect(vi.mocked(attachmentsApi.remove)).toHaveBeenCalledWith(2)
   })
 
   it('addFiles preserves pre-existing errorByFile entries (client validation errors survive)', async () => {
     // The modal sets errorByFile for client-rejected files (mime/size) BEFORE calling addFiles.
     // addFiles must NOT wipe those — only its own upload-time rejections belong to addFiles.
-    ;(attachmentsApi.upload as any).mockReset()
-    ;(attachmentsApi.upload as any).mockResolvedValue(dto(99, 'ok.png'))
+    vi.mocked(attachmentsApi.upload).mockReset()
+    vi.mocked(attachmentsApi.upload).mockResolvedValue(dto(99, 'ok.png'))
     const { addFiles, errorByFile } = useAttachments()
     // Pre-populate a client validation error for a file that will NOT be uploaded.
     const next = new Map(errorByFile.value)

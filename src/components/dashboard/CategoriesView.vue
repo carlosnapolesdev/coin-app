@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import Sidebar from './Sidebar.vue'
+import AppSidebar from './AppSidebar.vue'
 import EditCategoryModal from './EditCategoryModal.vue'
 import { AppBadge, AppButton, AppIconButton, AppSpinner, AppTabs, ConfirmDialog, PageContainer, PageHeader } from '../ui'
 import api from '../../services/api'
@@ -295,7 +295,7 @@ onMounted(() => {
 
 <template>
   <div class="flex h-screen overflow-hidden bg-ambient">
-    <Sidebar />
+    <AppSidebar />
 
     <main class="wm-logo-main flex-1 overflow-y-auto">
       <PageHeader :title="t('categories.pageTitle')" :subtitle="t('categories.pageSubtitle')" />

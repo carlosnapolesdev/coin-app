@@ -2,7 +2,7 @@
 import axios from 'axios'
 import { onMounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import Sidebar from './Sidebar.vue'
+import AppSidebar from './AppSidebar.vue'
 import { setCurrentUser, useAuthState } from '../../services/auth'
 import { usersApi } from '../../services/users'
 import { currenciesApi, type UserCurrencyDetail } from '../../services/currencies'
@@ -214,7 +214,7 @@ const saveExchangeRate = async (currencyId: number) => {
 
 <template>
   <div class="flex h-screen overflow-hidden bg-ambient">
-    <Sidebar />
+    <AppSidebar />
 
     <main class="wm-logo-main flex-1 overflow-y-auto">
       <PageHeader :title="t('settings.pageTitle')" :subtitle="t('settings.pageSubtitle')" />

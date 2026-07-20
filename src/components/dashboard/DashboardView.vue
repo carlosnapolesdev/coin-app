@@ -2,7 +2,7 @@
 import { computed, ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import Sidebar from './Sidebar.vue'
+import AppSidebar from './AppSidebar.vue'
 import GettingStartedChecklist from '../onboarding/GettingStartedChecklist.vue'
 import { AnimatedAmount, AppCard, AppSpinner, AppTabs, PageContainer, PageHeader } from '../ui'
 import { accountsApi, type AccountDetail, type AccountType, type NetWorthSummary } from '../../services/accounts'
@@ -152,7 +152,7 @@ const goToTransactions = () => router.push({ name: 'transactions' })
 
 <template>
   <div class="flex h-screen overflow-hidden bg-ambient">
-    <Sidebar />
+    <AppSidebar />
 
     <main class="wm-logo-main flex-1 overflow-y-auto">
       <PageHeader :title="t('dashboard.pageTitle')" :subtitle="t('dashboard.pageSubtitle', { month: currentMonthLabel })" />
