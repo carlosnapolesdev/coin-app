@@ -8,6 +8,7 @@ import { currenciesApi } from '../../services/currencies'
 import TransactionAttachmentsPanel from './TransactionAttachmentsPanel.vue'
 import { formatCurrency } from '../../utils/format'
 import { logError } from '../../utils/logError'
+import { isExpectedApiRejection } from '../../utils/expectedApiRejection'
 import { AppButton, AppIconButton, AppModal, AppSpinner, TagInput } from '../ui'
 import { useToast } from '../../composables/useToast'
 
@@ -354,7 +355,7 @@ const handleSave = async (keepOpen = false) => {
       localTransactionId.value = null
     }
   } catch (err: unknown) {
-    logError('transactionModal.handleSave', err)
+    if (!isExpectedApiRejection(err)) logError('transactionModal.handleSave', err)
     error.value = t('transactionModal.saveError')
   } finally {
     isSaving.value = false

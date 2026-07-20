@@ -3,6 +3,7 @@ import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { AppButton, AppModal } from '../ui'
 import { logError } from '../../utils/logError'
+import { isExpectedApiRejection } from '../../utils/expectedApiRejection'
 import { type ColumnMapping, type ImportRow, transactionsApi } from '../../services/transactions'
 
 const { t } = useI18n()
@@ -108,7 +109,8 @@ const runPreview = async () => {
     previewRows.value = res.data.rows
     step.value = 'preview'
   } catch (err: unknown) {
-    logError('importModal.runPreview', err)
+    // A CSV or a column mapping the API refuses is the user's to fix.
+    if (!isExpectedApiRejection(err)) logError('importModal.runPreview', err)
     error.value = t('importModal.previewError')
   } finally {
     isLoading.value = false
@@ -125,7 +127,7 @@ const confirmImport = async () => {
     step.value = 'done'
     emit('imported')
   } catch (err: unknown) {
-    logError('importModal.confirmImport', err)
+    if (!isExpectedApiRejection(err)) logError('importModal.confirmImport', err)
     error.value = t('importModal.importError')
   } finally {
     isCommitting.value = false

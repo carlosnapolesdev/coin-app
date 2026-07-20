@@ -7,6 +7,7 @@ import LegalFooter from './legal/LegalFooter.vue'
 import { AppButton } from './ui'
 import { getApiErrorMessage, resetPassword } from '../services/auth'
 import { logError } from '../utils/logError'
+import { isExpectedApiRejection } from '../utils/expectedApiRejection'
 
 const route = useRoute()
 const router = useRouter()
@@ -37,7 +38,9 @@ const handleSubmit = async () => {
     await resetPassword(token, newPassword.value)
     router.push({ path: '/login', query: { reset: '1' } })
   } catch (err) {
-    logError('resetPassword.handleSubmit', err)
+    // An expired or already-used token comes back as a 4xx and is shown to the
+    // user; only genuine faults are worth a report.
+    if (!isExpectedApiRejection(err)) logError('resetPassword.handleSubmit', err)
     errorMessage.value = getApiErrorMessage(err, t('auth.resetPassword.genericError'))
   } finally {
     isSubmitting.value = false

@@ -10,6 +10,7 @@ import { AppBadge, AppButton } from './ui'
 import { getApiErrorMessage, login } from '../services/auth'
 import { getSavedIdentifier } from '../services/auth-session'
 import { logError } from '../utils/logError'
+import { isExpectedApiRejection } from '../utils/expectedApiRejection'
 
 const router = useRouter()
 const route = useRoute()
@@ -61,7 +62,9 @@ const handleLogin = async () => {
     const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : '/dashboard'
     await router.replace(redirect)
   } catch (err) {
-    logError('login.handleLogin', err)
+    // Wrong credentials are the most frequent rejection in the app; reporting
+    // them would bury real faults under everyday typos.
+    if (!isExpectedApiRejection(err)) logError('login.handleLogin', err)
 
     if (axios.isAxiosError(err)) {
       const responseData = err.response?.data as {

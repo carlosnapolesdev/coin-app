@@ -7,6 +7,7 @@ import { setCurrentUser, useAuthState } from '../../services/auth'
 import { usersApi } from '../../services/users'
 import { currenciesApi, type UserCurrencyDetail } from '../../services/currencies'
 import { tagsApi, type TagDto } from '../../services/tags'
+import { isExpectedApiRejection } from '../../utils/expectedApiRejection'
 import {
   AppButton,
   AppCard,
@@ -43,7 +44,7 @@ const saveProfile = async () => {
     setCurrentUser(data)
     profileSuccess.value = t('settings.profile.successMessage')
   } catch (err) {
-    logError('settings.saveProfile', err)
+    if (!isExpectedApiRejection(err)) logError('settings.saveProfile', err)
     profileError.value = getErrorMessage(err, t('settings.profile.errorFallback'))
   } finally {
     isSavingProfile.value = false
@@ -92,7 +93,9 @@ const changePassword = async () => {
     passwordForm.newPassword = ''
     passwordForm.confirmPassword = ''
   } catch (err) {
-    logError('settings.changePassword', err)
+    // A wrong current password is a 400 the user can fix by retyping, and it is
+    // already on screen. Reporting it mailed the administrator on every typo.
+    if (!isExpectedApiRejection(err)) logError('settings.changePassword', err)
     passwordError.value = getErrorMessage(err, t('settings.password.errorFallback'))
   } finally {
     isSavingPassword.value = false
@@ -168,7 +171,7 @@ const renameTag = async () => {
     await loadTags()
     toast.success(t('settings.tags.toast.renamed'))
   } catch (err) {
-    logError('settings.renameTag', err)
+    if (!isExpectedApiRejection(err)) logError('settings.renameTag', err)
     toast.error(getErrorMessage(err, t('settings.tags.toast.error')))
   } finally {
     savingTagId.value = null
@@ -184,7 +187,7 @@ const confirmDeleteTag = async () => {
     await loadTags()
     toast.success(t('settings.tags.toast.deleted'))
   } catch (err) {
-    logError('settings.confirmDeleteTag', err)
+    if (!isExpectedApiRejection(err)) logError('settings.confirmDeleteTag', err)
     toast.error(getErrorMessage(err, t('settings.tags.toast.error')))
   } finally {
     isDeletingTag.value = false
@@ -212,7 +215,7 @@ const saveExchangeRate = async (currencyId: number) => {
     if (index !== -1) userCurrencies.value[index] = data
     currencySavedId.value = currencyId
   } catch (err) {
-    logError('settings.saveExchangeRate', err)
+    if (!isExpectedApiRejection(err)) logError('settings.saveExchangeRate', err)
     currenciesError.value = getErrorMessage(err, t('settings.currencies.saveErrorFallback'))
   } finally {
     savingCurrencyId.value = null

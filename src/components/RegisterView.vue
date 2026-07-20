@@ -11,6 +11,7 @@ import { useLocale } from '../composables/useLocale'
 import { LEGAL_ROUTE_PATHS } from '../content/legal'
 import { validateRegisterStep1 } from '../utils/registerValidation'
 import { logError } from '../utils/logError'
+import { isExpectedApiRejection } from '../utils/expectedApiRejection'
 
 const router = useRouter()
 const { t } = useI18n()
@@ -276,7 +277,8 @@ const completeRegistration = async () => {
 
     currentStep.value = 4
   } catch (err) {
-    logError('register.completeRegistration', err)
+    // An already-registered email comes back as a 409 and is shown on the form.
+    if (!isExpectedApiRejection(err)) logError('register.completeRegistration', err)
 
     if (axios.isAxiosError(err)) {
       const responseData = err.response?.data as {

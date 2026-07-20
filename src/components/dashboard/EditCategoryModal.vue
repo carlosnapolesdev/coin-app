@@ -5,6 +5,7 @@ import api from '../../services/api'
 import iconVersions from '@material-symbols/metadata/versions.json'
 import { AppButton, AppModal } from '../ui'
 import { logError } from '../../utils/logError'
+import { isExpectedApiRejection } from '../../utils/expectedApiRejection'
 import { useToast } from '../../composables/useToast'
 
 const { t } = useI18n()
@@ -147,7 +148,7 @@ const handleSave = async () => {
     toast.success(isCreateMode.value ? t('categoryModal.created') : t('categoryModal.updated'))
     handleClose()
   } catch (err: unknown) {
-    logError('categoryModal.handleSave', err)
+    if (!isExpectedApiRejection(err)) logError('categoryModal.handleSave', err)
     error.value = isCreateMode.value
       ? t('categoryModal.createError')
       : t('categoryModal.updateError')

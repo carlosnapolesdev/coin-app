@@ -404,15 +404,62 @@ function handlerLogErrorCall(h: Handler): { call: ts.CallExpression; openPdf: bo
   }
 
   const first = body.statements[0]
-  if (!first || !ts.isExpressionStatement(first)) return null
+  if (!first) return null
+  const guarded = expectedRejectionGuardLogError(first)
+  if (guarded) return { call: guarded, openPdf: false }
+  if (!ts.isExpressionStatement(first)) return null
   if (!ts.isCallExpression(first.expression)) return null
   return { call: first.expression, openPdf: false }
+}
+
+// The one conditional shape allowed as a handler's first statement:
+//
+//   if (!isExpectedApiRejection(err)) logError('area.fn', err)
+//
+// The invariant here is "no error disappears without a trace". The rule used to
+// approximate that as "always call logError", because nothing could tell a
+// fault apart from the API rejecting what the user typed. Something can now:
+// `isExpectedApiRejection` is a tested predicate, and the rejections it matches
+// are already on screen for the person who caused them, so they are handled and
+// visible rather than lost. Reporting them was mailing the administrator every
+// time someone mistyped a password, which buried the real faults.
+//
+// Nothing beyond this exact shape is accepted — no else branch, no other
+// predicate, no second statement in the branch — because every widening is a
+// place an error could quietly vanish.
+export function expectedRejectionGuardLogError(stmt: ts.Statement): ts.CallExpression | null {
+  if (!ts.isIfStatement(stmt)) return null
+  if (stmt.elseStatement) return null
+
+  const condition = stmt.expression
+  if (!ts.isPrefixUnaryExpression(condition)) return null
+  if (condition.operator !== ts.SyntaxKind.ExclamationToken) return null
+
+  const predicate = condition.operand
+  if (!ts.isCallExpression(predicate)) return null
+  if (!ts.isIdentifier(predicate.expression)) return null
+  if (predicate.expression.text !== 'isExpectedApiRejection') return null
+  if (predicate.arguments.length !== 1) return null
+  const predicateArg = predicate.arguments[0]
+  if (!predicateArg || !ts.isIdentifier(predicateArg) || predicateArg.text !== 'err') return null
+
+  let branch: ts.Statement | undefined = stmt.thenStatement
+  if (ts.isBlock(branch)) {
+    if (branch.statements.length !== 1) return null
+    branch = branch.statements[0]
+  }
+  if (!branch || !ts.isExpressionStatement(branch)) return null
+  if (!ts.isCallExpression(branch.expression)) return null
+  if (!ts.isIdentifier(branch.expression.expression)) return null
+  if (branch.expression.expression.text !== 'logError') return null
+  return branch.expression
 }
 
 // Strict structural validation of a handler:
 //   • the binding must be `err`
 //   • the body must be either an arrow expression that IS the logError call,
-//     or a block whose first (or, for openPdf, second) statement is the call
+//     or a block whose first (or, for openPdf, second) statement is the call,
+//     or a block whose first statement is the expected-rejection guard above
 //   • the call signature must match `logError(<literal>, err)`
 // Returns null when the handler is OK, an offender string otherwise.
 export function validateHandler(h: Handler, sourceFile: ts.SourceFile): string | null {
@@ -481,6 +528,7 @@ export function validateHandler(h: Handler, sourceFile: ts.SourceFile): string |
   }
 
   const first = stmts[0]
+  if (first && expectedRejectionGuardLogError(first)) return null
   if (!ts.isExpressionStatement(first)) {
     return `${relative}:${h.line} first statement must be a logError call, got ${ts.SyntaxKind[first.kind]}`
   }
@@ -788,6 +836,64 @@ try {
     const { sourceFile } = parseSource(handler.file)
     const offender = validateHandler(handler, sourceFile)
     expect(offender).toMatch(/first statement|must be the first reachable/i)
+  })
+
+  const offenderForCatch = (code: string): string | null => {
+    const handlers = handlersIn(makeTempTs(code))
+    const handler = handlers[0]
+    expect(handler).toBeDefined()
+    if (!handler) return 'no handler parsed'
+    const { sourceFile } = parseSource(handler.file)
+    return validateHandler(handler, sourceFile)
+  }
+
+  it('accepts the expected-rejection guard as the first statement', () => {
+    expect(
+      offenderForCatch(
+        `try { f() } catch (err) { if (!isExpectedApiRejection(err)) logError('area.fn', err); show(err) }`,
+      ),
+    ).toBeNull()
+  })
+
+  it('accepts the expected-rejection guard with a braced branch', () => {
+    expect(
+      offenderForCatch(
+        `try { f() } catch (err) { if (!isExpectedApiRejection(err)) { logError('area.fn', err) } }`,
+      ),
+    ).toBeNull()
+  })
+
+  it('rejects the guard when it carries an else branch', () => {
+    // An else branch is somewhere a second behaviour could hide.
+    expect(
+      offenderForCatch(
+        `try { f() } catch (err) { if (!isExpectedApiRejection(err)) logError('area.fn', err); else swallow() }`,
+      ),
+    ).not.toBeNull()
+  })
+
+  it('rejects a guard built on any other predicate', () => {
+    expect(
+      offenderForCatch(`try { f() } catch (err) { if (!isBoring(err)) logError('area.fn', err) }`),
+    ).not.toBeNull()
+  })
+
+  it('rejects the guard when the condition is not negated', () => {
+    // `if (isExpectedApiRejection(err))` reports exactly the errors that should
+    // not be reported, and stays silent on the faults that should.
+    expect(
+      offenderForCatch(
+        `try { f() } catch (err) { if (isExpectedApiRejection(err)) logError('area.fn', err) }`,
+      ),
+    ).not.toBeNull()
+  })
+
+  it('rejects the guard when its branch does more than report', () => {
+    expect(
+      offenderForCatch(
+        `try { f() } catch (err) { if (!isExpectedApiRejection(err)) { logError('area.fn', err); retry() } }`,
+      ),
+    ).not.toBeNull()
   })
 
   it('flags logError that only lives inside a nested catch', () => {
