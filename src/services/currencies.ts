@@ -1,5 +1,12 @@
 import api from './api'
 
+export interface AvailableCurrency {
+  id: number
+  code: string
+  name: string
+  symbol: string | null
+}
+
 export interface UserCurrencyDetail {
   currencyId: number
   code: string
@@ -17,8 +24,13 @@ export interface UpdateUserCurrencyPayload {
 }
 
 export const currenciesApi = {
+  listAvailable: () => api.get<AvailableCurrency[]>('/currencies'),
+
   listUserCurrencies: () =>
     api.get<UserCurrencyDetail[]>('/users/me/currencies'),
+
+  addUserCurrency: (currencyId: number, base: boolean) =>
+    api.post<UserCurrencyDetail>('/users/me/currencies', { currencyId, base }),
 
   updateUserCurrency: (currencyId: number, data: UpdateUserCurrencyPayload) =>
     api.patch<UserCurrencyDetail>(`/users/me/currencies/${currencyId}`, data),

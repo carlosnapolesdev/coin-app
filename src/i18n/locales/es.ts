@@ -258,6 +258,17 @@ const es: MessageSchema = {
       },
     },
   },
+  welcome: {
+    currency: {
+      greeting: '¡Te damos la bienvenida a Crecik, {name}!',
+      title: 'Tu moneda principal',
+      subtitle: 'Elige la moneda en la que controlas tu dinero. Puedes cambiarla más tarde.',
+      label: 'Moneda',
+      confirm: 'Continuar',
+      loadError: 'No pudimos cargar la lista de monedas.',
+      submitError: 'No pudimos guardar tu moneda. Inténtalo de nuevo.',
+    },
+  },
   settings: {
     pageTitle: 'Configuración',
     pageSubtitle: 'Administra tu perfil y la seguridad de tu cuenta.',

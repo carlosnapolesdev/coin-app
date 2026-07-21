@@ -3,7 +3,8 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { i18n } from '../i18n'
 import { documentTitleFor } from './documentTitle'
 import { applyHeadFor } from './head'
-import { initializeAuth, isAuthenticated } from '../services/auth'
+import { initializeAuth, isAuthenticated, useAuthState } from '../services/auth'
+import { currencyGuardTarget } from './currencyGuard'
 
 // Route components are lazy-loaded so each view lands in its own chunk, keeping
 // the initial bundle small (avoids the >500 kB single-chunk build warning).
@@ -23,6 +24,7 @@ const ReportsView = () => import('../components/dashboard/ReportsView.vue')
 const SettingsView = () => import('../components/dashboard/SettingsView.vue')
 const LegalPage = () => import('../components/legal/LegalPage.vue')
 const NotFound = () => import('../components/NotFound.vue')
+const WelcomeCurrency = () => import('../components/WelcomeCurrencyView.vue')
 
 const router = createRouter({
   history: createWebHistory(),
@@ -144,6 +146,12 @@ const router = createRouter({
       meta: { requiresAuth: true, title: 'sidebar.nav.settings' },
     },
     {
+      path: '/welcome/currency',
+      name: 'welcome-currency',
+      component: WelcomeCurrency,
+      meta: { requiresAuth: true, title: 'welcome.currency.title' },
+    },
+    {
       path: '/:pathMatch(.*)*',
       name: 'not-found',
       component: NotFound,
@@ -166,6 +174,15 @@ router.beforeEach(async (to) => {
 
   if (to.meta.publicOnly && isAuthenticated()) {
     return { name: 'dashboard' }
+  }
+
+  const currencyTarget = currencyGuardTarget(
+    isAuthenticated(),
+    useAuthState().user?.requiresCurrencySetup,
+    typeof to.name === 'string' ? to.name : null,
+  )
+  if (currencyTarget && to.name !== currencyTarget) {
+    return { name: currencyTarget }
   }
 })
 

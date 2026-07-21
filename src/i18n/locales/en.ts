@@ -256,6 +256,17 @@ const en = {
       },
     },
   },
+  welcome: {
+    currency: {
+      greeting: 'Welcome to Crecik, {name}!',
+      title: 'Your main currency',
+      subtitle: 'Pick the currency you track your money in. You can change it later.',
+      label: 'Currency',
+      confirm: 'Continue',
+      loadError: "We couldn't load the currency list.",
+      submitError: "We couldn't save your currency. Try again.",
+    },
+  },
   settings: {
     pageTitle: 'Settings',
     pageSubtitle: 'Manage your profile and account security.',
