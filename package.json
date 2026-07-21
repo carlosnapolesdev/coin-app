@@ -33,6 +33,7 @@
     "@vitejs/plugin-vue": "^6.0.8",
     "@vue/tsconfig": "^0.9.1",
     "autoprefixer": "^10.5.4",
+    "critters": "^0.0.23",
     "eslint": "^10.7.0",
     "eslint-plugin-vue": "^10.9.2",
     "fontkit": "^2.0.4",

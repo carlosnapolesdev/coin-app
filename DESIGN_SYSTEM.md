@@ -99,6 +99,11 @@ Rules:
   case, `font-bold`. Caps are reserved for small labels only.
 - **Do not** reach for `font-display` outside titles/section headers/large amounts —
   it's a display face used with restraint, not a replacement for body text.
+- **Entry route (critical CSS):** the path that has to paint without FOUC is
+  `'/login'` (today). Configured via the `entry` argument of the Vite plugin
+  `criticalCss` in `coin-app/vite.config.ts`. The whitelist lives in
+  `coin-app/tests/critical-css-entry.test.ts`. Update both deliberately if
+  the entry point changes (e.g. when the public landing page in `/` lands).
 
 ### 1.3 Radius, shadow, spacing
 

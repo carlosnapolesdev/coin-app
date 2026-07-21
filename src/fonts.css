@@ -1,3 +1,5 @@
+@import './fonts-metrics.css';
+
 /*
  * Local font declarations. Inter, Space Grotesk and Material Symbols Outlined
  * are served from /fonts/ (public/fonts) on the same origin as the app.

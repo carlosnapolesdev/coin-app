@@ -51,8 +51,8 @@ export default {
         "overlay-fg": token("--color-overlay-fg"),
       },
       fontFamily: {
-        display: ["Space Grotesk", "sans-serif"],
-        body: ["Inter", "sans-serif"],
+        display: ["Space Grotesk", "Space Grotesk Fallback", "sans-serif"],
+        body: ["Inter", "Inter Fallback", "sans-serif"],
       },
       boxShadow: {
         card: "0 1px 2px 0 rgb(15 23 42 / 0.04), 0 1px 3px 0 rgb(15 23 42 / 0.06)",

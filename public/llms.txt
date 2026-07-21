@@ -1,0 +1,25 @@
+# Crecik
+
+Personal finance dashboard to track accounts, budgets, goals,
+recurring payments and reports. Sign-up is open; the rest of the
+app sits behind a verified email.
+
+## Product
+
+- [Home](https://crecik.com/): marketing landing, sign-in and sign-up entry.
+- [Sign in](https://crecik.com/login): existing users.
+- [Sign up](https://crecik.com/register): create an account; email verification required before first login.
+- [Forgot password](https://crecik.com/forgot-password): request a password reset link.
+- [Legal — Terms of Service](https://crecik.com/legal/terms).
+- [Legal — Privacy Policy](https://crecik.com/legal/privacy).
+
+## Open source
+
+- [Repository](https://github.com/carlosnaplesdev/coin-app): Vue 3 + Vite client (MIT).
+- [License](https://github.com/carlosnaplesdev/coin-app/blob/main/LICENSE): MIT.
+- [Security policy](https://github.com/carlosnaplesdev/coin-app/blob/main/SECURITY.md): how to report a vulnerability.
+
+## Contact
+
+- Email: support@crecik.com
+- Domain: https://crecik.com

@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, defineAsyncComponent, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import AppSidebar from './AppSidebar.vue'
-import AddTransactionModal from './AddTransactionModal.vue'
-import ImportModal from './ImportModal.vue'
 import CoachMark from '../onboarding/CoachMark.vue'
 import { AppBadge, AppButton, AppIconButton, AppInput, AppModal, AppSelect, AppSpinner, ConfirmDialog, PageContainer, PageHeader } from '../ui'
+const AddTransactionModal = defineAsyncComponent(() => import('./AddTransactionModal.vue'))
+const ImportModal = defineAsyncComponent(() => import('./ImportModal.vue'))
 import { type AccountDetail, accountsApi } from '../../services/accounts'
 import { type TransactionDetail, type TransactionStatus, type TransactionType, transactionsApi } from '../../services/transactions'
 import { tagsApi, type TagDto } from '../../services/tags'
