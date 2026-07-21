@@ -76,18 +76,6 @@ export default defineConfig({
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version),
   },
-  build: {
-    rollupOptions: {
-      output: {
-        manualChunks(id) {
-          if (id.includes('/src/components/ui/'))    return 'ui'
-          if (id.includes('/src/components/layout/')) return 'layout'
-          if (id.includes('/src/composables/'))      return 'composables'
-          if (id.includes('/src/i18n/'))             return 'i18n'
-        },
-      },
-    },
-  },
   server: {
     proxy: {
       '/api': {
