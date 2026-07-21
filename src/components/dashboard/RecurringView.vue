@@ -362,7 +362,7 @@ onMounted(() => {
             v-for="opt in (['EXPENSE', 'INCOME', 'TRANSFER'] as TransactionType[])"
             :key="opt"
             type="button"
-            class="flex-1 rounded-md px-4 py-2.5 text-sm font-semibold transition-all"
+            class="flex-1 rounded-md px-4 py-2.5 text-sm font-semibold transition"
             :class="selectedType === opt ? 'bg-surface text-primary shadow-sm' : 'text-muted hover:text-content'"
             :disabled="isSaving"
             @click="selectedType = opt; categoryId = null; if (opt !== 'TRANSFER') destinationAccountId = null"

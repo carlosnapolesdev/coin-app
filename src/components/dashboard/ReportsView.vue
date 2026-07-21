@@ -11,7 +11,7 @@ import {
   type NetWorthPoint,
 } from '../../services/reports'
 import { chartSeriesColor } from '../../utils/chartColors'
-import { formatCurrency, formatDate } from '../../utils/format'
+import { formatCurrency, formatMonthShort } from '../../utils/format'
 import { useOnboarding } from '../../composables/useOnboarding'
 import { logError } from '../../utils/logError'
 
@@ -90,11 +90,7 @@ watch(rangePreset, () => {
 })
 
 const formatMoney = formatCurrency
-
-const monthLabel = (month: string): string => {
-  const [year, m] = month.split('-')
-  return formatDate(new Date(Number(year), Number(m) - 1, 1), { month: 'short' })
-}
+const monthLabel = formatMonthShort
 
 // ---- Income vs Expense + Net (shared axis, bars + line) ----
 const IE_W = 640

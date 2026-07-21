@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { setLocale } from '../composables/useLocale'
-import { formatCurrency, formatDate, formatMonthYear, parseDateOnly } from './format'
+import { formatCurrency, formatDate, formatMonthShort, formatMonthYear, parseDateOnly } from './format'
 
 describe('format helpers', () => {
   afterEach(() => {
@@ -31,5 +31,15 @@ describe('format helpers', () => {
   it('formats month/year per the active locale', () => {
     setLocale('en')
     expect(formatMonthYear(new Date(2026, 0, 15))).toBe('January 2026')
+  })
+
+  it('formats a YYYY-MM key as a short month name in the active locale', () => {
+    setLocale('en')
+    expect(formatMonthShort('2026-03')).toBe('Mar')
+  })
+
+  it('formats the short month name following locale switches', () => {
+    setLocale('es')
+    expect(formatMonthShort('2026-01').toLowerCase()).toContain('ene')
   })
 })

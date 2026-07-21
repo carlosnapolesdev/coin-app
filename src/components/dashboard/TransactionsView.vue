@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRoute, useRouter } from 'vue-router'
 import AppSidebar from './AppSidebar.vue'
 import AddTransactionModal from './AddTransactionModal.vue'
 import ImportModal from './ImportModal.vue'
@@ -11,6 +12,7 @@ import { type TransactionDetail, type TransactionStatus, type TransactionType, t
 import { tagsApi, type TagDto } from '../../services/tags'
 import { type ReconciliationSummary, reconciliationsApi } from '../../services/reconciliations'
 import { formatCurrency, formatDate as formatDateLocale } from '../../utils/format'
+import { buildTransactionsQuery, parseTransactionsQuery, type TransactionsQueryState } from '../../utils/transactionsQuery'
 import { logError } from '../../utils/logError'
 import { getApiErrorMessage } from '../../services/auth'
 import { useOnboarding } from '../../composables/useOnboarding'
@@ -58,6 +60,53 @@ let searchDebounceTimer: ReturnType<typeof setTimeout> | undefined
 const totalPages = computed(() => Math.max(1, Math.ceil(total.value / PAGE_SIZE)))
 const hasActiveFilters = computed(() =>
   Boolean(searchQuery.value || tagFilter.value || typeFilter.value || statusFilter.value || fromDate.value || toDate.value || selectedAccountId.value),
+)
+
+const route = useRoute()
+const router = useRouter()
+
+// Seed filter state from the URL so /transactions?type=EXPENSE&page=3 deep-links.
+const initialQuery = parseTransactionsQuery(route.query)
+selectedAccountId.value = initialQuery.accountId
+searchQuery.value = initialQuery.q
+typeFilter.value = initialQuery.type
+statusFilter.value = initialQuery.status
+fromDate.value = initialQuery.from
+toDate.value = initialQuery.to
+page.value = initialQuery.page
+
+// Tag filtering is a session-only UX (clicking a tag) and shares the API `q`
+// param with the text search, so it stays out of the URL by design.
+const currentState = (): TransactionsQueryState => ({
+  accountId: selectedAccountId.value,
+  q: searchQuery.value,
+  type: typeFilter.value,
+  status: statusFilter.value,
+  from: fromDate.value,
+  to: toDate.value,
+  page: page.value,
+})
+
+const syncQuery = () => {
+  router.replace({ query: buildTransactionsQuery(currentState()) })
+}
+
+// Back/forward (or an external link) changes the query → adopt it and reload.
+watch(
+  () => route.query,
+  (query) => {
+    const incoming = parseTransactionsQuery(query)
+    if (JSON.stringify(buildTransactionsQuery(incoming)) === JSON.stringify(buildTransactionsQuery(currentState()))) return
+    selectedAccountId.value = incoming.accountId
+    searchQuery.value = incoming.q
+    tagFilter.value = ''
+    typeFilter.value = incoming.type
+    statusFilter.value = incoming.status
+    fromDate.value = incoming.from
+    toDate.value = incoming.to
+    page.value = incoming.page
+    loadTransactions()
+  },
 )
 
 const loadTransactions = async () => {
@@ -112,6 +161,7 @@ onMounted(async () => {
 
 const applyFilters = () => {
   page.value = 1
+  syncQuery()
   loadTransactions()
 }
 
@@ -136,6 +186,7 @@ const onSearchInput = (value: string) => {
 const goToPage = (target: number) => {
   if (target < 1 || target > totalPages.value || target === page.value) return
   page.value = target
+  syncQuery()
   loadTransactions()
 }
 

@@ -366,14 +366,14 @@ const steps = computed(() => [
             {{ currentStep === 4 ? t('auth.register.allStepsCompleted') : t('auth.register.stepOf', { current: currentStep }) }}
           </h2>
           <div class="h-2 w-full overflow-hidden rounded-full bg-surface-2">
-            <div class="h-full rounded-full bg-primary transition-all duration-500" :style="{ width: `${(currentStep / 4) * 100}%` }"></div>
+            <div class="h-full rounded-full bg-primary transition-[width] duration-500" :style="{ width: `${(currentStep / 4) * 100}%` }"></div>
           </div>
         </div>
 
         <nav class="space-y-6">
           <div v-for="step in steps" :key="step.n" class="flex items-center gap-4">
             <div
-              class="flex size-8 items-center justify-center rounded-full transition-all duration-300"
+              class="flex size-8 items-center justify-center rounded-full transition duration-300"
               :class="currentStep > step.n
                 ? 'border-2 border-primary bg-primary/15 text-primary'
                 : currentStep === step.n
@@ -542,7 +542,7 @@ const steps = computed(() => [
                   </button>
                 </div>
                 <button
-                  class="group flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-line p-5 text-muted transition-all hover:border-primary hover:bg-primary/5 hover:text-primary"
+                  class="group flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-line p-5 text-muted transition hover:border-primary hover:bg-primary/5 hover:text-primary"
                   @click="openCurrencyModal"
                 >
                   <span class="material-symbols-outlined transition-transform group-hover:scale-110">add</span>
@@ -635,7 +635,7 @@ const steps = computed(() => [
                       <div class="col-span-10 flex min-w-0 items-center gap-4">
                         <button
                           type="button"
-                          class="flex size-5 flex-shrink-0 items-center justify-center rounded border-2 transition-all duration-200 focus:outline-none"
+                          class="flex size-5 flex-shrink-0 items-center justify-center rounded border-2 transition duration-200 focus:outline-none"
                           :class="{
                             'border-primary bg-primary': getCategoryState(category) === 'selected',
                             'border-primary bg-primary/15': getCategoryState(category) === 'indeterminate',
@@ -684,7 +684,7 @@ const steps = computed(() => [
                         <div class="col-span-10 flex items-center gap-3 pl-14">
                           <button
                             type="button"
-                            class="flex size-4 flex-shrink-0 items-center justify-center rounded border-2 transition-all duration-200 focus:outline-none"
+                            class="flex size-4 flex-shrink-0 items-center justify-center rounded border-2 transition duration-200 focus:outline-none"
                             :class="{
                               'border-primary bg-primary': selectedCategoryIds.has(child.id),
                               'border-line-strong hover:border-primary/60': !selectedCategoryIds.has(child.id),

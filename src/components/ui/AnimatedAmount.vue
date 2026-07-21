@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, toRef } from 'vue'
 import { resolveAmountTone, useCountUp } from '../../composables/useCountUp'
+import { formatCurrency } from '../../utils/format'
 
 const props = withDefaults(
   defineProps<{
@@ -33,9 +34,7 @@ const sign = computed(() => {
   return ''
 })
 
-const formatted = computed(() =>
-  Math.abs(displayValue.value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-)
+const formatted = computed(() => formatCurrency(Math.abs(displayValue.value)))
 
 // The glow/underline treatment is reserved for the "hero" size — small inline
 // balances (size="md") stay static-colored so the signature moment isn't diluted.

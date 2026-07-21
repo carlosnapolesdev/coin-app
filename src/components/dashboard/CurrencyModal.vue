@@ -107,7 +107,7 @@ const handleOk = () => {
         <div
           v-for="currency in filteredCurrencies"
           :key="currency.code"
-          class="group flex cursor-pointer items-center justify-between rounded-xl border p-3 transition-all"
+          class="group flex cursor-pointer items-center justify-between rounded-xl border p-3 transition"
           :class="isSelected(currency.code)
             ? 'border-primary/30 bg-primary/10'
             : 'border-transparent hover:border-line hover:bg-surface-2'"

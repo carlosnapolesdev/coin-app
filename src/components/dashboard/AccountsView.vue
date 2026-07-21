@@ -381,7 +381,7 @@ onMounted(() => {
               </template>
 
               <button
-                class="mt-2 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-line p-3 text-sm font-semibold text-muted transition-all hover:border-primary hover:text-primary"
+                class="mt-2 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-line p-3 text-sm font-semibold text-muted transition hover:border-primary hover:text-primary"
                 @click="startCreating"
               >
                 <span class="material-symbols-outlined text-[20px]">add</span>
@@ -474,7 +474,7 @@ onMounted(() => {
                     <!-- Preview / Toggle -->
                     <button
                       type="button"
-                      class="flex w-full items-center gap-3 rounded-lg border border-line bg-surface-2 p-2.5 text-left transition-all hover:bg-surface"
+                      class="flex w-full items-center gap-3 rounded-lg border border-line bg-surface-2 p-2.5 text-left transition hover:bg-surface"
                       @click="iconPickerOpen = !iconPickerOpen; iconSearch = ''; visibleIconLimit = 60"
                     >
                       <div class="icon-tile size-9 shrink-0 bg-primary/10 text-primary">
@@ -552,28 +552,28 @@ onMounted(() => {
                 <div class="flex flex-col gap-4">
                   <label class="field-label">{{ t('accounts.behaviour.reportExclusionLabel') }}</label>
                   <div class="flex max-w-md flex-col gap-3">
-                    <label class="flex cursor-pointer items-center gap-3 rounded-xl border border-line bg-surface-2 p-4 transition-all hover:bg-surface">
+                    <label class="flex cursor-pointer items-center gap-3 rounded-xl border border-line bg-surface-2 p-4 transition hover:bg-surface">
                       <input v-model="selectedAccountBehaviour.excludeFromAccountSummary" class="size-5 rounded border-line" type="checkbox" />
                       <div>
                         <span class="text-sm font-semibold text-content">{{ t('accounts.behaviour.checks.excludeSummary') }}</span>
                         <p class="mt-0.5 text-xs text-muted">{{ t('accounts.behaviour.checks.excludeSummaryHint') }}</p>
                       </div>
                     </label>
-                    <label class="flex cursor-pointer items-center gap-3 rounded-xl border border-line bg-surface-2 p-4 transition-all hover:bg-surface">
+                    <label class="flex cursor-pointer items-center gap-3 rounded-xl border border-line bg-surface-2 p-4 transition hover:bg-surface">
                       <input v-model="selectedAccountBehaviour.outlineIntoSummary" class="size-5 rounded border-line" type="checkbox" />
                       <div>
                         <span class="text-sm font-semibold text-content">{{ t('accounts.behaviour.checks.outlineSummary') }}</span>
                         <p class="mt-0.5 text-xs text-muted">{{ t('accounts.behaviour.checks.outlineSummaryHint') }}</p>
                       </div>
                     </label>
-                    <label class="flex cursor-pointer items-center gap-3 rounded-xl border border-line bg-surface-2 p-4 transition-all hover:bg-surface">
+                    <label class="flex cursor-pointer items-center gap-3 rounded-xl border border-line bg-surface-2 p-4 transition hover:bg-surface">
                       <input v-model="selectedAccountBehaviour.excludeFromBudget" class="size-5 rounded border-line" type="checkbox" />
                       <div>
                         <span class="text-sm font-semibold text-content">{{ t('accounts.behaviour.checks.excludeBudget') }}</span>
                         <p class="mt-0.5 text-xs text-muted">{{ t('accounts.behaviour.checks.excludeBudgetHint') }}</p>
                       </div>
                     </label>
-                    <label class="flex cursor-pointer items-center gap-3 rounded-xl border border-line bg-surface-2 p-4 transition-all hover:bg-surface">
+                    <label class="flex cursor-pointer items-center gap-3 rounded-xl border border-line bg-surface-2 p-4 transition hover:bg-surface">
                       <input v-model="selectedAccountBehaviour.excludeFromAnyReports" class="size-5 rounded border-line" type="checkbox" />
                       <div>
                         <span class="text-sm font-semibold text-content">{{ t('accounts.behaviour.checks.excludeReports') }}</span>
@@ -594,11 +594,11 @@ onMounted(() => {
                     <div>
                       <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-muted">{{ t('accounts.misc.overdraftLabel') }}</label>
                       <div class="flex items-center gap-2">
-                        <button @click="decrement('overdraftAt')" class="flex size-10 items-center justify-center rounded-lg bg-surface-2 text-muted transition-all hover:bg-line">
+                        <button @click="decrement('overdraftAt')" class="flex size-10 items-center justify-center rounded-lg bg-surface-2 text-muted transition hover:bg-line">
                           <span class="material-symbols-outlined">remove</span>
                         </button>
                         <input v-model="selectedAccountMisc.overdraftAt" class="field-input text-center" type="number" step="0.01" />
-                        <button @click="increment('overdraftAt')" class="flex size-10 items-center justify-center rounded-lg bg-surface-2 text-muted transition-all hover:bg-line">
+                        <button @click="increment('overdraftAt')" class="flex size-10 items-center justify-center rounded-lg bg-surface-2 text-muted transition hover:bg-line">
                           <span class="material-symbols-outlined">add</span>
                         </button>
                       </div>
@@ -607,11 +607,11 @@ onMounted(() => {
                     <div>
                       <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-muted">{{ t('accounts.misc.maximumLabel') }}</label>
                       <div class="flex items-center gap-2">
-                        <button @click="decrement('maximumBalance')" class="flex size-10 items-center justify-center rounded-lg bg-surface-2 text-muted transition-all hover:bg-line">
+                        <button @click="decrement('maximumBalance')" class="flex size-10 items-center justify-center rounded-lg bg-surface-2 text-muted transition hover:bg-line">
                           <span class="material-symbols-outlined">remove</span>
                         </button>
                         <input v-model="selectedAccountMisc.maximumBalance" class="field-input text-center" type="number" step="0.01" />
-                        <button @click="increment('maximumBalance')" class="flex size-10 items-center justify-center rounded-lg bg-surface-2 text-muted transition-all hover:bg-line">
+                        <button @click="increment('maximumBalance')" class="flex size-10 items-center justify-center rounded-lg bg-surface-2 text-muted transition hover:bg-line">
                           <span class="material-symbols-outlined">add</span>
                         </button>
                       </div>
@@ -626,11 +626,11 @@ onMounted(() => {
                     <div>
                       <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-muted">{{ t('accounts.misc.checkbook1Label') }}</label>
                       <div class="flex items-center gap-2">
-                        <button @click="decrement('checkbook1')" class="flex size-10 items-center justify-center rounded-lg bg-surface-2 text-muted transition-all hover:bg-line">
+                        <button @click="decrement('checkbook1')" class="flex size-10 items-center justify-center rounded-lg bg-surface-2 text-muted transition hover:bg-line">
                           <span class="material-symbols-outlined">remove</span>
                         </button>
                         <input v-model="selectedAccountMisc.checkbook1" class="field-input text-center" type="number" />
-                        <button @click="increment('checkbook1')" class="flex size-10 items-center justify-center rounded-lg bg-surface-2 text-muted transition-all hover:bg-line">
+                        <button @click="increment('checkbook1')" class="flex size-10 items-center justify-center rounded-lg bg-surface-2 text-muted transition hover:bg-line">
                           <span class="material-symbols-outlined">add</span>
                         </button>
                       </div>
@@ -639,11 +639,11 @@ onMounted(() => {
                     <div>
                       <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-muted">{{ t('accounts.misc.checkbook2Label') }}</label>
                       <div class="flex items-center gap-2">
-                        <button @click="decrement('checkbook2')" class="flex size-10 items-center justify-center rounded-lg bg-surface-2 text-muted transition-all hover:bg-line">
+                        <button @click="decrement('checkbook2')" class="flex size-10 items-center justify-center rounded-lg bg-surface-2 text-muted transition hover:bg-line">
                           <span class="material-symbols-outlined">remove</span>
                         </button>
                         <input v-model="selectedAccountMisc.checkbook2" class="field-input text-center" type="number" />
-                        <button @click="increment('checkbook2')" class="flex size-10 items-center justify-center rounded-lg bg-surface-2 text-muted transition-all hover:bg-line">
+                        <button @click="increment('checkbook2')" class="flex size-10 items-center justify-center rounded-lg bg-surface-2 text-muted transition hover:bg-line">
                           <span class="material-symbols-outlined">add</span>
                         </button>
                       </div>

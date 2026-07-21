@@ -40,7 +40,7 @@ const iconSize = computed(() => (props.size === 'lg' ? 'text-[22px]' : 'text-[20
   <button
     :type="type"
     :disabled="disabled || loading"
-    class="inline-flex items-center justify-center rounded-lg font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg disabled:cursor-not-allowed disabled:opacity-60"
+    class="inline-flex items-center justify-center rounded-lg font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg disabled:cursor-not-allowed disabled:opacity-60"
     :class="[variantClass[variant], sizeClass[size], block ? 'w-full' : '']"
   >
     <AppSpinner v-if="loading" size="sm" />

@@ -33,3 +33,10 @@ export const formatMonthYear = (date: Date): string => {
   const { locale } = useLocale()
   return date.toLocaleString(toIntlLocale(locale.value), { month: 'long', year: 'numeric' })
 }
+
+// Takes a 'YYYY-MM' key (the reports API month key) and returns the short month
+// name in the active locale.
+export const formatMonthShort = (month: string): string => {
+  const [year, m] = month.split('-')
+  return formatDate(new Date(Number(year), Number(m) - 1, 1), { month: 'short' })
+}

@@ -46,7 +46,7 @@ const go = (route: string) => router.push({ name: route })
 
       <div class="h-1.5 w-full bg-surface-2">
         <div
-          class="h-1.5 rounded-r-full bg-primary transition-all duration-500"
+          class="h-1.5 rounded-r-full bg-primary transition-[width] duration-500"
           :style="{ width: `${(completedCount / totalSteps) * 100}%` }"
         />
       </div>

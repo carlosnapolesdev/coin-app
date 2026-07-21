@@ -388,7 +388,7 @@ const handleSave = async (keepOpen = false) => {
           v-for="txType in (['EXPENSE', 'INCOME', 'TRANSFER'] as TransactionType[])"
           :key="txType"
           type="button"
-          class="flex-1 rounded-md px-4 py-2.5 text-sm font-semibold transition-all"
+          class="flex-1 rounded-md px-4 py-2.5 text-sm font-semibold transition"
           :class="selectedType === txType ? 'bg-surface text-primary shadow-sm' : 'text-muted hover:text-content'"
           @click="selectedType = txType"
         >
@@ -483,7 +483,7 @@ const handleSave = async (keepOpen = false) => {
             v-for="s in (['PENDING', 'CLEARED', 'VOID'] as TransactionStatus[])"
             :key="s"
             type="button"
-            class="flex size-11 items-center justify-center rounded-md transition-all"
+            class="flex size-11 items-center justify-center rounded-md transition"
             :class="status === s ? 'bg-surface text-primary shadow-sm' : 'text-faint hover:text-content'"
             :title="s"
             :disabled="isSaving"

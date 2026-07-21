@@ -266,7 +266,7 @@ onMounted(() => {
 
             <div class="mt-2 h-2 w-full overflow-hidden rounded-full bg-surface-2">
               <div
-                class="h-2 rounded-full transition-all"
+                class="h-2 rounded-full transition-[width,background-color]"
                 :class="barClass(goal)"
                 :style="{ width: Math.min(goal.percentComplete, 100) + '%' }"
               />
