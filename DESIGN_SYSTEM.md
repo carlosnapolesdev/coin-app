@@ -24,21 +24,22 @@ derived secondary. New sessions with no stored theme preference open in dark
 
 | Token            | Tailwind class examples                | Light        | Dark         | Use for |
 |------------------|----------------------------------------|--------------|--------------|---------|
-| `primary`        | `bg-primary` `text-primary`            | `#5C7A14`    | `#C8FF4D`    | Electric lime accent. **Rationed**: CTAs, the active-nav bar, and positive monetary figures only — never a decorative fill |
-| `primary-hover`  | `hover:bg-primary-hover`               | `#4C6710`    | `#B4EA3A`    | Hover for filled primary |
+| `primary`        | `bg-primary` `text-primary`            | `#4F7A10`    | `#C8FF4D`    | Electric lime accent. **Rationed**: CTAs, the active-nav bar, and positive monetary figures only — never a decorative fill |
+| `primary-hover`  | `hover:bg-primary-hover`               | `#3E610C`    | `#B4EA3A`    | Hover for filled primary |
 | `primary-fg`     | `text-primary-fg`                      | white        | `#0A0E0C`    | Text/icons **on** a primary fill |
-| `bg`             | `bg-bg`                                | `#F6F7F3`    | `#0A0E0C`    | App canvas / page background — warm, not blue-slate |
+| `bg`             | `bg-bg`                                | `#ECF3EE`    | `#0A0E0C`    | App canvas / page background — cool mint-teal — echoes the OG teal backdrop |
 | `surface`        | `bg-surface`                           | white        | `#121613`    | Cards, panels, modals |
-| `surface-2`      | `bg-surface-2`                         | `#EEF0EA`    | `#1B211D`    | Inputs, subtle fills, hover rows |
+| `surface-2`      | `bg-surface-2`                         | `#E5F0EC`    | `#1B211D`    | Inputs, subtle fills, hover rows |
 | `content`        | `text-content`                         | `#14170F`    | `#EDF1EC`    | Primary text |
-| `muted`          | `text-muted`                           | `#66706A`    | `#8A968E`    | Secondary text |
-| `faint`          | `text-faint`                           | `#99A29B`    | `#57625C`    | Tertiary text, placeholders, idle icons |
-| `line`           | `border-line` `divide-line`            | `#E2E5DD`    | `#232A25`    | Borders, dividers |
-| `line-strong`    | `border-line-strong`                   | `#CDD2C6`    | `#313A33`    | Stronger borders, dashed CTAs |
+| `muted`          | `text-muted`                           | `#5F6D63`    | `#8A968E`    | Secondary text |
+| `faint`          | `text-faint`                           | `#93A29A`    | `#57625C`    | Tertiary text, placeholders, idle icons |
+| `line`           | `border-line` `divide-line`            | `#D8E6DE`    | `#232A25`    | Borders, dividers |
+| `line-strong`    | `border-line-strong`                   | `#CBD9CF`    | `#313A33`    | Stronger borders, dashed CTAs |
 | `success`        | `text-success` `bg-success/10`         | `#1F9C67`    | `#3ECF8E`    | Calm teal — generic success state (saved, cleared, confirmed). Deliberately **not** `primary`, so brand accent and generic success never collide |
 | `danger`         | `text-danger` `bg-danger/10`           | `#E23F57`    | `#FF5C72`    | Expenses, destructive, errors |
 | `warning`        | `text-warning` `bg-warning/10`         | `#B8790A`    | `#FFC24B`    | Pending / caution |
 | `info`           | `text-info`                            | `#1E74B8`    | `#4FA8E6`    | Neutral information |
+| `brand-teal`     | `bg-brandTeal` (rare)                  | `#0F6B64`    | `#3AA89F`    | Secondary brand teal — **atmospheric/decorative** (canvas glow, auth ambient, acrylic card tint). **Not** a status color: would collide with `success`. Clears 6.35:1 as text on white if ever needed |
 | `overlay`        | `bg-overlay/50` `bg-overlay/60` `bg-overlay/80` | black    | black    | Modal / lightbox / drawer scrim — **theme-agnostic by design** (it sits BETWEEN background and card), used with Tailwind's alpha modifier. Never `bg-slate-950` |
 | `overlay-fg`     | `text-overlay-fg` `bg-overlay-fg/10`   | white        | white        | Text/icons **on** the overlay surface (lightbox controls) |
 | `scrim`          | `bg-scrim/50` `bg-scrim/60`            | white        | black        | Glass-layer scrim (modal, drawer, celebration) — **theme-dependent on purpose**: a black scrim behind light glass turns it muddy gray and sinks muted-text contrast. The lightbox keeps `overlay` (photos read over dark in both themes) |
@@ -122,19 +123,27 @@ Rules:
 
 Glass comes in exactly **two tiers**, both with centralized fallbacks
 (browsers without `backdrop-filter` and `prefers-reduced-transparency: reduce`
-get the solid surface):
+get the solid surface (opaque, no tint or sheen)):
 
 - **Floating tier — `.surface-glass`** for surfaces that open **over** content:
   modals, menus (user + language), the mobile drawer, toasts, auth form cards.
-  Fill `rgb(var(--color-surface) / var(--glass-alpha))` (`0.82` light / `0.75`
-  dark) + `blur(var(--glass-blur))` (`14px`). Replaces the
+  Also **acrylic**, but a lighter echo of the card tier (it carries text over a
+  scrim): brand-teal-tinted fill (`--glass-tint` `4%` light / `5%` dark mixed
+  into `--color-surface`) at `--glass-alpha` (`0.82` light / `0.75` dark),
+  `blur(var(--glass-blur))` (`14px`), a soft `--glass-sheen` and a lightly
+  teal-tinted `--glass-border`. Replaces the
   `border border-line bg-surface shadow-elevated` trio; does **not** set a
   radius — keep the component's own (`rounded-2xl`; toasts `rounded-xl`).
 - **Card tier — `.surface-card`** (and therefore `AppCard`): data cards are
-  translucent too, but deliberately more opaque and with a lighter blur —
-  `--card-alpha` (`0.90` light / `0.85` dark) + `blur(var(--card-blur))`
-  (`8px`) — because they carry dense text. Never give a data card the floating
-  tier, and never stack one glass tier inside the other expecting extra depth.
+  **acrylic** — a brand-teal-tinted translucent fill (`--card-tint` `6%` light /
+  `13%` dark mixed into `--color-surface`) at `--card-alpha` (`0.72` light /
+  `0.62` dark), `blur(var(--card-blur))` (`12px`), a diagonal top **sheen**
+  (`--card-sheen`), a teal-tinted border (`--card-border`) and a soft cool
+  shadow (`--card-shadow`). The lower alpha is safe only because the contrast
+  guard holds — `src/style-tokens.contrast.test.ts` enforces text pairs
+  ≥ 4.5:1, and the fallbacks below drop to a solid, sheen-free surface. Never
+  give a data card the floating tier, and never stack one glass tier inside the
+  other expecting extra depth.
 
 Scrim rule: glass-layer scrims use the theme-dependent `scrim` token
 (`bg-scrim/50` modal, `/60` drawer — white veil in light, black in dark). The
@@ -146,7 +155,7 @@ from `muted` to `content` (see the drawer's scoped override).
 The canvas is what makes glass legible *and* visible: shell roots use
 **`.bg-ambient`** (auth screens add `--strong`) — the `bg` color plus two
 static radial brand glows. The **logo watermark** (`--wm-logo`: the BrandMark
-C-arc + center ring as an inline SVG, stroke at ~4–5% alpha per mode) is
+C-arc + center ring as an inline SVG, stroke at ~4–5% alpha per mode (light tinted teal `#0F6B64`, dark sage `#EDF1EC`)) is
 painted **per area, never on the shell**: each region owns its watermark and
 clips it at its own edges, so the figure reads as belonging to that pane
 rather than to a layer floating over the whole view — `.wm-logo-side`

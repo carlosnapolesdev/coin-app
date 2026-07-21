@@ -42,6 +42,8 @@ export default {
         danger: token("--color-danger"),
         warning: token("--color-warning"),
         info: token("--color-info"),
+        // Secondary brand teal — atmospheric/decorative (see DESIGN_SYSTEM). Not a status color.
+        brandTeal: token("--color-brand-teal"),
         // Modal/lightbox overlay — theme-agnostic. Use as bg-overlay/X (X = alpha).
         overlay: token("--color-overlay"),
         // Scrim de capas de cristal — theme-dependent (blanco en light, negro en dark).

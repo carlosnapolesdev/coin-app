@@ -128,7 +128,7 @@ describe('brand assets', () => {
 
   it('tiñe cada watermark según su tema', () => {
     const themes = [
-      { color: '#14170F', opacity: '.04' },
+      { color: '#0F6B64', opacity: '.04' },
       { color: '#EDF1EC', opacity: '.05' },
     ]
 

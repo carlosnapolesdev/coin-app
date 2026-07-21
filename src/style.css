@@ -12,24 +12,33 @@
   :root {
     color-scheme: light;
 
-    /* Brand — deep olive-lime, dark enough for text/icon contrast on white */
-    --color-primary: 92 122 20;        /* #5C7A14 */
-    --color-primary-hover: 76 103 16;  /* #4C6710 */
+    /* Brand — cleaned lima-green: more saturated than the old olive, still dark
+       enough for WCAG text/fill contrast on white (5.09:1 as button fill). The
+       OG's bright lima can't clear contrast on light, so brand vibrancy comes
+       from the canvas + acrylic cards, not from this token. */
+    --color-primary: 79 122 16;        /* #4F7A10 */
+    --color-primary-hover: 62 97 12;   /* #3E610C */
     --color-primary-fg: 255 255 255;   /* text/icons on primary */
 
-    /* Background & surfaces — warm, not blue-slate */
-    --color-bg: 246 247 243;           /* #F6F7F3 */
-    --color-surface: 255 255 255;      /* white */
-    --color-surface-2: 238 240 234;    /* #EEF0EA */
+    /* Secondary brand teal — the OG's deep-teal backdrop. Atmospheric: canvas
+       glow, auth ambient, acrylic card tint. NOT a status color (collides with
+       success). Clears 6.35:1 as text on white if ever needed. */
+    --color-brand-teal: 15 107 100;    /* #0F6B64 */
+
+    /* Background & surfaces — cool mint-teal, echoing the OG backdrop (was a
+       warm neutral off-white with no brand color in it — the "pale" look). */
+    --color-bg: 236 243 238;           /* #ECF3EE */
+    --color-surface: 255 255 255;      /* white — base for the tinted acrylic card fill */
+    --color-surface-2: 229 240 236;    /* #E5F0EC — sunken (inputs), cooled toward green */
 
     /* Text */
     --color-content: 20 23 15;         /* #14170F */
-    --color-muted: 102 112 106;        /* #66706A */
-    --color-faint: 153 162 155;        /* #99A29B */
+    --color-muted: 95 109 99;          /* #5F6D63 — darker/greener so it stays >=4.5 on the tinted canvas */
+    --color-faint: 147 162 154;        /* #93A29A — decorative only (icons/placeholders) */
 
     /* Lines */
-    --color-line: 226 229 221;         /* #E2E5DD */
-    --color-line-strong: 205 210 198;  /* #CDD2C6 */
+    --color-line: 216 230 222;         /* #D8E6DE — cooled toward green */
+    --color-line-strong: 203 217 207;  /* #CBD9CF */
 
     /* Status — success is decoupled from the brand accent on purpose */
     --color-success: 31 156 103;       /* #1F9C67 */
@@ -63,12 +72,28 @@
        más opacas y con blur menor porque cargan texto denso). */
     --glass-alpha: 0.82;
     --glass-blur: 14px;
-    --card-alpha: 0.90;
-    --card-blur: 8px;
+    /* Floating tier acrylic — a lighter echo of the card tier: floating layers
+       (menus, modals, drawer, toasts, auth cards) carry text over a scrim, so
+       the tint and sheen stay subtler than on data cards. */
+    --glass-tint: 4%;
+    --glass-sheen: linear-gradient(152deg, rgba(255, 255, 255, 0.35), transparent 48%);
+    --glass-border: color-mix(in srgb, rgb(var(--color-brand-teal)) 14%, rgb(var(--color-line) / 0.6));
+    /* Acrylic data-card tier — brand-teal-tinted translucent glass. Lower alpha
+       than before so the canvas/glow reads through; sheen is a diagonal top
+       highlight; border and shadow are teal-tinted. Contrast guard: content/muted
+       stay >=4.5 over the effective fill (the fill is lighter than surface-2,
+       which is already verified). See DESIGN_SYSTEM §1.4. */
+    --card-alpha: 0.72;
+    --card-blur: 12px;
+    --card-tint: 6%;
+    --card-border: color-mix(in srgb, rgb(var(--color-brand-teal)) 24%, rgb(var(--color-line)));
+    --card-sheen: linear-gradient(152deg, rgba(255, 255, 255, 0.55), transparent 46%);
+    --card-shadow: 0 6px 18px -12px rgba(15, 60, 55, 0.35);
 
-    /* Ambient canvas — glows radiales estáticos de marca (light: oliva + teal) */
-    --ambient-1: rgba(92, 122, 20, 0.07);
-    --ambient-2: rgba(21, 158, 148, 0.06);
+    /* Ambient canvas — static brand glows. Teal now leads (OG backdrop), lima
+       supports. This is where light picks up the OG's teal feel. */
+    --ambient-1: rgba(92, 122, 20, 0.10);
+    --ambient-2: rgba(15, 107, 100, 0.14);
 
     /* Watermark — el logo de Crecik (anillo + check + flecha, el mismo
        SVG de BrandMark) embebido como data-URI, color/intensidad por modo.
@@ -76,7 +101,7 @@
        El viewBox recorta el padding del icono (que en BrandMark/favicon lo
        aporta la teja redondeada) para que la marca llene la caja: sin él la
        figura queda ~20% más pequeña y los offsets de abajo dejan de cuadrar. */
-    --wm-logo: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='3.31%204.27%2025.44%2025.44'%20fill='none'%20stroke='%2314170F'%20opacity='.04'%20stroke-linecap='round'%3E%3Cpath%20d='M18.4%208%20A9.3%209.3%200%201%200%2025.3%2016.2'%20stroke-width='2.6'/%3E%3Cpath%20d='M12.75%2017.7%20L15.85%2014.6%20L18.65%2016.9%20L23.75%2011.27'%20stroke-width='2.8'%20stroke-linejoin='round'/%3E%3Cpath%20d='M25.9%208.9%20L25.38%2012.75%20L22.12%209.79%20Z'%20fill='%2314170F'%20stroke-width='1'%20stroke-linejoin='round'/%3E%3C/svg%3E");
+    --wm-logo: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='3.31%204.27%2025.44%2025.44'%20fill='none'%20stroke='%230F6B64'%20opacity='.04'%20stroke-linecap='round'%3E%3Cpath%20d='M18.4%208%20A9.3%209.3%200%201%200%2025.3%2016.2'%20stroke-width='2.6'/%3E%3Cpath%20d='M12.75%2017.7%20L15.85%2014.6%20L18.65%2016.9%20L23.75%2011.27'%20stroke-width='2.8'%20stroke-linejoin='round'/%3E%3Cpath%20d='M25.9%208.9%20L25.38%2012.75%20L22.12%209.79%20Z'%20fill='%230F6B64'%20stroke-width='1'%20stroke-linejoin='round'/%3E%3C/svg%3E");
 
     /* Paneles translúcidos (Sidebar, TopHeader) — tinte leve de surface */
     --panel-alpha: 0.5;
@@ -89,6 +114,8 @@
     --color-primary: 200 255 77;       /* #C8FF4D */
     --color-primary-hover: 180 234 58; /* #B4EA3A */
     --color-primary-fg: 10 14 12;      /* dark text on the bright lime fill */
+
+    --color-brand-teal: 58 168 159;    /* #3AA89F — re-stepped for the green-black */
 
     /* Background & surfaces — warm green-black, not blue-slate */
     --color-bg: 10 14 12;              /* #0A0E0C */
@@ -127,11 +154,21 @@
 
     /* Glass — dark es más translúcido; el scrim del modal compensa la separación */
     --glass-alpha: 0.75;
-    --card-alpha: 0.85;
+    --glass-tint: 5%;
+    --glass-sheen: linear-gradient(152deg, rgba(255, 255, 255, 0.05), transparent 48%);
+    --glass-border: color-mix(in srgb, rgb(var(--color-brand-teal)) 18%, rgb(var(--color-line) / 0.6));
+    /* Acrylic card, dark tuning (inherits --card-blur: 12px from :root). Tint is
+       kept low: teal reads much stronger against the near-black surface than
+       against white, so matching the light 6% here would look overly green. */
+    --card-alpha: 0.62;
+    --card-tint: 7%;
+    --card-border: color-mix(in srgb, rgb(var(--color-brand-teal)) 24%, rgb(var(--color-line)));
+    --card-sheen: linear-gradient(152deg, rgba(255, 255, 255, 0.07), transparent 46%);
+    --card-shadow: 0 6px 18px -12px rgba(0, 0, 0, 0.55);
 
     /* Ambient canvas — lima + teal sobre el negro-verdoso */
     --ambient-1: rgba(200, 255, 77, 0.05);
-    --ambient-2: rgba(23, 160, 145, 0.04);
+    --ambient-2: rgba(23, 160, 145, 0.06);
 
     /* Watermark — el logo en trazo salvia claro sobre el negro-verdoso */
     --wm-logo: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='3.31%204.27%2025.44%2025.44'%20fill='none'%20stroke='%23EDF1EC'%20opacity='.05'%20stroke-linecap='round'%3E%3Cpath%20d='M18.4%208%20A9.3%209.3%200%201%200%2025.3%2016.2'%20stroke-width='2.6'/%3E%3Cpath%20d='M12.75%2017.7%20L15.85%2014.6%20L18.65%2016.9%20L23.75%2011.27'%20stroke-width='2.8'%20stroke-linejoin='round'/%3E%3Cpath%20d='M25.9%208.9%20L25.38%2012.75%20L22.12%209.79%20Z'%20fill='%23EDF1EC'%20stroke-width='1'%20stroke-linejoin='round'/%3E%3C/svg%3E");
@@ -165,9 +202,23 @@
      anillos) se perciba a través, sobre todo donde un anillo cruza su borde.
      Más opaca que .surface-glass porque carga texto denso. Fallbacks abajo. */
   .surface-card {
-    @apply rounded-2xl border border-line shadow-card;
-    background-color: rgb(var(--color-surface) / var(--card-alpha));
+    @apply rounded-2xl;
+    /* Fallback for browsers with backdrop-filter but no color-mix (~2022): a
+       solid translucent surface with the plain line border and no sheen. The
+       enhanced declarations below override it wherever color-mix parses. */
+    border: 1px solid rgb(var(--color-line));
+    background: rgb(var(--color-surface) / var(--card-alpha));
+    /* Enhanced: teal-tinted acrylic fill + diagonal sheen sits ON the fill (text
+       paints above both) + teal-tinted border. If color-mix is unsupported these
+       two declarations are dropped and the fallbacks above stay in effect. */
+    border-color: var(--card-border);
+    background:
+      var(--card-sheen),
+      color-mix(in srgb,
+        rgb(var(--color-brand-teal)) var(--card-tint),
+        rgb(var(--color-surface) / var(--card-alpha)));
     backdrop-filter: blur(var(--card-blur));
+    box-shadow: var(--card-shadow);
   }
 
   .field-label {
@@ -216,8 +267,17 @@
      componente conserva el suyo). Ver DESIGN_SYSTEM.md §1.4. */
   .surface-glass {
     @apply shadow-elevated;
+    /* Fallback (no color-mix): plain translucent surface + line border, no sheen. */
     border: 1px solid rgb(var(--color-line) / 0.6);
-    background-color: rgb(var(--color-surface) / var(--glass-alpha));
+    background: rgb(var(--color-surface) / var(--glass-alpha));
+    /* Enhanced: a subtler acrylic than the card tier (text sits over a scrim
+       here). Dropped wholesale where color-mix is unsupported. */
+    border-color: var(--glass-border);
+    background:
+      var(--glass-sheen),
+      color-mix(in srgb,
+        rgb(var(--color-brand-teal)) var(--glass-tint),
+        rgb(var(--color-surface) / var(--glass-alpha)));
     backdrop-filter: blur(var(--glass-blur));
   }
 
@@ -225,15 +285,16 @@
   @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
     .surface-glass,
     .surface-card {
-      background-color: rgb(var(--color-surface));
+      /* `background` (not `-color`) so the acrylic sheen image is cleared too */
+      background: rgb(var(--color-surface));
     }
   }
 
-  /* Preferencia de accesibilidad → opaco y sin blur */
+  /* Preferencia de accesibilidad → opaco y sin blur (ni tinte ni sheen) */
   @media (prefers-reduced-transparency: reduce) {
     .surface-glass,
     .surface-card {
-      background-color: rgb(var(--color-surface));
+      background: rgb(var(--color-surface));
       backdrop-filter: none;
     }
   }
@@ -250,15 +311,15 @@
 
   /* Variante para pantallas auth: mismos glows, más presentes y más grandes */
   .bg-ambient--strong {
-    --ambient-1: rgba(92, 122, 20, 0.11);
-    --ambient-2: rgba(21, 158, 148, 0.09);
+    --ambient-1: rgba(92, 122, 20, 0.13);
+    --ambient-2: rgba(15, 107, 100, 0.16);
     background-image:
       radial-gradient(72rem 48rem at 85% -10%, var(--ambient-1), transparent 65%),
       radial-gradient(60rem 44rem at -10% 95%, var(--ambient-2), transparent 65%);
   }
   .dark .bg-ambient--strong {
     --ambient-1: rgba(200, 255, 77, 0.10);
-    --ambient-2: rgba(23, 160, 145, 0.08);
+    --ambient-2: rgba(23, 160, 145, 0.10);
   }
 
   /* Panel translúcido — Sidebar y TopHeader: tinte leve de surface para que
