@@ -132,6 +132,14 @@ const pt: MessageSchema = {
         currency: { title: 'Multi-moeda', text: 'Acompanhe saldos em diferentes moedas.' },
       },
     },
+    google: {
+      divider: 'ou',
+      errors: {
+        tokenInvalid: 'Não foi possível verificar seu login com o Google. Tente novamente.',
+        emailUnverified: 'Este e-mail já está registrado com uma senha. Entre com ela.',
+        generic: 'Não foi possível entrar com o Google. Tente novamente.',
+      },
+    },
     forgotPassword: {
       title: 'Esqueci minha senha',
       subtitle: 'Digite seu e-mail e enviaremos um link de redefinição.',

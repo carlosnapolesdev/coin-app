@@ -8,6 +8,7 @@ export type AuthUser = {
   username: string | null
   language: string
   onboardingState?: OnboardingState | null
+  requiresCurrencySetup?: boolean
 }
 
 export type AuthResponse = {

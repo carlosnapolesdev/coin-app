@@ -1,12 +1,19 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi, type Mock } from 'vitest'
 import * as useLocaleModule from '../composables/useLocale'
 import type { AxiosResponse } from 'axios'
 import type { Router } from 'vue-router'
 import type { AuthResponse } from './auth-session'
+import api from './api'
 
 vi.mock('./api', () => ({
   default: { post: vi.fn(), get: vi.fn(), patch: vi.fn() },
 }))
+
+const mockedApi = {
+  post: api.post as Mock,
+  get: api.get as Mock,
+  patch: api.patch as Mock,
+}
 
 describe('changeLanguage', () => {
   afterEach(() => {
@@ -108,5 +115,51 @@ describe('handleUnauthorizedSession', () => {
 
     expect(window.sessionStorage.getItem('crecik.auth')).toBeNull()
     expect(router.replace).not.toHaveBeenCalled()
+  })
+})
+
+describe('loginWithGoogle', () => {
+  afterEach(() => {
+    vi.clearAllMocks()
+    window.localStorage.clear()
+    window.sessionStorage.clear()
+  })
+
+  it('posts the id token, stores the session and returns the user', async () => {
+    const { loginWithGoogle } = await import('./auth')
+    const response = {
+      token: 't',
+      tokenType: 'Bearer',
+      expiresAt: 'x',
+      user: {
+        id: 1,
+        fullName: 'Ada',
+        email: 'a@b.com',
+        username: null,
+        language: 'en',
+        requiresCurrencySetup: true,
+      },
+    }
+    mockedApi.post.mockResolvedValue({ data: response } as AxiosResponse<unknown>)
+
+    const data = await loginWithGoogle('idtok', true)
+
+    expect(mockedApi.post).toHaveBeenCalledWith('/auth/google', { idToken: 'idtok', rememberMe: true })
+    expect(data.user.requiresCurrencySetup).toBe(true)
+  })
+})
+
+describe('getGoogleClientId', () => {
+  afterEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('returns the client id from the config endpoint', async () => {
+    const { getGoogleClientId } = await import('./auth')
+    mockedApi.get.mockResolvedValue({ data: { clientId: 'cid' } } as AxiosResponse<unknown>)
+
+    await expect(getGoogleClientId()).resolves.toBe('cid')
+
+    expect(mockedApi.get).toHaveBeenCalledWith('/auth/google/config')
   })
 })

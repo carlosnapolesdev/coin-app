@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import TopHeader from './common/TopHeader.vue'
 import CurrencyModal from './dashboard/CurrencyModal.vue'
+import GoogleSignInButton from './GoogleSignInButton.vue'
 import { AppButton } from './ui'
 import api from '../services/api'
 import { useLocale } from '../composables/useLocale'
@@ -468,6 +469,13 @@ const steps = computed(() => [
                 <button class="hidden" type="submit">{{ t('auth.register.step4.createAccount') }}</button>
               </form>
             </div>
+
+            <div class="flex items-center gap-3 pt-2">
+              <span class="h-px flex-1 bg-line" aria-hidden="true"></span>
+              <span class="text-xs font-medium text-faint">{{ t('auth.google.divider') }}</span>
+              <span class="h-px flex-1 bg-line" aria-hidden="true"></span>
+            </div>
+            <GoogleSignInButton />
 
             <!-- Helper cards -->
             <div class="mx-auto grid max-w-2xl grid-cols-1 gap-4 md:grid-cols-2 lg:mx-0">

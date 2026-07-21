@@ -130,6 +130,14 @@ const en = {
         currency: { title: 'Multi-currency', text: 'Track balances across currencies.' },
       },
     },
+    google: {
+      divider: 'or',
+      errors: {
+        tokenInvalid: "We couldn't verify your Google sign-in. Try again.",
+        emailUnverified: 'This email is already registered with a password. Sign in with it.',
+        generic: 'Google sign-in failed. Try again.',
+      },
+    },
     forgotPassword: {
       title: 'Forgot password',
       subtitle: "Enter your email and we'll send you a reset link.",

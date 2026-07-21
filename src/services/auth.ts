@@ -94,6 +94,19 @@ export const login = async (payload: LoginPayload, remember: boolean) => {
   return data
 }
 
+export const getGoogleClientId = async (): Promise<string> => {
+  const { data } = await api.get<{ clientId: string }>('/auth/google/config')
+  return data.clientId
+}
+
+export const loginWithGoogle = async (idToken: string, remember: boolean) => {
+  const { data } = await api.post<AuthResponse>('/auth/google', { idToken, rememberMe: remember })
+  saveAuthSession(data, remember)
+  setAuthenticatedState(data)
+  authState.initialized = true
+  return data
+}
+
 export const fetchCurrentUser = async () => {
   const { data } = await api.get<AuthUser>('/auth/me')
   authState.user = data
