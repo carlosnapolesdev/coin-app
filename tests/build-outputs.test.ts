@@ -14,19 +14,33 @@ function getIndexHtml(): string | null {
   return readFileSync(indexHtmlPath, 'utf-8')
 }
 
-describe.skipIf(!hasBuild)('dist/index.html — CSS critical extraction', () => {
-  it('either inlines a non-empty <style> or links a stylesheet', () => {
-    const html = getIndexHtml()
-    const hasInlinedStyle = /<style[^>]*>[^<]+<\/style>/.test(html as string)
-    const hasLink = /<link[^>]+rel="stylesheet"[^>]+href="\/assets\/index-[^"]+\.css"/.test(html as string)
-    expect(hasInlinedStyle || hasLink).toBe(true)
+describe.skipIf(!hasBuild)('dist/index.html — non-blocking CSS + splash', () => {
+  it('renders a first-paint splash from static HTML', () => {
+    const html = getIndexHtml() as string
+    expect(html).toMatch(/<div id="app-splash"/)
   })
 
-  it('when inline style is present, non-blocking preload pattern is also there', () => {
-    const html = getIndexHtml()
-    if (!/<style[\s\S]+?<\/style>/.test(html as string)) return
-    expect(html).toMatch(/<link[^>]+rel="preload"[^>]+as="style"[^>]+onload=/)
-    expect(html).toMatch(/<noscript>[^<]*<link[^>]+rel="stylesheet"/)
+  it('no bundled app stylesheet blocks first paint', () => {
+    const html = getIndexHtml() as string
+    // Outside <noscript>, every /assets/*.css link must be a self-promoting
+    // preload, never a plain render-blocking rel="stylesheet".
+    const withoutNoscript = html.replace(/<noscript>[\s\S]*?<\/noscript>/g, '')
+    expect(withoutNoscript).not.toMatch(/<link[^>]+rel="stylesheet"[^>]+href="\/assets\/[^"]+\.css"/)
+  })
+
+  it('defers both the entry (index-*) and shared (ui-*) stylesheets', () => {
+    const html = getIndexHtml() as string
+    for (const prefix of ['index', 'ui']) {
+      const re = new RegExp(
+        `<link[^>]+rel="preload"[^>]+href="/assets/${prefix}-[^"]+\\.css"[^>]+as="style"[^>]+onload=`,
+      )
+      expect(html).toMatch(re)
+    }
+  })
+
+  it('keeps a <noscript> stylesheet fallback for no-JS renders', () => {
+    const html = getIndexHtml() as string
+    expect(html).toMatch(/<noscript><link[^>]+rel="stylesheet"[^>]+href="\/assets\/[^"]+\.css"/)
   })
 
   it('llms.txt is present in dist', () => {

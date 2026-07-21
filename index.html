@@ -52,9 +52,51 @@
         } catch (error) {}
       })();
     </script>
+    <style>
+      /* First-paint splash. Rendered from static HTML so mobile shows the brand
+         instantly instead of a blank screen while the app bundle downloads and
+         executes. Vue clears #app on mount(), which removes it. Self-contained
+         inline CSS so it paints correctly even before the deferred stylesheets
+         arrive. Colours mirror --color-bg / --color-primary (see src/style.css). */
+      #app-splash {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #ecf3ee;
+      }
+      html.dark #app-splash {
+        background: #0a0e0c;
+      }
+      #app-splash .spinner {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        border: 3px solid rgba(15, 107, 100, 0.18);
+        border-top-color: #4f7a10;
+        animation: app-splash-spin 0.7s linear infinite;
+      }
+      html.dark #app-splash .spinner {
+        border-color: rgba(58, 168, 159, 0.22);
+        border-top-color: #c8ff4d;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        #app-splash .spinner {
+          animation: none;
+        }
+      }
+      @keyframes app-splash-spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
   </head>
   <body>
-    <div id="app"></div>
+    <div id="app">
+      <div id="app-splash" aria-hidden="true"><div class="spinner"></div></div>
+    </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

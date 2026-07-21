@@ -1,8 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
-// @ts-expect-error critters 0.0.23 ships types but excludes them via "exports"; runtime is fine.
-import Critters from 'critters'
 import type { Plugin } from 'vite'
 
 const pkg = JSON.parse(
@@ -45,34 +43,36 @@ function fontPreload(): Plugin {
   }
 }
 
-// Esta ruta es el above-the-fold objetivo. Si cambias la página de entrada
-// (p. ej. landing pública en `/`, ver `docs/ROADMAP.md`), actualiza este
-// string. El CSS crítico extraído cubre solo lo necesario para que esa vista
-// pinte sin FOUC.
-function criticalCss(_options: { entry: string }): Plugin {
+// Turns every bundled app stylesheet into a non-render-blocking load. Vite
+// emits `<link rel="stylesheet">` for the entry CSS and for each shared CSS
+// chunk (index-*.css, ui-*.css); each one blocks first paint until it arrives.
+// Because this is a client-rendered SPA the real content only appears after the
+// JS bundle runs anyway — and the inline splash in index.html carries its own
+// styles — so there is nothing to gain from blocking on CSS. We swap each link
+// for a preload that promotes itself to a stylesheet on load, plus a <noscript>
+// fallback so the no-JS render still gets styled. Critters used to sit here, but
+// it extracts critical CSS from the *rendered* HTML and this app ships an empty
+// #app, so it produced no <style> and always fell through to this same rewrite.
+function deferStyles(): Plugin {
   return {
-    name: 'critical-css',
-    async transformIndexHtml(html, ctx) {
-      if (!ctx.bundle) return html
-      try {
-        const c = new Critters({ preload: 'swap', pruneSource: false, logLevel: 'silent' })
-        const processed = await c.process(html)
-        if (/<style[\s\S]+?<\/style>/.test(processed)) return processed
-      } catch (err) {
-        console.warn('[critical-css] critters failed, falling back:', err)
-      }
-      const replaced = html.replace(
-        /<link\s+rel="stylesheet"\s+crossorigin\s+href="(\/assets\/index-[^"]+\.css)"\s*\/?>/g,
-        (_, href) => `<link rel="preload" href="${href}" as="style" onload="this.onload=null;this.rel='stylesheet'"><noscript><link rel="stylesheet" href="${href}"></noscript>`,
-      )
-      return replaced
+    name: 'defer-styles',
+    transformIndexHtml: {
+      order: 'post',
+      handler(html, ctx) {
+        if (!ctx.bundle) return html
+        return html.replace(
+          /<link\s+rel="stylesheet"\s+crossorigin\s+href="(\/assets\/[^"]+\.css)"\s*\/?>/g,
+          (_, href) =>
+            `<link rel="preload" href="${href}" as="style" onload="this.onload=null;this.rel='stylesheet'"><noscript><link rel="stylesheet" href="${href}"></noscript>`,
+        )
+      },
     },
   }
 }
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [vue(), fontPreload(), criticalCss({ entry: '/login' })],
+  plugins: [vue(), fontPreload(), deferStyles()],
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version),
   },

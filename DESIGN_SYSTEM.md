@@ -100,11 +100,14 @@ Rules:
   case, `font-bold`. Caps are reserved for small labels only.
 - **Do not** reach for `font-display` outside titles/section headers/large amounts —
   it's a display face used with restraint, not a replacement for body text.
-- **Entry route (critical CSS):** the path that has to paint without FOUC is
-  `'/login'` (today). Configured via the `entry` argument of the Vite plugin
-  `criticalCss` in `coin-app/vite.config.ts`. The whitelist lives in
-  `coin-app/tests/critical-css-entry.test.ts`. Update both deliberately if
-  the entry point changes (e.g. when the public landing page in `/` lands).
+- **First paint (splash + deferred CSS):** because this is a client-rendered SPA,
+  nothing real paints until the JS bundle runs. To avoid a blank mobile screen we
+  ship an inline `#app-splash` (brand spinner, self-styled) in `coin-app/index.html`
+  that Vue clears on `mount()`, and the `deferStyles` plugin in
+  `coin-app/vite.config.ts` turns every bundled stylesheet into a non-blocking
+  preload. The splash colours mirror `--color-bg` / `--color-primary`; keep them in
+  sync if those tokens change. The real fix for the LCP metric is prerendering the
+  entry route so `index.html` carries the login markup — tracked in `docs/ROADMAP.md`.
 
 ### 1.3 Radius, shadow, spacing
 
