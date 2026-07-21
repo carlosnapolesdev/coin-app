@@ -5,7 +5,7 @@ import AppSidebar from './AppSidebar.vue'
 import { AnimatedAmount, AppButton, AppIconButton, AppSpinner, AppTabs, ConfirmDialog, PageContainer, PageHeader } from '../ui'
 import api from '../../services/api'
 import { accountsApi, type AccountDetail, type AccountType, type AccountTemplate } from '../../services/accounts'
-import iconVersions from '@material-symbols/metadata/versions.json'
+import { ACCOUNT_ICONS } from '../../config/icons'
 import { formatDate } from '../../utils/format'
 import { logError } from '../../utils/logError'
 import { useToast } from '../../composables/useToast'
@@ -48,7 +48,7 @@ const iconPickerOpen = ref(false)
 const iconSearch = ref('')
 const visibleIconLimit = ref(60)
 
-const allIcons = Object.keys(iconVersions as Record<string, number>).sort((a, b) => a.localeCompare(b))
+const allIcons = [...ACCOUNT_ICONS].sort((a, b) => a.localeCompare(b))
 
 const filteredIcons = computed(() => {
   const q = iconSearch.value.trim().toLowerCase()

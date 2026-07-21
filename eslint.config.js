@@ -56,4 +56,13 @@ export default tseslint.config(
       ],
     },
   },
+  {
+    // Build scripts under scripts/ run under Node, not the browser.
+    files: ['scripts/**/*.{js,mjs,cjs}'],
+    languageOptions: {
+      globals: { ...globals.node },
+      ecmaVersion: 'latest',
+      sourceType: 'module',
+    },
+  },
 )

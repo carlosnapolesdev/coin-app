@@ -32,7 +32,19 @@ The dev server proxies `/api` to the backend at `http://localhost:8080`, so run 
 | `npm run dev` | Dev server with HMR and `/api` proxy |
 | `npm run build` | Type-check (`vue-tsc -b`) + production build to `dist/` |
 | `npm run preview` | Serve the production build locally |
+| `npm run fonts:subset` | Regenerate the Material Symbols icon-font subset |
 | `npm test` | Run the Vitest suite once |
+
+### Icon font
+
+Icons come from a Material Symbols subset generated from `src/config/icons.ts`.
+After changing `UI_ICONS` or `CATEGORY_ICONS`, regenerate it:
+
+```bash
+npm run fonts:subset
+```
+
+The full font lives in `fonts-src/` (build input, never served).
 
 ## Environment variables
 

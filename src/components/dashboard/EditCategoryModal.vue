@@ -2,7 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import api from '../../services/api'
-import iconVersions from '@material-symbols/metadata/versions.json'
+import { CATEGORY_ICONS } from '../../config/icons'
 import { AppButton, AppModal } from '../ui'
 import { logError } from '../../utils/logError'
 import { isExpectedApiRejection } from '../../utils/expectedApiRejection'
@@ -52,9 +52,7 @@ const visibleIconLimit = ref(180)
 const isLoading = ref(false)
 const error = ref('')
 
-const iconOptions = Object.keys(iconVersions as Record<string, number>).sort((a, b) =>
-  a.localeCompare(b)
-)
+const iconOptions = [...CATEGORY_ICONS].sort((a, b) => a.localeCompare(b))
 
 const filteredIconOptions = computed(() => {
   const query = iconSearch.value.trim().toLowerCase()

@@ -15,7 +15,7 @@
   font-style: normal;
   font-display: swap;
   font-weight: 100 900;
-  src: url('/fonts/Inter-Variable.woff2') format('woff2-variations');
+  src: url('./assets/fonts/Inter-Variable.woff2') format('woff2-variations');
 }
 
 @font-face {
@@ -23,15 +23,21 @@
   font-style: normal;
   font-display: swap;
   font-weight: 300 700;
-  src: url('/fonts/SpaceGrotesk-Variable.woff2') format('woff2-variations');
+  src: url('./assets/fonts/SpaceGrotesk-Variable.woff2') format('woff2-variations');
 }
 
+/*
+ * Icon font uses `block`, not `swap`: showing the ligature source text
+ * ("account_balance") in a fallback face is the "misplaced icons" flash.
+ * `block` keeps the glyph slot invisible until ready; the subset is tiny
+ * and preloaded, so that window is a few ms.
+ */
 @font-face {
   font-family: 'Material Symbols Outlined';
   font-style: normal;
-  font-display: swap;
+  font-display: block;
   font-weight: 100 700;
-  src: url('/fonts/MaterialSymbolsOutlined-Variable.woff2') format('woff2-variations');
+  src: url('./assets/fonts/MaterialSymbolsOutlined-Subset.woff2') format('woff2-variations');
 }
 
 /*
