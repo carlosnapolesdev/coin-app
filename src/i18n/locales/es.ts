@@ -166,21 +166,12 @@ const es: MessageSchema = {
       goToSignIn: 'Ir a iniciar sesión',
     },
     register: {
-      progressLabel: 'Progreso del registro',
-      allStepsCompleted: '¡Todos los pasos completados!',
       stepOf: 'Paso {current} de 4',
-      proTip: 'CONSEJO',
       steps: {
         createAccount: 'Crear cuenta',
         chooseCurrencies: 'Elegir monedas',
         chooseCategories: 'Elegir categorías',
         finish: 'Finalizar',
-      },
-      tips: {
-        step1: 'Siempre puedes actualizar tu información personal más tarde en la configuración de tu cuenta.',
-        step2: 'Siempre puedes agregar más monedas más tarde en la configuración de tu cuenta.',
-        step3: 'Puedes personalizar tus categorías cuando quieras para llevar un mejor control de tus gastos.',
-        step4: '¡Explora el panel para ver tu salud financiera en tiempo real!',
       },
       errors: {
         fullNameRequired: 'El nombre completo es obligatorio',
@@ -199,8 +190,6 @@ const es: MessageSchema = {
         emailPlaceholder: "juan{'@'}ejemplo.com",
         passwordLabel: 'Contraseña',
         passwordHint: 'Debe tener al menos 8 caracteres con una combinación de letras y números.',
-        helperSecure: 'Almacenamiento de datos seguro y cifrado',
-        helperQuick: 'Configuración rápida en 30 segundos',
       },
       step2: {
         title: 'Elige tus monedas',
@@ -212,7 +201,6 @@ const es: MessageSchema = {
         setupAdditional: 'Configurar monedas adicionales',
         currencyWord: 'Moneda',
         addCurrency: 'Agregar moneda',
-        helperInfo: 'Tener múltiples monedas te permite controlar cuentas en el extranjero e inversiones internacionales con tasas de cambio actualizadas a diario.',
       },
       step3: {
         title: 'Elige tus categorías',

@@ -164,21 +164,12 @@ const en = {
       goToSignIn: 'Go to sign in',
     },
     register: {
-      progressLabel: 'Registration Progress',
-      allStepsCompleted: 'All steps completed!',
       stepOf: 'Step {current} of 4',
-      proTip: 'PRO TIP',
       steps: {
         createAccount: 'Create Account',
         chooseCurrencies: 'Choose Currencies',
         chooseCategories: 'Choose Categories',
         finish: 'Finish',
-      },
-      tips: {
-        step1: 'You can always update your personal information later in your account settings.',
-        step2: 'You can always add more currencies later in your account settings.',
-        step3: 'You can customize your categories anytime to better track your spending.',
-        step4: 'Explore the dashboard to see your financial health in real-time!',
       },
       errors: {
         fullNameRequired: 'Full name is required',
@@ -197,8 +188,6 @@ const en = {
         emailPlaceholder: "john{'@'}example.com",
         passwordLabel: 'Password',
         passwordHint: 'Must be at least 8 characters with a mix of letters and numbers.',
-        helperSecure: 'Secure, encrypted data storage',
-        helperQuick: '30 second quick setup',
       },
       step2: {
         title: 'Choose Currencies',
@@ -210,7 +199,6 @@ const en = {
         setupAdditional: 'Setup additional currencies',
         currencyWord: 'Currency',
         addCurrency: 'Add Currency',
-        helperInfo: 'Multiple currencies allow you to track offshore accounts and international investments with live exchange rates updated daily.',
       },
       step3: {
         title: 'Choose Categories',
