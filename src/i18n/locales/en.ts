@@ -34,6 +34,61 @@ const en = {
       legalTerms: 'The terms and conditions that govern your use of Crecik.',
       legalCookies: 'How Crecik uses cookies and similar technologies.',
       legalNotice: 'Legal information about the Crecik service and its operator.',
+      landing:
+        'Free personal finance app to track your accounts, budgets, goals and recurring payments in one place.',
+    },
+  },
+  landing: {
+    hero: {
+      title: 'Grow your money, own your future',
+      subtitle:
+        'Crecik brings your accounts, budgets, goals and recurring payments together so you always know where your money goes.',
+      ctaPrimary: 'Create free account',
+      ctaSecondary: 'Sign in',
+      screenshotAlt: 'The Crecik dashboard showing balances, budgets and recent activity',
+    },
+    features: {
+      title: 'Everything your money needs, in one place',
+      accounts: {
+        title: 'Accounts',
+        body: 'Track every account and see your real balance at a glance.',
+      },
+      budgets: {
+        title: 'Budgets',
+        body: 'Set monthly limits by category and stay on top of your spending.',
+      },
+      goals: {
+        title: 'Goals',
+        body: 'Save toward what matters and watch your progress grow.',
+      },
+      recurring: {
+        title: 'Recurring payments',
+        body: 'Never be surprised by a subscription or bill again.',
+      },
+      reports: {
+        title: 'Reports',
+        body: 'Understand your habits with clear charts and summaries.',
+      },
+    },
+    how: {
+      title: 'Start in three steps',
+      step1: {
+        title: 'Create your account',
+        body: 'Sign up free with email or Google in seconds.',
+      },
+      step2: {
+        title: 'Add your accounts',
+        body: 'Set up your accounts and categories the way you think about money.',
+      },
+      step3: {
+        title: 'Take control',
+        body: 'Log transactions, set budgets and reach your goals.',
+      },
+    },
+    footer: {
+      tagline: 'Grow with Crecik.',
+      legal: 'Legal',
+      rights: 'All rights reserved.',
     },
   },
   notFound: {

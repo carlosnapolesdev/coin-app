@@ -36,6 +36,61 @@ const pt: MessageSchema = {
       legalTerms: 'Os termos e condições que regem o uso do Crecik.',
       legalCookies: 'Como o Crecik utiliza cookies e tecnologias semelhantes.',
       legalNotice: 'Informações legais sobre o serviço Crecik e seu responsável.',
+      landing:
+        'App gratuito de finanças pessoais para acompanhar contas, orçamentos, metas e pagamentos recorrentes em um só lugar.',
+    },
+  },
+  landing: {
+    hero: {
+      title: 'Cresça com o Crecik',
+      subtitle:
+        'O Crecik reúne suas contas, orçamentos, metas e pagamentos recorrentes para você sempre saber para onde vai o seu dinheiro.',
+      ctaPrimary: 'Criar conta grátis',
+      ctaSecondary: 'Entrar',
+      screenshotAlt: 'Painel do Crecik mostrando saldos, orçamentos e atividade recente',
+    },
+    features: {
+      title: 'Tudo o que o seu dinheiro precisa, em um só lugar',
+      accounts: {
+        title: 'Contas',
+        body: 'Registre cada conta e veja o seu saldo real de uma olhada.',
+      },
+      budgets: {
+        title: 'Orçamentos',
+        body: 'Defina limites mensais por categoria e mantenha os gastos sob controle.',
+      },
+      goals: {
+        title: 'Metas',
+        body: 'Poupe para o que importa e acompanhe o seu progresso crescer.',
+      },
+      recurring: {
+        title: 'Pagamentos recorrentes',
+        body: 'Nunca mais seja surpreendido por uma assinatura ou conta.',
+      },
+      reports: {
+        title: 'Relatórios',
+        body: 'Entenda os seus hábitos com gráficos e resumos claros.',
+      },
+    },
+    how: {
+      title: 'Comece em três passos',
+      step1: {
+        title: 'Crie a sua conta',
+        body: 'Cadastre-se grátis com e-mail ou Google em segundos.',
+      },
+      step2: {
+        title: 'Adicione as suas contas',
+        body: 'Configure as suas contas e categorias como você pensa o seu dinheiro.',
+      },
+      step3: {
+        title: 'Tome o controle',
+        body: 'Registre transações, defina orçamentos e alcance as suas metas.',
+      },
+    },
+    footer: {
+      tagline: 'Cresça com o Crecik.',
+      legal: 'Legal',
+      rights: 'Todos os direitos reservados.',
     },
   },
   notFound: {
