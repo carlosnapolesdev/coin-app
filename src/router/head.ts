@@ -3,6 +3,7 @@ import { i18n } from '../i18n'
 type HeadRoute = { path: string; name?: unknown }
 
 const DESCRIPTION_KEYS: Record<string, string> = {
+  landing: 'meta.description.landing',
   login: 'meta.description.login',
   register: 'meta.description.register',
   'legal-privacy': 'meta.description.legalPrivacy',

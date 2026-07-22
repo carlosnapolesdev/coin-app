@@ -49,4 +49,11 @@ describe('applyHeadFor', () => {
     applyHeadFor({ path: '/login', name: 'login' })
     expect(metaByName('robots')).toBeNull()
   })
+
+  it('gives the landing its own description and keeps it indexable', () => {
+    document.head.innerHTML = ''
+    applyHeadFor({ path: '/', name: 'landing' })
+    expect(metaByName('robots')).toBeNull()
+    expect(metaByName('description')?.content).toBe(i18n.global.t('meta.description.landing'))
+  })
 })
