@@ -9,7 +9,7 @@ const route = useRoute()
 </script>
 
 <template>
-  <aside class="surface-panel wm-logo-side hidden h-screen w-64 flex-shrink-0 flex-col border-r border-line md:flex">
+  <aside class="surface-panel hidden h-screen w-64 flex-shrink-0 flex-col border-r border-line md:flex">
     <div class="px-6 py-6">
       <BrandMark :subtitle="t('sidebar.subtitle')" />
     </div>

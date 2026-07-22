@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue'
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { getGoogleClientId, loginWithGoogle } from '../services/auth'
@@ -42,6 +42,7 @@ const loadGsi = (): Promise<void> => {
 }
 
 let idApi: GsiIdApi | null = null
+let resizeObserver: ResizeObserver | null = null
 
 // Re-rendered when the app language changes so the button text stays localized.
 // Kept as the light 'outline' style in both themes on purpose.
@@ -96,12 +97,33 @@ onMounted(async () => {
       },
     })
     renderButton()
+
+    // Google paints a fixed-pixel-width button and never reflows it on its own;
+    // re-render when the host width changes so it can't overflow a narrower
+    // container on resize or device rotation. The host is w-full, so its width
+    // comes from the parent, not the rendered iframe — no reflow loop.
+    if (buttonHost.value) {
+      let lastWidth = buttonHost.value.clientWidth
+      resizeObserver = new ResizeObserver(() => {
+        const width = buttonHost.value?.clientWidth ?? 0
+        if (width && Math.abs(width - lastWidth) > 1) {
+          lastWidth = width
+          renderButton()
+        }
+      })
+      resizeObserver.observe(buttonHost.value)
+    }
   } catch (err) {
     // The button is optional; if Google is unreachable, hide it and keep
     // email/password working, but leave a trace.
     logError('googleSignIn.init', err)
     available.value = false
   }
+})
+
+onBeforeUnmount(() => {
+  resizeObserver?.disconnect()
+  resizeObserver = null
 })
 
 watch(locale, () => renderButton())

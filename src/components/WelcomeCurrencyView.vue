@@ -64,11 +64,13 @@ const confirm = async () => {
   <div class="flex min-h-screen flex-col bg-ambient bg-ambient--strong font-display">
     <TopHeader />
 
-    <main class="flex flex-1 items-center justify-center p-6 lg:p-12">
+    <main class="wm-pattern flex flex-1 items-center justify-center p-6 lg:p-12">
       <div class="surface-glass rounded-2xl mx-auto w-full max-w-md p-8 lg:p-10">
         <div class="mb-8 text-center">
-          <div class="icon-tile mx-auto mb-5 size-14 bg-primary/10 text-primary">
-            <span class="material-symbols-outlined text-[28px]">currency_exchange</span>
+          <div
+            class="mx-auto mb-5 flex size-16 items-center justify-center rounded-full bg-primary text-primary-fg shadow-elevated"
+          >
+            <span class="material-symbols-outlined text-4xl">celebration</span>
           </div>
           <p v-if="firstName" class="text-sm font-semibold text-primary">
             {{ t('welcome.currency.greeting', { name: firstName }) }}

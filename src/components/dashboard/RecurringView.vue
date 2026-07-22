@@ -283,7 +283,7 @@ onMounted(() => {
   <div class="flex h-screen overflow-hidden bg-ambient">
     <AppSidebar />
 
-    <main class="wm-logo-main flex-1 overflow-y-auto">
+    <main class="wm-pattern flex-1 overflow-y-auto">
       <PageHeader :title="t('recurring.pageTitle')" :subtitle="t('recurring.pageSubtitle')" />
 
       <PageContainer>

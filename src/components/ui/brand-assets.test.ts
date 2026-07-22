@@ -61,46 +61,32 @@ describe('brand assets', () => {
     }
   })
 
-  it('recorta el padding del icono para que la marca llene la caja', () => {
-    // Sin este recuadro la marca ocupa ~66% del viewBox en vez de ~83%, y los
-    // offsets de .wm-logo-* (calculados a ojo sobre el logo anterior) fallan.
+  it('encaja la marca en un azulejo 54×108', () => {
     const viewBoxes = watermarks.map((wm) => wm.match(/viewBox='([^']+)'/)?.[1])
-
     expect(new Set(viewBoxes).size).toBe(1)
 
     const [minX, minY, width, height] = viewBoxes[0]!.split(/\s+/).map(Number)
-    expect(width).toBeCloseTo(height, 2)
+    // El azulejo ya no recorta por viewBox: mide 54×108 y la marca se encaja por transform.
+    expect([minX, minY, width, height]).toEqual([0, 0, 54, 108])
 
-    // Caja real de la marca: el anillo (r=9.3, centro ~16.03/16.99) más su trazo.
-    const extent = 9.3 + 2.6 / 2
-    const mark = { x0: 16.03 - extent, y0: 16.99 - extent, size: extent * 2 }
-
-    expect(minX).toBeLessThan(mark.x0)
-    expect(minY).toBeLessThan(mark.y0)
-    expect(minX + width).toBeGreaterThan(mark.x0 + mark.size)
-    expect(minY + height).toBeGreaterThan(mark.y0 + mark.size)
-    expect(mark.size / width).toBeCloseTo(20 / 24, 2)
+    // La marca (nativa 25.44) se escala a ~34px vía scale() dentro del azulejo.
+    for (const wm of watermarks) {
+      const scale = wm.match(/scale\(([\d.]+)\)/)?.[1]
+      expect(Number(scale)).toBeCloseTo(34 / 25.44, 2)
+    }
   })
 
-  it('mantiene alineadas las capas de cada área de watermark', () => {
+  it('mantiene alineadas las capas del patrón', () => {
+    // Ya no hay tres áreas ni wm-logo-side: una sola clase .wm-pattern.
+    expect(styles).not.toMatch(/\.wm-logo-(side|main|auth)\b/)
+
+    const body = styles.match(/\.wm-pattern\s*\{([^}]+)\}/)?.[1]
+    expect(body).toBeTruthy()
+
     // background-image / -size / -position son listas paralelas: si una queda
-    // corta al añadir una instancia, CSS la recicla en ciclo y las figuras
-    // aparecen en sitios que nadie eligió.
-    const areas = Array.from(
-      styles.matchAll(/\.(wm-logo-[\w-]+)\s*\{([^}]+)\}/g),
-      ([, name, body]) => ({ name, body }),
-    )
-
-    // .wm-logo-main se redeclara por tramo (@media), así que hay más bloques
-    // que áreas; lo que importa es que cada bloque sea coherente consigo mismo.
-    expect(new Set(areas.map((area) => area.name))).toEqual(
-      new Set(['wm-logo-side', 'wm-logo-main', 'wm-logo-auth']),
-    )
-
-    // Corta por comas de nivel superior: calc(50% - 5rem) no lleva, pero
-    // cualquier función futura que sí las tenga no debe partir la cuenta.
-    const layers = (body: string, prop: string) => {
-      const value = body.match(new RegExp(`${prop}:\\s*([^;]+);`))?.[1]
+    // corta, CSS la recicla en ciclo y las capas se descuadran.
+    const layers = (prop: string) => {
+      const value = body!.match(new RegExp(`${prop}:\\s*([^;]+);`))?.[1]
       if (!value) return 0
       let depth = 0
       let count = 1
@@ -112,24 +98,16 @@ describe('brand assets', () => {
       return count
     }
 
-    for (const { name, body } of areas) {
-      const images = layers(body, 'background-image')
-      expect(images).toBeGreaterThan(0)
-      expect({ area: name, size: layers(body, 'background-size') }).toEqual({
-        area: name,
-        size: images,
-      })
-      expect({ area: name, position: layers(body, 'background-position') }).toEqual({
-        area: name,
-        position: images,
-      })
-    }
+    const images = layers('background-image')
+    expect(images).toBe(2)
+    expect(layers('background-size')).toBe(images)
+    expect(layers('background-position')).toBe(images)
   })
 
   it('tiñe cada watermark según su tema', () => {
     const themes = [
-      { color: '#0F6B64', opacity: '.04' },
-      { color: '#EDF1EC', opacity: '.05' },
+      { color: '#0F6B64', opacity: '.05' },
+      { color: '#EDF1EC', opacity: '.06' },
     ]
 
     watermarks.forEach((watermark, index) => {

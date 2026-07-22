@@ -100,7 +100,7 @@ const replayTour = async () => {
              del panel, aplanaría el fondo y el blur del cristal no tendría nada
              que revelar. left = w-72 (18rem) acotado por max-w-[85vw] del panel. -->
         <div class="drawer-scrim absolute inset-y-0 right-0 left-[min(18rem,85vw)] bg-scrim/60" @click="emit('close')" />
-        <div class="drawer-panel surface-glass wm-logo-side absolute inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col overflow-y-auto overscroll-contain">
+        <div class="drawer-panel surface-glass absolute inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col overflow-y-auto overscroll-contain">
           <div class="flex items-center justify-between px-6 py-6">
             <BrandMark :subtitle="t('sidebar.subtitle')" />
             <button
