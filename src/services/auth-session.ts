@@ -48,6 +48,7 @@ const readStoredSession = (storage: Storage): AuthResponse | null => {
 }
 
 export const getStoredSession = (): AuthResponse | null => {
+  if (typeof window === 'undefined') return null
   return readStoredSession(window.localStorage) ?? readStoredSession(window.sessionStorage)
 }
 

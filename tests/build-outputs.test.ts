@@ -14,10 +14,12 @@ function getIndexHtml(): string | null {
   return readFileSync(indexHtmlPath, 'utf-8')
 }
 
-describe.skipIf(!hasBuild)('dist/index.html — non-blocking CSS + splash', () => {
-  it('renders a first-paint splash from static HTML', () => {
+describe.skipIf(!hasBuild)('dist/index.html — non-blocking CSS + prerender', () => {
+  it('ships the landing hero text as static HTML (vite-ssg prerender)', () => {
     const html = getIndexHtml() as string
-    expect(html).toMatch(/<div id="app-splash"/)
+    // With vite-ssg the splash is no longer needed: the prerendered hero is in
+    // the static HTML, so the first paint is real content instead of a spinner.
+    expect(html).toContain('Grow your money, own your future')
   })
 
   it('no bundled app stylesheet blocks first paint', () => {
@@ -28,9 +30,11 @@ describe.skipIf(!hasBuild)('dist/index.html — non-blocking CSS + splash', () =
     expect(withoutNoscript).not.toMatch(/<link[^>]+rel="stylesheet"[^>]+href="\/assets\/[^"]+\.css"/)
   })
 
-  it('defers both the entry (index-*) and shared (ui-*) stylesheets', () => {
+  it('defers the entry (app-*) and shared (ui-*) stylesheets', () => {
     const html = getIndexHtml() as string
-    for (const prefix of ['index', 'ui']) {
+    // vite-ssg renames the entry chunk from index-*.css to app-*.css; the
+    // shared chunk keeps the ui-* prefix.
+    for (const prefix of ['app', 'ui']) {
       const re = new RegExp(
         `<link[^>]+rel="preload"[^>]+href="/assets/${prefix}-[^"]+\\.css"[^>]+as="style"[^>]+onload=`,
       )
