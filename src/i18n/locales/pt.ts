@@ -248,11 +248,11 @@ const pt: MessageSchema = {
   },
   welcome: {
     currency: {
-      greeting: 'Boas-vindas ao Crecik, {name}!',
-      title: 'Sua moeda principal',
-      subtitle: 'Escolha a moeda em que você acompanha seu dinheiro. Você pode alterá-la depois.',
+      greeting: 'Boas-vindas a bordo, {name}!',
+      title: 'Que bom ter você aqui',
+      subtitle: 'Falta só um passo para começar a usar o Crecik: escolha a moeda em que você acompanha seu dinheiro. Você pode alterá-la depois.',
       label: 'Moeda',
-      confirm: 'Continuar',
+      confirm: 'Começar',
       loadError: 'Não foi possível carregar a lista de moedas.',
       submitError: 'Não foi possível salvar sua moeda. Tente novamente.',
     },

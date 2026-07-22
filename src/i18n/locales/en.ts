@@ -246,11 +246,11 @@ const en = {
   },
   welcome: {
     currency: {
-      greeting: 'Welcome to Crecik, {name}!',
-      title: 'Your main currency',
-      subtitle: 'Pick the currency you track your money in. You can change it later.',
+      greeting: 'Welcome aboard, {name}!',
+      title: "We're glad you're here",
+      subtitle: 'Just one step left before you start using Crecik: pick the currency you track your money in. You can change it later.',
       label: 'Currency',
-      confirm: 'Continue',
+      confirm: 'Get started',
       loadError: "We couldn't load the currency list.",
       submitError: "We couldn't save your currency. Try again.",
     },
