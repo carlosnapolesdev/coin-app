@@ -20,13 +20,13 @@ const { t } = useI18n()
         to="/register"
         class="inline-flex h-12 items-center justify-center rounded-lg bg-primary px-6 text-base font-semibold text-primary-fg shadow-sm transition hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
       >
-        {{ t('landing.hero.ctaPrimary') }}
+        {{ t('landing.cta.createAccount') }}
       </RouterLink>
       <RouterLink
         to="/login"
         class="inline-flex h-12 items-center justify-center rounded-lg border border-line bg-surface px-6 text-base font-semibold text-content transition hover:bg-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
       >
-        {{ t('landing.hero.ctaSecondary') }}
+        {{ t('landing.cta.signIn') }}
       </RouterLink>
     </div>
     <div class="mt-6 w-full max-w-5xl">

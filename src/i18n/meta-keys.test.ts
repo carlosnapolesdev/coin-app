@@ -34,9 +34,9 @@ describe('meta description and not-found i18n keys', () => {
     for (const messages of [en, es, pt]) {
       expect(messages.landing.hero.title).toBeTruthy()
       expect(messages.landing.hero.subtitle).toBeTruthy()
-      expect(messages.landing.hero.ctaPrimary).toBeTruthy()
-      expect(messages.landing.hero.ctaSecondary).toBeTruthy()
       expect(messages.landing.hero.screenshotAlt).toBeTruthy()
+      expect(messages.landing.cta.createAccount).toBeTruthy()
+      expect(messages.landing.cta.signIn).toBeTruthy()
       expect(messages.landing.features.title).toBeTruthy()
       for (const key of ['accounts', 'budgets', 'goals', 'recurring', 'reports'] as const) {
         expect(messages.landing.features[key].title).toBeTruthy()
@@ -47,9 +47,6 @@ describe('meta description and not-found i18n keys', () => {
         expect(messages.landing.how[key].title).toBeTruthy()
         expect(messages.landing.how[key].body).toBeTruthy()
       }
-      expect(messages.landing.footer.tagline).toBeTruthy()
-      expect(messages.landing.footer.legal).toBeTruthy()
-      expect(messages.landing.footer.rights).toBeTruthy()
     }
   })
 })

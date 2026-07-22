@@ -23,9 +23,6 @@ const es: MessageSchema = {
     es: 'Español',
     pt: 'Português',
   },
-  topHeader: {
-    help: 'Ayuda',
-  },
   meta: {
     description: {
       default:
@@ -42,12 +39,14 @@ const es: MessageSchema = {
   },
   landing: {
     hero: {
-      title: 'Crece con Crecik',
+      title: 'Haz crecer tu dinero, controla tu futuro',
       subtitle:
         'Crecik reúne tus cuentas, presupuestos, metas y pagos recurrentes para que siempre sepas a dónde va tu dinero.',
-      ctaPrimary: 'Crear cuenta gratis',
-      ctaSecondary: 'Iniciar sesión',
       screenshotAlt: 'El panel de Crecik mostrando saldos, presupuestos y actividad reciente',
+    },
+    cta: {
+      createAccount: 'Crear cuenta gratis',
+      signIn: 'Iniciar sesión',
     },
     features: {
       title: 'Todo lo que tu dinero necesita, en un solo lugar',
@@ -86,11 +85,6 @@ const es: MessageSchema = {
         title: 'Toma el control',
         body: 'Anota transacciones, define presupuestos y alcanza tus metas.',
       },
-    },
-    footer: {
-      tagline: 'Crece con Crecik.',
-      legal: 'Legal',
-      rights: 'Todos los derechos reservados.',
     },
   },
   notFound: {

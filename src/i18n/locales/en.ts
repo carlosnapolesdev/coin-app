@@ -21,9 +21,6 @@ const en = {
     es: 'Español',
     pt: 'Português',
   },
-  topHeader: {
-    help: 'Help',
-  },
   meta: {
     description: {
       default:
@@ -43,9 +40,11 @@ const en = {
       title: 'Grow your money, own your future',
       subtitle:
         'Crecik brings your accounts, budgets, goals and recurring payments together so you always know where your money goes.',
-      ctaPrimary: 'Create free account',
-      ctaSecondary: 'Sign in',
       screenshotAlt: 'The Crecik dashboard showing balances, budgets and recent activity',
+    },
+    cta: {
+      createAccount: 'Create free account',
+      signIn: 'Sign in',
     },
     features: {
       title: 'Everything your money needs, in one place',
@@ -84,11 +83,6 @@ const en = {
         title: 'Take control',
         body: 'Log transactions, set budgets and reach your goals.',
       },
-    },
-    footer: {
-      tagline: 'Grow with Crecik.',
-      legal: 'Legal',
-      rights: 'All rights reserved.',
     },
   },
   notFound: {

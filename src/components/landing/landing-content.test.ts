@@ -1,7 +1,6 @@
 import hero from './LandingHero.vue?raw'
 import features from './LandingFeatures.vue?raw'
 import how from './LandingHowItWorks.vue?raw'
-import footer from './LandingFooter.vue?raw'
 import view from '../LandingView.vue?raw'
 import { describe, expect, it } from 'vitest'
 
@@ -31,16 +30,29 @@ describe('landing content contracts', () => {
     }
   })
 
-  it('footer shows login copyright, the legal links and the language toggle in one bar', () => {
-    expect(footer).toContain("t('auth.login.footer')")
-    expect(footer).toContain('LEGAL_SLUGS')
-    expect(footer).toContain('LEGAL_ROUTE_PATHS')
-    expect(footer).toContain('LanguageToggle')
+  it('features and steps sections do not force full-viewport height', () => {
+    expect(features).not.toContain('min-h-svh')
+    expect(how).not.toContain('min-h-svh')
   })
 
-  it('LandingView composes the four sections', () => {
-    for (const tag of ['LandingHero', 'LandingFeatures', 'LandingHowItWorks', 'LandingFooter']) {
+  it('closes with the Login-style footer: copyright line plus legal links', () => {
+    expect(view).toContain("t('auth.login.footer')")
+    expect(view).toContain('LegalFooter')
+    expect(view).not.toContain('LandingFooter')
+  })
+
+  it('mounts the shared TopHeader with sign-in and create-account CTAs', () => {
+    expect(view).toContain('TopHeader')
+    expect(view).toContain('to="/register"')
+    expect(view).toContain('to="/login"')
+    expect(view).toContain('landing.cta.createAccount')
+    expect(view).toContain('landing.cta.signIn')
+  })
+
+  it('LandingView composes header, three sections and the legal footer', () => {
+    for (const tag of ['TopHeader', 'LandingHero', 'LandingFeatures', 'LandingHowItWorks', 'LegalFooter']) {
       expect(view).toContain(tag)
     }
+    expect(view).not.toContain('LandingFooter')
   })
 })

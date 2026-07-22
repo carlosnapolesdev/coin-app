@@ -20,7 +20,7 @@ const steps = ['step1', 'step2', 'step3'] as const
 
 <template>
   <section
-    class="mx-auto flex min-h-svh max-w-6xl flex-col justify-center px-6 py-16 lg:py-24"
+    class="mx-auto flex max-w-6xl flex-col px-6 py-16 lg:py-24"
   >
     <h2 class="mb-12 text-center text-3xl font-black tracking-tight text-content sm:text-4xl">
       {{ t('landing.how.title') }}
