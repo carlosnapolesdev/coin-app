@@ -95,13 +95,11 @@
     --ambient-1: rgba(92, 122, 20, 0.10);
     --ambient-2: rgba(15, 107, 100, 0.14);
 
-    /* Watermark — el logo de Crecik (anillo + check + flecha, el mismo
-       SVG de BrandMark) embebido como data-URI, color/intensidad por modo.
-       Cada área (sidebar | main | auth) pinta el suyo vía .wm-logo-*.
-       El viewBox recorta el padding del icono (que en BrandMark/favicon lo
-       aporta la teja redondeada) para que la marca llene la caja: sin él la
-       figura queda ~20% más pequeña y los offsets de abajo dejan de cuadrar. */
-    --wm-logo: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='3.31%204.27%2025.44%2025.44'%20fill='none'%20stroke='%230F6B64'%20opacity='.04'%20stroke-linecap='round'%3E%3Cpath%20d='M18.4%208%20A9.3%209.3%200%201%200%2025.3%2016.2'%20stroke-width='2.6'/%3E%3Cpath%20d='M12.75%2017.7%20L15.85%2014.6%20L18.65%2016.9%20L23.75%2011.27'%20stroke-width='2.8'%20stroke-linejoin='round'/%3E%3Cpath%20d='M25.9%208.9%20L25.38%2012.75%20L22.12%209.79%20Z'%20fill='%230F6B64'%20stroke-width='1'%20stroke-linejoin='round'/%3E%3C/svg%3E");
+    /* Watermark — azulejo 54×108, marca centrada en la mitad superior. Se
+       repite en dos capas (ver .wm-pattern) para formar un tresbolillo uniforme
+       independiente del viewport. Color/intensidad por modo; las piezas del
+       logo (paths y stroke-width) replican verbatim el favicon. */
+    --wm-logo: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='54'%20height='108'%20viewBox='0%200%2054%20108'%20fill='none'%20stroke='%230F6B64'%20opacity='.05'%20stroke-linecap='round'%3E%3Cg%20transform='translate(27%2027)%20scale(1.336)%20translate(-16.03%20-16.99)'%3E%3Cpath%20d='M18.4%208%20A9.3%209.3%200%201%200%2025.3%2016.2'%20stroke-width='2.6'/%3E%3Cpath%20d='M12.75%2017.7%20L15.85%2014.6%20L18.65%2016.9%20L23.75%2011.27'%20stroke-width='2.8'%20stroke-linejoin='round'/%3E%3Cpath%20d='M25.9%208.9%20L25.38%2012.75%20L22.12%209.79%20Z'%20fill='%230F6B64'%20stroke-width='1'%20stroke-linejoin='round'/%3E%3C/g%3E%3C/svg%3E");
 
     /* Paneles translúcidos (Sidebar, TopHeader) — tinte leve de surface */
     --panel-alpha: 0.5;
@@ -171,7 +169,7 @@
     --ambient-2: rgba(23, 160, 145, 0.06);
 
     /* Watermark — el logo en trazo salvia claro sobre el negro-verdoso */
-    --wm-logo: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='3.31%204.27%2025.44%2025.44'%20fill='none'%20stroke='%23EDF1EC'%20opacity='.05'%20stroke-linecap='round'%3E%3Cpath%20d='M18.4%208%20A9.3%209.3%200%201%200%2025.3%2016.2'%20stroke-width='2.6'/%3E%3Cpath%20d='M12.75%2017.7%20L15.85%2014.6%20L18.65%2016.9%20L23.75%2011.27'%20stroke-width='2.8'%20stroke-linejoin='round'/%3E%3Cpath%20d='M25.9%208.9%20L25.38%2012.75%20L22.12%209.79%20Z'%20fill='%23EDF1EC'%20stroke-width='1'%20stroke-linejoin='round'/%3E%3C/svg%3E");
+    --wm-logo: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='54'%20height='108'%20viewBox='0%200%2054%20108'%20fill='none'%20stroke='%23EDF1EC'%20opacity='.06'%20stroke-linecap='round'%3E%3Cg%20transform='translate(27%2027)%20scale(1.336)%20translate(-16.03%20-16.99)'%3E%3Cpath%20d='M18.4%208%20A9.3%209.3%200%201%200%2025.3%2016.2'%20stroke-width='2.6'/%3E%3Cpath%20d='M12.75%2017.7%20L15.85%2014.6%20L18.65%2016.9%20L23.75%2011.27'%20stroke-width='2.8'%20stroke-linejoin='round'/%3E%3Cpath%20d='M25.9%208.9%20L25.38%2012.75%20L22.12%209.79%20Z'%20fill='%23EDF1EC'%20stroke-width='1'%20stroke-linejoin='round'/%3E%3C/g%3E%3C/svg%3E");
 
     --panel-alpha: 0.35;
   }
@@ -329,75 +327,16 @@
     background-color: rgb(var(--color-surface) / var(--panel-alpha));
   }
 
-  /* Watermark de logo — cada área pinta el suyo y lo recorta en sus PROPIOS
-     bordes (sidebar | main | auth): la figura pertenece al área, no a una capa
-     sobre la vista completa. Tamaños/offsets distintos para que los dos logos
-     del cuadrante inferior-izquierdo se corten en la división sidebar/body. */
-  .wm-logo-side {
-    background-image: var(--wm-logo);
-    background-repeat: no-repeat;
-    background-size: 17rem 17rem;
-    background-position: right -7rem bottom 6rem;
-  }
-  /* .wm-logo-main va por tramos porque el ancho útil da un salto grande: sin
-     sidebar main mide lo que el viewport (~23rem en un móvil de 375px), y ahí
-     no caben cuatro figuras de 26–31rem sin apilarse unas sobre otras. Cada
-     tramo baja el número de instancias y su escala; las posiciones están
-     elegidas para que no se solapen en los anchos reales de ese tramo. */
-  .wm-logo-main {
-    /* Móvil (sin sidebar): solo dos, en esquinas opuestas y a escala reducida.
-       Las otras dos se ocultan en vez de recolocarse — a este ancho cualquier
-       cuarta figura vuelve a chocar. */
+  /* Watermark de logo — patrón teselado uniforme (tresbolillo). El azulejo
+     --wm-logo (54×108, marca en su mitad superior) se repite en dos capas: la
+     segunda desplazada media fila (27px, 54px) rellena entre filas y produce el
+     medio desfase. Independiente de la resolución: sin media queries. El azulejo
+     es transparente salvo la marca, así que el glow ambiental asoma por los huecos. */
+  .wm-pattern {
     background-image: var(--wm-logo), var(--wm-logo);
-    background-repeat: no-repeat;
-    background-size: 17rem 17rem, 13rem 13rem;
-    background-position:
-      right 2rem top -4rem,
-      left -4rem bottom 5rem;
-  }
-  @media (min-width: 48rem) {
-    .wm-logo-main {
-      /* Aparece el sidebar y main baja a ~32rem: caben tres, aún reducidas. */
-      background-image: var(--wm-logo), var(--wm-logo), var(--wm-logo);
-      background-size: 20rem 20rem, 21rem 21rem, 9rem 9rem;
-      background-position:
-        left -8rem bottom 9rem,
-        right 3rem top -3rem,
-        right 2rem bottom -2rem;
-    }
-  }
-  /* 96rem y no 80rem: a 1366x768 (una de las resoluciones de portátil más
-     comunes) el ancho da de sobra pero el alto no, y las cuatro figuras se
-     apilaban al 21%. El breakpoint solo puede mirar el ancho, así que se sube
-     hasta donde la altura típica acompaña. */
-  @media (min-width: 96rem) {
-    .wm-logo-main {
-      /* Composición completa: la grande se corta en la división con el sidebar;
-         la de arriba-derecha replica la geometría de los círculos originales
-         (~23.4rem de diámetro, centro a ~20rem del borde derecho, recortada
-         arriba — asoma tenue bajo el velo del PageHeader sticky); la central
-         parte del centro del área desplazada hacia arriba-izquierda (de ahí el
-         calc() sobre 50%, que es lo único que centra de verdad: las otras van
-         por offset de borde); la pequeña se corta en el borde inferior. */
-      background-image: var(--wm-logo), var(--wm-logo), var(--wm-logo), var(--wm-logo);
-      /* La central se queda en 34rem: es el máximo que crece sin que empiece a
-         tocar también la de abajo-izquierda (a partir de 36rem sí lo hace, y
-         eso obligaría a recolocar la composición entera). */
-      background-size: 26rem 26rem, 28rem 28rem, 34rem 34rem, 11rem 11rem;
-      background-position:
-        left -11rem bottom 12rem,
-        right 6rem top -3rem,
-        calc(50% - 5rem) calc(50% - 4rem),
-        right 3rem bottom -3rem;
-    }
-  }
-  .wm-logo-auth {
-    background-image: var(--wm-logo), var(--wm-logo);
-    background-repeat: no-repeat;
-    background-size: 30rem 30rem, 16rem 16rem;
-    background-position:
-      right -9rem top 6rem,
-      left -6rem bottom -5rem;
+    background-repeat: repeat, repeat;
+    background-size: 54px 108px, 54px 108px;
+    background-position: 0 0, 27px 54px;
   }
 }
 

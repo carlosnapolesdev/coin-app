@@ -37,7 +37,7 @@ onMounted(async () => {
   <div class="flex min-h-screen flex-col bg-ambient bg-ambient--strong font-display">
     <TopHeader />
 
-    <main class="wm-logo-auth flex flex-1 items-center justify-center p-6">
+    <main class="wm-pattern flex flex-1 items-center justify-center p-6">
       <div class="surface-glass rounded-2xl mx-auto w-full max-w-md p-8 text-center lg:p-10">
         <template v-if="status === 'verifying'">
           <h2 class="text-3xl font-bold text-content">{{ t('auth.verifyEmail.title') }}</h2>
