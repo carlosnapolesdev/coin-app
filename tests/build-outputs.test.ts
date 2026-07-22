@@ -14,37 +14,43 @@ function getIndexHtml(): string | null {
   return readFileSync(indexHtmlPath, 'utf-8')
 }
 
-describe.skipIf(!hasBuild)('dist/index.html — non-blocking CSS + prerender', () => {
+describe.skipIf(!hasBuild)('dist/index.html — prerendered landing paints styled', () => {
   it('ships the landing hero text as static HTML (vite-ssg prerender)', () => {
     const html = getIndexHtml() as string
-    // With vite-ssg the splash is no longer needed: the prerendered hero is in
-    // the static HTML, so the first paint is real content instead of a spinner.
+    // With vite-ssg the prerendered hero is in the static HTML, so the first
+    // paint is real content instead of a spinner.
     expect(html).toContain('Grow your money, own your future')
   })
 
-  it('no bundled app stylesheet blocks first paint', () => {
+  it('loads the entry (app-*) and shared (ui-*) stylesheets render-blocking', () => {
+    // The landing HTML carries real content, so its critical CSS must block the
+    // first paint (styled) instead of being deferred. Deferring it produced a
+    // staged flash of unstyled content — see docs/MEJORAS-PENDIENTES.md →
+    // "Rendimiento". Each critical stylesheet must be a plain rel="stylesheet".
     const html = getIndexHtml() as string
-    // Outside <noscript>, every /assets/*.css link must be a self-promoting
-    // preload, never a plain render-blocking rel="stylesheet".
-    const withoutNoscript = html.replace(/<noscript>[\s\S]*?<\/noscript>/g, '')
-    expect(withoutNoscript).not.toMatch(/<link[^>]+rel="stylesheet"[^>]+href="\/assets\/[^"]+\.css"/)
-  })
-
-  it('defers the entry (app-*) and shared (ui-*) stylesheets', () => {
-    const html = getIndexHtml() as string
-    // vite-ssg renames the entry chunk from index-*.css to app-*.css; the
-    // shared chunk keeps the ui-* prefix.
     for (const prefix of ['app', 'ui']) {
       const re = new RegExp(
-        `<link[^>]+rel="preload"[^>]+href="/assets/${prefix}-[^"]+\\.css"[^>]+as="style"[^>]+onload=`,
+        `<link[^>]+rel="stylesheet"[^>]+href="/assets/${prefix}-[^"]+\\.css"`,
       )
       expect(html).toMatch(re)
     }
   })
 
-  it('keeps a <noscript> stylesheet fallback for no-JS renders', () => {
+  it('does not defer critical CSS with the preload/onload self-promotion hack', () => {
+    // The regression guard: the old deferStyles rewrite turned every stylesheet
+    // into `rel="preload" as="style" onload="...rel='stylesheet'"`. It must not
+    // come back for the prerendered landing.
     const html = getIndexHtml() as string
-    expect(html).toMatch(/<noscript><link[^>]+rel="stylesheet"[^>]+href="\/assets\/[^"]+\.css"/)
+    expect(html).not.toMatch(/rel="preload"[^>]+as="style"[^>]+onload=/)
+  })
+
+  it('preloads the hero image with high fetch priority', () => {
+    // The hero screenshot is the landing's LCP element; it must be preloaded so
+    // it is not discovered late and painted last.
+    const html = getIndexHtml() as string
+    expect(html).toMatch(
+      /<link[^>]+rel="preload"[^>]+href="\/assets\/dashboard-preview-[^"]+\.(png|webp)"[^>]*fetchpriority="high"/,
+    )
   })
 
   it('llms.txt is present in dist', () => {

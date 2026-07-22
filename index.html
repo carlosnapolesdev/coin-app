@@ -53,11 +53,13 @@
       })();
     </script>
     <style>
-      /* First-paint splash. Rendered from static HTML so mobile shows the brand
-         instantly instead of a blank screen while the app bundle downloads and
-         executes. Vue clears #app on mount(), which removes it. Self-contained
-         inline CSS so it paints correctly even before the deferred stylesheets
-         arrive. Colours mirror --color-bg / --color-primary (see src/style.css). */
+      /* First-paint splash for client-rendered (non-prerendered) routes: shows
+         the brand instantly instead of a blank screen while the app bundle
+         downloads and executes. Vue clears #app on mount(), which removes it.
+         On the prerendered landing (/) vite-ssg replaces it with the real hero,
+         so it never shows there. Self-contained inline CSS so it paints before
+         the bundled stylesheet loads. Colours mirror --color-bg / --color-primary
+         (see src/style.css). */
       #app-splash {
         position: fixed;
         inset: 0;

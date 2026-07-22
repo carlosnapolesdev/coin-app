@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import dashboardPreview from '../../assets/landing/dashboard-preview.png'
+import dashboardPreview from '../../assets/landing/dashboard-preview.webp'
 
 const { t } = useI18n()
 </script>
@@ -37,6 +37,7 @@ const { t } = useI18n()
         width="1600"
         height="976"
         loading="eager"
+        fetchpriority="high"
       />
     </div>
   </section>
