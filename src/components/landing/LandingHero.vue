@@ -6,7 +6,9 @@ const { t } = useI18n()
 </script>
 
 <template>
-  <section class="bg-ambient flex flex-col items-center gap-8 px-6 pt-20 pb-16 text-center">
+  <section
+    class="bg-ambient flex min-h-svh flex-col items-center gap-8 px-6 pt-20 pb-16 text-center sm:min-h-0"
+  >
     <h1 class="max-w-3xl text-4xl font-black tracking-tight text-content sm:text-5xl lg:text-6xl">
       {{ t('landing.hero.title') }}
     </h1>
@@ -33,7 +35,7 @@ const { t } = useI18n()
         :src="dashboardPreview"
         :alt="t('landing.hero.screenshotAlt')"
         width="1600"
-        height="1000"
+        height="976"
         loading="eager"
       />
     </div>

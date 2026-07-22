@@ -1,52 +1,35 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import LanguageToggle from '../ui/LanguageToggle.vue'
+import { LEGAL_SLUGS, LEGAL_ROUTE_PATHS, LEGAL_TITLE_KEYS } from '../../content/legal'
 
 const { t } = useI18n()
-const year = new Date().getFullYear()
 </script>
 
 <template>
-  <footer class="border-t border-line px-6 py-10">
+  <footer class="px-6 py-8 text-center">
+    <p class="text-xs font-medium uppercase tracking-widest text-faint">
+      {{ t('auth.login.footer') }}
+    </p>
+  </footer>
+  <footer class="border-t border-line px-6 py-8">
     <div
-      class="mx-auto flex max-w-6xl flex-col gap-6 sm:flex-row sm:items-center sm:justify-between"
+      class="mx-auto grid max-w-6xl grid-cols-1 items-center gap-4 sm:grid-cols-[1fr_auto_1fr]"
     >
-      <p class="font-display text-lg font-bold text-content">
-        {{ t('landing.footer.tagline') }}
-      </p>
-      <nav
-        :aria-label="t('landing.footer.legal')"
-        class="flex flex-wrap gap-x-6 gap-y-2"
-      >
+      <div class="hidden sm:block"></div>
+      <nav class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
         <RouterLink
-          to="/legal/privacy"
-          class="text-sm font-medium text-muted underline-offset-4 hover:text-content hover:underline"
+          v-for="slug in LEGAL_SLUGS"
+          :key="slug"
+          :to="LEGAL_ROUTE_PATHS[slug]"
+          class="text-xs font-semibold uppercase tracking-widest text-faint hover:text-primary hover:underline"
         >
-          {{ t('legal.privacy.title') }}
-        </RouterLink>
-        <RouterLink
-          to="/legal/terms"
-          class="text-sm font-medium text-muted underline-offset-4 hover:text-content hover:underline"
-        >
-          {{ t('legal.terms.title') }}
-        </RouterLink>
-        <RouterLink
-          to="/legal/cookies"
-          class="text-sm font-medium text-muted underline-offset-4 hover:text-content hover:underline"
-        >
-          {{ t('legal.cookies.title') }}
-        </RouterLink>
-        <RouterLink
-          to="/legal/legal-notice"
-          class="text-sm font-medium text-muted underline-offset-4 hover:text-content hover:underline"
-        >
-          {{ t('legal.legalNotice.title') }}
+          {{ t(LEGAL_TITLE_KEYS[slug]) }}
         </RouterLink>
       </nav>
-      <LanguageToggle />
+      <div class="flex justify-center sm:justify-end">
+        <LanguageToggle />
+      </div>
     </div>
-    <p class="mx-auto mt-6 max-w-6xl text-center text-xs text-faint">
-      © {{ year }} Crecik. {{ t('landing.footer.rights') }}
-    </p>
   </footer>
 </template>

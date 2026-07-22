@@ -29,28 +29,32 @@ const bodyKeys = {
 </script>
 
 <template>
-  <section class="mx-auto max-w-6xl px-6 py-16 lg:py-24">
+  <section
+    class="mx-auto flex min-h-svh max-w-6xl flex-col justify-center px-6 py-16 lg:py-24"
+  >
     <h2 class="mb-12 text-center text-3xl font-black tracking-tight text-content sm:text-4xl">
       {{ t('landing.features.title') }}
     </h2>
-    <ul class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+    <ul class="flex flex-wrap justify-center gap-5">
       <li
         v-for="f in features"
         :key="f.key"
-        class="surface-card flex flex-col gap-3 p-6"
+        class="surface-card flex w-full max-w-[350px] items-start gap-4 p-6 transition duration-200 hover:-translate-y-0.5 hover:shadow-elevated"
       >
         <span
-          class="icon-tile bg-primary/10 text-primary"
+          class="icon-tile size-12 shrink-0 bg-surface text-primary shadow-sm"
           aria-hidden="true"
         >
-          <span class="material-symbols-outlined text-[28px]">{{ f.icon }}</span>
+          <span class="material-symbols-outlined text-[26px]">{{ f.icon }}</span>
         </span>
-        <h3 class="text-lg font-bold text-content">
-          {{ t(titleKeys[f.key]) }}
-        </h3>
-        <p class="text-sm leading-relaxed text-muted">
-          {{ t(bodyKeys[f.key]) }}
-        </p>
+        <div>
+          <h3 class="text-lg font-bold text-content">
+            {{ t(titleKeys[f.key]) }}
+          </h3>
+          <p class="mt-1 text-sm leading-relaxed text-muted">
+            {{ t(bodyKeys[f.key]) }}
+          </p>
+        </div>
       </li>
     </ul>
   </section>

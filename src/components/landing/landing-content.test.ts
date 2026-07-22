@@ -31,10 +31,11 @@ describe('landing content contracts', () => {
     }
   })
 
-  it('footer links to every legal page', () => {
-    for (const path of ['/legal/privacy', '/legal/terms', '/legal/cookies', '/legal/legal-notice']) {
-      expect(footer).toContain(`to="${path}"`)
-    }
+  it('footer shows login copyright, the legal links and the language toggle in one bar', () => {
+    expect(footer).toContain("t('auth.login.footer')")
+    expect(footer).toContain('LEGAL_SLUGS')
+    expect(footer).toContain('LEGAL_ROUTE_PATHS')
+    expect(footer).toContain('LanguageToggle')
   })
 
   it('LandingView composes the four sections', () => {
