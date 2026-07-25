@@ -69,4 +69,18 @@ describe.skipIf(!hasBuild)('dist/assets — chunks', () => {
     const uiChunk = assets.find((f) => /^ui-[A-Za-z0-9_-]+\.js$/.test(f))
     expect(uiChunk).toBeDefined()
   })
+
+  it('still installs the client error reporter in a production build', () => {
+    // El reporter está detrás de `import.meta.env.PROD` en main.ts para no
+    // ensuciar client_errors desde desarrollo. Esa condición la resuelve Vite
+    // al compilar, así que un fallo de configuración (modo equivocado, la
+    // condición invertida) no rompe ningún test unitario: simplemente deja de
+    // salir el digest, y nadie se entera de que dejó de salir. Se comprueba
+    // sobre el bundle porque es el único sitio donde el `if` ya no existe.
+    const assets = readdirSync(assetsDir).filter((f) => f.endsWith('.js'))
+    const bundled = assets.some((f) =>
+      readFileSync(join(assetsDir, f), 'utf-8').includes('/api/client-errors'),
+    )
+    expect(bundled).toBe(true)
+  })
 })

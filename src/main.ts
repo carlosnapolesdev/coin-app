@@ -20,7 +20,13 @@ export const createApp = ViteSSG(
 
     if (isClient) {
       setUnauthorizedHandler(() => handleUnauthorizedSession(router))
-      installErrorReporter()
+      // Solo en producción. Sin reporter instalado, `logError` cae a su salida
+      // por consola, que es donde el error sirve mientras se programa; mandarlo
+      // además a client_errors llenaría el digest de ruido que no existe en
+      // producción: recargas de HMR a media edición, la API local caída,
+      // pantallas a medio escribir. Ese ruido es justo lo que acaba haciendo que
+      // se dejen de leer los avisos.
+      if (import.meta.env.PROD) installErrorReporter()
       installGlobalErrorHandlers(app)
     }
   },
