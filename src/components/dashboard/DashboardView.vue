@@ -12,9 +12,11 @@ import { formatCurrency, formatDate as formatDateLocale, formatMonthYear } from 
 import { groupByCurrency } from '../../utils/currency'
 import { chartSeriesColor, foldChartEntries } from '../../utils/chartColors'
 import { logError } from '../../utils/logError'
+import { useQuickTransaction } from '../../composables/useQuickTransaction'
 
 const router = useRouter()
 const { t } = useI18n()
+const { onCreated } = useQuickTransaction()
 
 const activeTopTab = ref<'accounts' | 'balances'>('accounts')
 
@@ -58,7 +60,7 @@ const budgetBarClass = (percentUsed: number): string => {
 
 const goToBudgets = () => router.push({ name: 'budgets' })
 
-onMounted(async () => {
+const loadDashboard = async () => {
   const now = new Date()
   const from = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10)
   const to = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().slice(0, 10)
@@ -93,7 +95,12 @@ onMounted(async () => {
   isLoadingAccounts.value = false
   isLoadingChart.value = false
   isLoadingBudgets.value = false
-})
+}
+
+onMounted(loadDashboard)
+// A transaction added from the header changes every figure on this screen;
+// without this the totals sit frozen and the save looks like it failed.
+onCreated(loadDashboard)
 
 const balancesByCurrency = computed(() => {
   const map = new Map<string, { code: string; symbol: string; net: number }>()

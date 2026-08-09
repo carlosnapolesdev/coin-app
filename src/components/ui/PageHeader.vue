@@ -1,15 +1,23 @@
 <script setup lang="ts">
-// Canonical page header. Left: mobile nav trigger + title/subtitle. Right: persistent UserMenu only.
-// View controls live in per-view toolbars; the #actions slot has been retired.
+// Canonical page header. Left: mobile nav trigger + title/subtitle. Right: the
+// global "new transaction" action and the persistent UserMenu.
+// The #actions slot stays retired and view controls still live in per-view
+// toolbars — what sits here is not a view control but *the* primary action of
+// the app, identical on every screen, which is why it is worth the fixed space.
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import UserMenu from '../common/UserMenu.vue'
+import AppButton from './AppButton.vue'
 import AppIconButton from './AppIconButton.vue'
+import CoachMark from '../onboarding/CoachMark.vue'
 import MobileNavDrawer from '../dashboard/MobileNavDrawer.vue'
+import QuickTransactionHost from '../dashboard/QuickTransactionHost.vue'
+import { useQuickTransaction } from '../../composables/useQuickTransaction'
 
 withDefaults(defineProps<{ title: string; subtitle?: string; sticky?: boolean }>(), { sticky: true })
 
 const { t } = useI18n()
+const { open } = useQuickTransaction()
 const mobileNavOpen = ref(false)
 </script>
 
@@ -30,10 +38,23 @@ const mobileNavOpen = ref(false)
         <p v-if="subtitle" class="mt-0.5 text-sm text-muted">{{ subtitle }}</p>
       </div>
     </div>
-    <div class="flex items-center justify-end">
+    <div class="flex items-center justify-end gap-3">
+      <CoachMark
+        coach-key="transactions"
+        :text="t('onboarding.coach.transactions')"
+        placement="bottom"
+        align="right"
+      >
+        <!-- Narrow screens keep the icon only; the label is redundant there and
+             the header still has to fit a title and the user menu. -->
+        <AppButton icon="add" class="px-3 sm:px-4" :aria-label="t('transactions.actions.add')" @click="open">
+          <span class="hidden sm:inline">{{ t('transactions.actions.add') }}</span>
+        </AppButton>
+      </CoachMark>
       <UserMenu />
     </div>
   </header>
 
   <MobileNavDrawer :is-open="mobileNavOpen" @close="mobileNavOpen = false" />
+  <QuickTransactionHost />
 </template>

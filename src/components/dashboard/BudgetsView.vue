@@ -24,6 +24,7 @@ import {
   PageHeader,
 } from '../ui'
 import { useToast } from '../../composables/useToast'
+import { useQuickTransaction } from '../../composables/useQuickTransaction'
 
 interface BackendCategory {
   id: number
@@ -44,6 +45,7 @@ type FormMode = 'create' | 'edit'
 
 const { t } = useI18n()
 const toast = useToast()
+const { onCreated } = useQuickTransaction()
 
 const budgets = ref<BudgetDetail[]>([])
 const allCategories = ref<BackendCategory[]>([])
@@ -194,6 +196,9 @@ onMounted(() => {
   loadBudgets()
   loadCategories()
 })
+
+// A new expense consumes budget: the progress bars are stale until reloaded.
+onCreated(loadBudgets)
 </script>
 
 <template>

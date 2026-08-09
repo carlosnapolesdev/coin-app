@@ -3,9 +3,17 @@ import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useOnboarding } from '../../composables/useOnboarding'
 
+// `align` picks the edge the popover grows from. A left-aligned popover hangs
+// off a trigger sitting at the right edge of the viewport (the header button),
+// so those anchor it to the right instead.
 const props = withDefaults(
-  defineProps<{ coachKey: string; text: string; placement?: 'bottom' | 'top' }>(),
-  { placement: 'bottom' },
+  defineProps<{
+    coachKey: string
+    text: string
+    placement?: 'bottom' | 'top'
+    align?: 'left' | 'right'
+  }>(),
+  { placement: 'bottom', align: 'left' },
 )
 
 const { t } = useI18n()
@@ -23,8 +31,11 @@ const dismiss = () => {
     <slot />
     <div
       v-if="visible"
-      class="absolute left-0 z-20 w-64 max-w-[80vw] rounded-xl border border-primary/30 bg-surface p-3 shadow-elevated"
-      :class="placement === 'bottom' ? 'top-full mt-2' : 'bottom-full mb-2'"
+      class="absolute z-20 w-64 max-w-[80vw] rounded-xl border border-primary/30 bg-surface p-3 shadow-elevated"
+      :class="[
+        placement === 'bottom' ? 'top-full mt-2' : 'bottom-full mb-2',
+        align === 'right' ? 'right-0' : 'left-0',
+      ]"
       role="dialog"
     >
       <div class="flex items-start gap-2">

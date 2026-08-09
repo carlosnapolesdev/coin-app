@@ -9,9 +9,11 @@ import { ACCOUNT_ICONS } from '../../config/icons'
 import { formatDate } from '../../utils/format'
 import { logError } from '../../utils/logError'
 import { useToast } from '../../composables/useToast'
+import { useQuickTransaction } from '../../composables/useQuickTransaction'
 
 const { t } = useI18n()
 const toast = useToast()
+const { onCreated } = useQuickTransaction()
 
 interface AccountSummary {
   id: number
@@ -304,6 +306,9 @@ onMounted(() => {
   fetchAccounts()
   fetchUserCurrencies()
 })
+
+// A transaction moves balances, which are the whole point of this screen.
+onCreated(fetchAccounts)
 </script>
 
 <template>

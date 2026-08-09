@@ -12,8 +12,15 @@ describe('onboarding layering contracts', () => {
     expect(transactionsView).toContain('class="surface-card relative z-10 mb-6 flex flex-col gap-4 p-4"')
   })
 
-  it('keeps the transaction coach mark anchored below the add button', () => {
-    expect(transactionsView).toContain('coach-key="transactions" :text="t(\'onboarding.coach.transactions\')" placement="bottom"')
+  it('anchors the transaction coach mark to the header add button, right-aligned', () => {
+    expect(pageHeader).toContain('coach-key="transactions"')
+    // The trigger sits at the right edge of the viewport: a left-anchored
+    // popover would hang off screen on a phone.
+    expect(pageHeader).toContain('align="right"')
+  })
+
+  it('leaves no second add-transaction trigger in the transactions toolbar', () => {
+    expect(transactionsView).not.toContain('coach-key="transactions"')
   })
 
   it('keeps the sticky page header above the coach mark popovers', () => {

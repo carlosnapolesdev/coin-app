@@ -580,6 +580,9 @@ const en = {
   transactionModal: {
     titleCreate: 'Add Transaction',
     titleEdit: 'Edit Transaction',
+    noAccountsTitle: 'Create an account first',
+    noAccountsBody: 'Every transaction belongs to an account — a bank account, a card or cash. Create one and come back.',
+    noAccountsAction: 'Go to accounts',
     loadError: 'Failed to load data. Please try again.',
     saveError: 'Failed to save transaction. Please try again.',
     saved: 'Transaction saved',

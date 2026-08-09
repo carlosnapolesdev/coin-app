@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 import api from '../../services/api'
 import { type CreateTransactionPayload, type SplitDetail, type SplitInput, type TransactionDetail, type TransactionStatus, type TransactionType, transactionsApi } from '../../services/transactions'
 import { type AccountDetail, accountsApi } from '../../services/accounts'
@@ -9,11 +10,12 @@ import TransactionAttachmentsPanel from './TransactionAttachmentsPanel.vue'
 import { formatCurrency } from '../../utils/format'
 import { logError } from '../../utils/logError'
 import { isExpectedApiRejection } from '../../utils/expectedApiRejection'
-import { AppButton, AppIconButton, AppModal, AppSpinner, TagInput } from '../ui'
+import { AppButton, AppIconButton, AppModal, AppSpinner, EmptyState, TagInput } from '../ui'
 import { useToast } from '../../composables/useToast'
 
 const { t } = useI18n()
 const toast = useToast()
+const router = useRouter()
 
 type FormMode = 'create' | 'edit'
 
@@ -137,6 +139,9 @@ const splitsStatus = computed<{ tone: 'success' | 'warning' | 'danger'; message:
   return { tone: 'danger', message: t('transactionSplits.overflow', { amount: formatted }) }
 })
 
+// Only for a new transaction: editing an existing one always has its account.
+const isBlockedByNoAccounts = computed(() => props.mode === 'create' && !isLoading.value && accounts.value.length === 0)
+
 const isSaveDisabled = computed(() => {
   if (isSaving.value || !amount.value || !accountId.value || !effectiveDate.value) return true
   if (selectedType.value === 'TRANSFER' && !destinationAccountId.value) return true
@@ -239,9 +244,13 @@ const loadData = async () => {
   }
 }
 
+// `immediate` matters for the quick-add host, which mounts this component
+// lazily at the moment it opens: without it the watcher would not fire and the
+// form would come up empty.
 watch(
   () => props.isOpen,
-  (open) => { if (open) loadData() }
+  (open) => { if (open) loadData() },
+  { immediate: true },
 )
 
 watch(selectedType, (type) => {
@@ -277,6 +286,11 @@ watch([accountId, destinationAccountId, selectedType], async () => {
 const handleClose = () => {
   error.value = ''
   emit('close')
+}
+
+const goToAccounts = async () => {
+  handleClose()
+  await router.push({ name: 'accounts' })
 }
 
 const addSplitRow = () => {
@@ -376,6 +390,20 @@ const handleSave = async (keepOpen = false) => {
     <div v-if="isLoading" class="flex items-center justify-center py-20 text-primary">
       <AppSpinner size="lg" />
     </div>
+
+    <!-- Every transaction needs an account, so with none the form can never be
+         submitted: `isSaveDisabled` stays true and the greyed-out button
+         explains nothing. Reachable on a new user's first click now that the
+         action lives in the header. -->
+    <EmptyState
+      v-else-if="isBlockedByNoAccounts"
+      icon="account_balance_wallet"
+      :title="t('transactionModal.noAccountsTitle')"
+      :description="t('transactionModal.noAccountsBody')"
+      :action-label="t('transactionModal.noAccountsAction')"
+      action-icon="arrow_forward"
+      @action="goToAccounts"
+    />
 
     <form v-else id="transaction-form" class="space-y-6 p-6 lg:p-8" @submit.prevent="handleSave(false)">
       <div v-if="error" class="rounded-xl border border-danger/30 bg-danger/10 p-4 text-sm font-medium text-danger">
@@ -595,7 +623,7 @@ const handleSave = async (keepOpen = false) => {
     <template #footer>
       <AppButton variant="ghost" :disabled="isSaving" @click="handleClose">{{ t('common.close') }}</AppButton>
       <AppButton
-        v-if="mode === 'create' && localTransactionId === null"
+        v-if="mode === 'create' && localTransactionId === null && !isBlockedByNoAccounts"
         variant="secondary"
         :disabled="isSaveDisabled"
         @click="handleSave(true)"
@@ -603,6 +631,7 @@ const handleSave = async (keepOpen = false) => {
         {{ t('transactionModal.addAndKeep') }}
       </AppButton>
       <AppButton
+        v-if="!isBlockedByNoAccounts"
         type="submit"
         form="transaction-form"
         :loading="isSaving"

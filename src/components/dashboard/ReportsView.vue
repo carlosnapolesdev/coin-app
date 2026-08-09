@@ -13,10 +13,12 @@ import {
 import { chartSeriesColor } from '../../utils/chartColors'
 import { formatCurrency, formatMonthShort } from '../../utils/format'
 import { useOnboarding } from '../../composables/useOnboarding'
+import { useQuickTransaction } from '../../composables/useQuickTransaction'
 import { logError } from '../../utils/logError'
 
 const { t } = useI18n()
 const { markReportsVisited } = useOnboarding()
+const { onCreated } = useQuickTransaction()
 
 type RangePreset = 'thisMonth' | '3m' | '6m' | '12m' | 'custom'
 
@@ -85,6 +87,8 @@ const loadReports = async () => {
 
 onMounted(markReportsVisited)
 onMounted(loadReports)
+// The new transaction may fall inside the range being charted.
+onCreated(loadReports)
 watch(rangePreset, () => {
   if (rangePreset.value !== 'custom') loadReports()
 })

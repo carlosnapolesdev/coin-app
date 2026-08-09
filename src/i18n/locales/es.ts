@@ -582,6 +582,9 @@ const es: MessageSchema = {
   transactionModal: {
     titleCreate: 'Agregar transacción',
     titleEdit: 'Editar transacción',
+    noAccountsTitle: 'Primero creá una cuenta',
+    noAccountsBody: 'Toda transacción pertenece a una cuenta: un banco, una tarjeta o efectivo. Creá una y volvé.',
+    noAccountsAction: 'Ir a cuentas',
     loadError: 'No se pudieron cargar los datos. Inténtalo de nuevo.',
     saveError: 'No se pudo guardar la transacción. Inténtalo de nuevo.',
     saved: 'Transacción guardada',

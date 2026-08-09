@@ -3,7 +3,6 @@ import { computed, defineAsyncComponent, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import AppSidebar from './AppSidebar.vue'
-import CoachMark from '../onboarding/CoachMark.vue'
 import { AppBadge, AppButton, AppIconButton, AppInput, AppModal, AppSelect, AppSpinner, ConfirmDialog, PageContainer, PageHeader } from '../ui'
 const AddTransactionModal = defineAsyncComponent(() => import('./AddTransactionModal.vue'))
 const ImportModal = defineAsyncComponent(() => import('./ImportModal.vue'))
@@ -15,11 +14,11 @@ import { formatCurrency, formatDate as formatDateLocale } from '../../utils/form
 import { buildTransactionsQuery, parseTransactionsQuery, type TransactionsQueryState } from '../../utils/transactionsQuery'
 import { logError } from '../../utils/logError'
 import { getApiErrorMessage } from '../../services/auth'
-import { useOnboarding } from '../../composables/useOnboarding'
+import { useQuickTransaction } from '../../composables/useQuickTransaction'
 import { useToast } from '../../composables/useToast'
 
 const { t } = useI18n()
-const { notifyTransactionCreated, flushCelebration } = useOnboarding()
+const { open: openCreate, onCreated } = useQuickTransaction()
 const toast = useToast()
 
 const PAGE_SIZE = 15
@@ -39,8 +38,9 @@ const page = ref(1)
 const total = ref(0)
 const isLoading = ref(false)
 const error = ref('')
+// This view's own modal instance only ever edits: creating goes through the
+// shared one in the page header.
 const modalOpen = ref(false)
-const modalMode = ref<'create' | 'edit'>('create')
 const editingTransaction = ref<TransactionDetail | undefined>(undefined)
 const confirmDeleteId = ref<number | null>(null)
 const isDeleting = ref(false)
@@ -190,33 +190,26 @@ const goToPage = (target: number) => {
   loadTransactions()
 }
 
-const openCreate = () => {
-  editingTransaction.value = undefined
-  modalMode.value = 'create'
-  modalOpen.value = true
-}
-
 const openEdit = (t: TransactionDetail) => {
   editingTransaction.value = t
-  modalMode.value = 'edit'
   modalOpen.value = true
 }
 
-const onSaved = async () => {
+const reload = async () => {
   await Promise.all([loadAccounts(), loadTransactions(), loadTags()])
-  notifyTransactionCreated()
 }
 
-// El modal de alta queda abierto tras crear (para adjuntos); mostramos la
-// celebración recién al cerrarlo para no apilar dos overlays.
+// Creating happens in the header's shared modal, from this view or any other,
+// so the list reloads on the notification instead of on a local event. The
+// onboarding milestone belongs to that host now: this handler only ever runs
+// for edits, and editing an old transaction is not a first transaction.
+onCreated(reload)
+
 const closeModal = () => {
   modalOpen.value = false
-  flushCelebration()
 }
 
-const onImported = async () => {
-  await Promise.all([loadAccounts(), loadTransactions(), loadTags()])
-}
+const onImported = reload
 
 const openReconciliationModal = () => {
   if (selectedAccountId.value === null) return
@@ -490,18 +483,16 @@ const transferLabel = (tx: TransactionDetail) => {
                   <AppButton size="sm" variant="secondary" icon="upload_file" @click="importModalOpen = true">{{ t('transactions.actions.import') }}</AppButton>
                   <AppButton size="sm" variant="secondary" icon="download" :loading="isExporting" @click="exportTransactions">{{ t('transactions.actions.export') }}</AppButton>
                 </div>
-                <div class="grid grid-cols-2 gap-2">
-                  <AppButton
-                    size="sm"
-                    variant="secondary"
-                    icon="fact_check"
-                    :disabled="selectedAccountId === null"
-                    @click="openReconciliationModal"
-                  >{{ t('reconciliation.actions.start') }}</AppButton>
-                  <CoachMark coach-key="transactions" :text="t('onboarding.coach.transactions')" placement="bottom">
-                    <AppButton block icon="add" @click="openCreate">{{ t('transactions.actions.add') }}</AppButton>
-                  </CoachMark>
-                </div>
+                <!-- Reconciling is now alone on its row (adding moved to the
+                     header), so it spans the width instead of leaving a gap. -->
+                <AppButton
+                  block
+                  size="sm"
+                  variant="secondary"
+                  icon="fact_check"
+                  :disabled="selectedAccountId === null"
+                  @click="openReconciliationModal"
+                >{{ t('reconciliation.actions.start') }}</AppButton>
               </div>
               <div class="hidden h-full items-end justify-end gap-2 lg:flex">
                 <AppButton variant="secondary" icon="upload_file" @click="importModalOpen = true">{{ t('transactions.actions.import') }}</AppButton>
@@ -512,9 +503,6 @@ const transferLabel = (tx: TransactionDetail) => {
                   :disabled="selectedAccountId === null"
                   @click="openReconciliationModal"
                 >{{ t('reconciliation.actions.start') }}</AppButton>
-                <CoachMark coach-key="transactions" :text="t('onboarding.coach.transactions')" placement="bottom">
-                  <AppButton icon="add" @click="openCreate">{{ t('transactions.actions.add') }}</AppButton>
-                </CoachMark>
               </div>
             </div>
           </div>
@@ -866,10 +854,10 @@ const transferLabel = (tx: TransactionDetail) => {
 
     <AddTransactionModal
       :is-open="modalOpen"
-      :mode="modalMode"
+      mode="edit"
       :transaction="editingTransaction"
       @close="closeModal"
-      @saved="onSaved"
+      @saved="reload"
     />
 
     <ImportModal
