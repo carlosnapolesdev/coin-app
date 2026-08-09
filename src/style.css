@@ -95,11 +95,11 @@
     --ambient-1: rgba(92, 122, 20, 0.10);
     --ambient-2: rgba(15, 107, 100, 0.14);
 
-    /* Watermark — azulejo 54×108, marca centrada en la mitad superior. Se
-       repite en dos capas (ver .wm-pattern) para formar un tresbolillo uniforme
+    /* Watermark — azulejo cuadrado 76×76 con la marca centrada. Se repite en
+       dos capas (ver .wm-pattern) para formar un tresbolillo uniforme
        independiente del viewport. Color/intensidad por modo; las piezas del
        logo (paths y stroke-width) replican verbatim el favicon. */
-    --wm-logo: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='54'%20height='108'%20viewBox='0%200%2054%20108'%20fill='none'%20stroke='%230F6B64'%20opacity='.05'%20stroke-linecap='round'%3E%3Cg%20transform='translate(27%2027)%20scale(1.336)%20translate(-16.03%20-16.99)'%3E%3Cpath%20d='M18.4%208%20A9.3%209.3%200%201%200%2025.3%2016.2'%20stroke-width='2.6'/%3E%3Cpath%20d='M12.75%2017.7%20L15.85%2014.6%20L18.65%2016.9%20L23.75%2011.27'%20stroke-width='2.8'%20stroke-linejoin='round'/%3E%3Cpath%20d='M25.9%208.9%20L25.38%2012.75%20L22.12%209.79%20Z'%20fill='%230F6B64'%20stroke-width='1'%20stroke-linejoin='round'/%3E%3C/g%3E%3C/svg%3E");
+    --wm-logo: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='76'%20height='76'%20viewBox='0%200%2076%2076'%20fill='none'%20stroke='%230F6B64'%20opacity='.05'%20stroke-linecap='round'%3E%3Cg%20transform='translate(38%2038)%20scale(1.336)%20translate(-16.03%20-16.99)'%3E%3Cpath%20d='M18.4%208%20A9.3%209.3%200%201%200%2025.3%2016.2'%20stroke-width='2.6'/%3E%3Cpath%20d='M12.75%2017.7%20L15.85%2014.6%20L18.65%2016.9%20L23.75%2011.27'%20stroke-width='2.8'%20stroke-linejoin='round'/%3E%3Cpath%20d='M25.9%208.9%20L25.38%2012.75%20L22.12%209.79%20Z'%20fill='%230F6B64'%20stroke-width='1'%20stroke-linejoin='round'/%3E%3C/g%3E%3C/svg%3E");
 
     /* Paneles translúcidos (Sidebar, TopHeader) — tinte leve de surface */
     --panel-alpha: 0.5;
@@ -168,8 +168,14 @@
     --ambient-1: rgba(200, 255, 77, 0.05);
     --ambient-2: rgba(23, 160, 145, 0.06);
 
-    /* Watermark — el logo en trazo salvia claro sobre el negro-verdoso */
-    --wm-logo: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='54'%20height='108'%20viewBox='0%200%2054%20108'%20fill='none'%20stroke='%23EDF1EC'%20opacity='.06'%20stroke-linecap='round'%3E%3Cg%20transform='translate(27%2027)%20scale(1.336)%20translate(-16.03%20-16.99)'%3E%3Cpath%20d='M18.4%208%20A9.3%209.3%200%201%200%2025.3%2016.2'%20stroke-width='2.6'/%3E%3Cpath%20d='M12.75%2017.7%20L15.85%2014.6%20L18.65%2016.9%20L23.75%2011.27'%20stroke-width='2.8'%20stroke-linejoin='round'/%3E%3Cpath%20d='M25.9%208.9%20L25.38%2012.75%20L22.12%209.79%20Z'%20fill='%23EDF1EC'%20stroke-width='1'%20stroke-linejoin='round'/%3E%3C/g%3E%3C/svg%3E");
+    /* Watermark — el logo en trazo salvia claro sobre el negro-verdoso.
+       Alfa .03, no .05 como en claro: el mismo alfa no rinde igual sobre
+       #0A0E0C que sobre #ECF3EE. A .06 la marca se separaba ΔL* 5,9 del
+       lienzo frente a los 2,7 del tema claro — el doble de presente. Con .03
+       queda en 2,6 y ambos temas pesan igual (lo fija el test de paridad en
+       components/ui/brand-assets.test.ts). Sigue habiendo ~7 niveles de 8 bits
+       entre marca y fondo, así que no hay riesgo de banding. */
+    --wm-logo: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='76'%20height='76'%20viewBox='0%200%2076%2076'%20fill='none'%20stroke='%23EDF1EC'%20opacity='.03'%20stroke-linecap='round'%3E%3Cg%20transform='translate(38%2038)%20scale(1.336)%20translate(-16.03%20-16.99)'%3E%3Cpath%20d='M18.4%208%20A9.3%209.3%200%201%200%2025.3%2016.2'%20stroke-width='2.6'/%3E%3Cpath%20d='M12.75%2017.7%20L15.85%2014.6%20L18.65%2016.9%20L23.75%2011.27'%20stroke-width='2.8'%20stroke-linejoin='round'/%3E%3Cpath%20d='M25.9%208.9%20L25.38%2012.75%20L22.12%209.79%20Z'%20fill='%23EDF1EC'%20stroke-width='1'%20stroke-linejoin='round'/%3E%3C/g%3E%3C/svg%3E");
 
     --panel-alpha: 0.35;
   }
@@ -327,16 +333,20 @@
     background-color: rgb(var(--color-surface) / var(--panel-alpha));
   }
 
-  /* Watermark de logo — patrón teselado uniforme (tresbolillo). El azulejo
-     --wm-logo (54×108, marca en su mitad superior) se repite en dos capas: la
-     segunda desplazada media fila (27px, 54px) rellena entre filas y produce el
-     medio desfase. Independiente de la resolución: sin media queries. El azulejo
-     es transparente salvo la marca, así que el glow ambiental asoma por los huecos. */
+  /* Watermark de logo — retícula al tresbolillo, isótropa. El azulejo --wm-logo
+     (76×76, marca centrada) se repite en dos capas: la segunda desplazada media
+     celda en AMBOS ejes (38px, 38px). Al ser el desfase simétrico, filas y
+     columnas se leen igual — antes el azulejo 54×108 desfasaba solo en vertical
+     y las filas horizontales quedaban perfectamente alineadas, delatando la
+     cuadrícula. Misma densidad que aquel (1 marca por ~2890px²) y misma
+     distancia al vecino más próximo (~54px). Independiente de la resolución:
+     sin media queries. El azulejo es transparente salvo la marca, así que el
+     glow ambiental asoma por los huecos. */
   .wm-pattern {
     background-image: var(--wm-logo), var(--wm-logo);
     background-repeat: repeat, repeat;
-    background-size: 54px 108px, 54px 108px;
-    background-position: 0 0, 27px 54px;
+    background-size: 76px 76px, 76px 76px;
+    background-position: 0 0, 38px 38px;
   }
 }
 
