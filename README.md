@@ -96,7 +96,7 @@ npm test
 
 ## Docker & deployment
 
-The multi-stage `Dockerfile` builds the static site (`node:22-alpine`) and serves it with `nginx:alpine`. It ships behind the same Caddy edge as `coin-api`, on the **same origin** as the API (`crecik.com` serves the app, `crecik.com/api/*` proxies to `coin-api`) — this is why the axios client defaults to the relative `/api` and no build-time API URL is normally needed.
+The multi-stage `Dockerfile` builds the static site (`node:26-alpine`) and serves it with `nginx:alpine`. It ships behind the same Caddy edge as `coin-api`, on the **same origin** as the API (`crecik.com` serves the app, `crecik.com/api/*` proxies to `coin-api`) — this is why the axios client defaults to the relative `/api` and no build-time API URL is normally needed.
 
 - SPA fallback (`try_files $uri $uri/ /index.html`) with immutable caching for fingerprinted `/assets/*` and `no-cache` on `index.html`.
 - Baseline security headers (`X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`) applied to every response via an nginx snippet.
